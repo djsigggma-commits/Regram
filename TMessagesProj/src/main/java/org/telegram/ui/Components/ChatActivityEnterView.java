@@ -122,8 +122,8 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import org.telegram.ui.recyclerview.ChatListItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import app.regram.chats.LinkedCustomEmoji;
 import app.regram.components.ChatActivityEnterViewStaticIconView;
-
 import org.jetbrains.annotations.NotNull;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -661,6 +661,7 @@ public class ChatActivityEnterView extends FrameLayout implements
     private RLottieImageView recordDeleteImageView;
     protected RecordedAudioPlayerView audioTimelineView;
     private long millisecondsRecorded;
+    private boolean roundVideoUiFrameClockActive;
     @Nullable
     private SlideTextView slideText;
     @Nullable
@@ -726,6 +727,24 @@ public class ChatActivityEnterView extends FrameLayout implements
     private BusinessLinkPresetMessage lastSavedBusinessLinkMessage;
 
     private TLRPC.ChatFull info;
+
+    private static class PendingCustomEmojiStickerSend {
+        final TLRPC.Document document;
+        final String emoticon;
+        final boolean notify;
+        final int scheduleDate;
+        final int scheduleRepeatPeriod;
+
+        private PendingCustomEmojiStickerSend(TLRPC.Document document, String emoticon, boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
+            this.document = document;
+            this.emoticon = emoticon;
+            this.notify = notify;
+            this.scheduleDate = scheduleDate;
+            this.scheduleRepeatPeriod = scheduleRepeatPeriod;
+        }
+    }
+
+    private final HashMap<String, ArrayList<PendingCustomEmojiStickerSend>> pendingCustomEmojiStickerSends = new HashMap<>();
 
     private boolean hasRecordVideo;
 
@@ -1048,6 +1067,8 @@ public class ChatActivityEnterView extends FrameLayout implements
         boolean playing;
         RLottieDrawable drawable;
         private boolean enterAnimation;
+        private boolean externalFrameClock;
+        private long externalBlinkStartMs = -1L;
 
         @Override
         protected void onAttachedToWindow() {
@@ -1078,22 +1099,51 @@ public class ChatActivityEnterView extends FrameLayout implements
         public void updateColors() {
             int dotColor = getThemedColor(Theme.key_chat_recordedVoiceDot);
             int background = getThemedColor(Theme.key_chat_messagePanelBackground);
+            int greyColor = getThemedColor(Theme.key_chat_messagePanelVoiceDelete);
             redDotPaint.setColor(dotColor);
             drawable.beginApplyLayerColors();
             drawable.setLayerColor("Cup Red", dotColor);
-            drawable.setLayerColor("Box", dotColor);
-            drawable.setLayerColor("Line 1", background);
-            drawable.setLayerColor("Line 2", background);
-            drawable.setLayerColor("Line 3", background);
+            drawable.setLayerColor("Box Red", dotColor);
+            drawable.setLayerColor("Cup Grey", greyColor);
+            drawable.setLayerColor("Box Grey", greyColor);
+            drawable.setLayerColor("Box_Grey 2", greyColor);
+            drawable.setLayerColor("Line 1", greyColor);
+            drawable.setLayerColor("Line 2", greyColor);
+            drawable.setLayerColor("Line 3", greyColor);
+            drawable.setLayerColor("Line 1 Dup", background);
+            drawable.setLayerColor("Line 2 Dup", background);
+            drawable.setLayerColor("Line 3 Dup", background);
             drawable.commitApplyLayerColors();
         }
 
         public void resetAlpha() {
             alpha = 1.0f;
             lastUpdateTime = System.currentTimeMillis();
+            externalBlinkStartMs = -1L;
             isIncr = false;
             playing = false;
             drawable.stop();
+            invalidate();
+        }
+
+        void setExternalFrameClock(boolean enabled) {
+            externalFrameClock = enabled;
+            lastUpdateTime = System.currentTimeMillis();
+            externalBlinkStartMs = -1L;
+            invalidate();
+        }
+
+        void onExternalFrame(long durationMs) {
+            if (!externalFrameClock) return;
+            if (enterAnimation || externalBlinkStartMs < 0L) {
+                externalBlinkStartMs = durationMs;
+                alpha = 1f;
+            } else if (!playing) {
+                long phaseMs = Math.max(0L, durationMs - externalBlinkStartMs) % 1200L;
+                alpha = phaseMs < 600L
+                        ? 1f - phaseMs / 600f
+                        : (phaseMs - 600L) / 600f;
+            }
             invalidate();
         }
 
@@ -1110,32 +1160,35 @@ public class ChatActivityEnterView extends FrameLayout implements
             }
             redDotPaint.setAlpha((int) (255 * alpha));
 
-            long dt = (System.currentTimeMillis() - lastUpdateTime);
-            if (enterAnimation) {
-                alpha = 1;
-            } else {
-                if (!isIncr && !playing) {
-                    alpha -= dt / 600.0f;
-                    if (alpha <= 0) {
-                        alpha = 0;
-                        isIncr = true;
-                    }
+            if (!externalFrameClock) {
+                long now = System.currentTimeMillis();
+                long dt = now - lastUpdateTime;
+                if (enterAnimation) {
+                    alpha = 1;
                 } else {
-                    alpha += dt / 600.0f;
-                    if (alpha >= 1) {
-                        alpha = 1;
-                        isIncr = false;
+                    if (!isIncr && !playing) {
+                        alpha -= dt / 600.0f;
+                        if (alpha <= 0) {
+                            alpha = 0;
+                            isIncr = true;
+                        }
+                    } else {
+                        alpha += dt / 600.0f;
+                        if (alpha >= 1) {
+                            alpha = 1;
+                            isIncr = false;
+                        }
                     }
                 }
+                lastUpdateTime = now;
             }
-            lastUpdateTime = System.currentTimeMillis();
             if (playing) {
                 drawable.draw(canvas);
             }
             if (!playing || !drawable.hasBitmap()) {
                 canvas.drawCircle(this.getMeasuredWidth() >> 1, this.getMeasuredHeight() >> 1, dp(5), redDotPaint);
             }
-            invalidate();
+            if (!externalFrameClock) invalidate();
         }
 
         public void playDeleteAnimation() {
@@ -2671,6 +2724,8 @@ public class ChatActivityEnterView extends FrameLayout implements
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateBotMenuButton);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didUpdatePremiumGiftFieldIcon);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileLoaded);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileLoadFailed);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
 
         parentActivity = context;
@@ -6225,8 +6280,9 @@ public class ChatActivityEnterView extends FrameLayout implements
             final int mimeCount = clipDescription == null ? 0 : clipDescription.getMimeTypeCount();
             final String mime = mimeCount == 0 ? null : clipDescription.getMimeType(Math.min(i, mimeCount - 1));
             // одиночный gif/webp-стикер прямо из клавиатуры уходит в чат без редактора
+            final boolean isGboardSticker = clipDescription != null && clipDescription.getExtras() != null && clipDescription.getExtras().getBoolean("com.google.android.inputmethod.content.IS_STICKER");
             final boolean sendAsIs = payload.getSource() == ContentInfoCompat.SOURCE_INPUT_METHOD && clip.getItemCount() == 1
-                    && ((mime != null && mime.equalsIgnoreCase("image/gif")) || SendMessagesHelper.shouldSendWebPAsSticker(null, uri));
+                    && ((mime != null && mime.equalsIgnoreCase("image/gif")) || isGboardSticker || (mime != null && mime.equalsIgnoreCase("image/webp") && SendMessagesHelper.shouldSendWebPAsSticker(null, uri)));
             if (!sendAsIs) {
                 final SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
                 info.uri = uri;
@@ -6561,6 +6617,27 @@ public class ChatActivityEnterView extends FrameLayout implements
         if (parentFragment != null && !isEditingBusinessLink() && !isLiveComment) {
             ViewCompat.setOnReceiveContentListener(messageEditText, RECEIVE_CONTENT_MIME_TYPES, (view, payload) -> onReceiveMediaContent(payload));
         }
+        messageEditText.setInlineMath(new app.regram.math.InlineMathController(messageEditText, new app.regram.math.InlineMathController.Delegate() {
+            @Override
+            public int accentColor() {
+                return getThemedColor(Theme.key_chat_messagePanelCursor);
+            }
+
+            @Override
+            public int account() {
+                return currentAccount;
+            }
+
+            @Override
+            public void runProgrammatic(Runnable action) {
+                innerTextChange = 2;
+                try {
+                    action.run();
+                } finally {
+                    innerTextChange = 0;
+                }
+            }
+        }));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             messageEditText.setFallbackLineSpacing(false);
         }
@@ -7486,6 +7563,9 @@ public class ChatActivityEnterView extends FrameLayout implements
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateBotMenuButton);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didUpdatePremiumGiftFieldIcon);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.currentUserPremiumStatusChanged);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileLoaded);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileLoadFailed);
+        pendingCustomEmojiStickerSends.clear();
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
         if (emojiView != null) {
             emojiView.onDestroy();
@@ -7669,6 +7749,9 @@ public class ChatActivityEnterView extends FrameLayout implements
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.featuredStickersDidLoad);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.messageReceivedByServer2);
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.sendingMessagesChanged);
+            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileLoaded);
+            NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.fileLoadFailed);
+            pendingCustomEmojiStickerSends.clear();
             currentAccount = account;
             accountInstance = AccountInstance.getInstance(currentAccount);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.recordStarted);
@@ -7685,6 +7768,8 @@ public class ChatActivityEnterView extends FrameLayout implements
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.featuredStickersDidLoad);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.messageReceivedByServer2);
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.sendingMessagesChanged);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileLoaded);
+            NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.fileLoadFailed);
         }
 
         sendPlainEnabled = true;
@@ -8638,7 +8723,7 @@ public class ChatActivityEnterView extends FrameLayout implements
         if (message == null || parentFragment == null) {
             return false;
         }
-        final boolean isPremium = UserConfig.getInstance(currentAccount).isPremium();
+        final boolean isPremium = UserConfig.getInstance(currentAccount).isPremium() || LinkedCustomEmoji.canSend(currentAccount);
         if (!isPremium && UserConfig.getInstance(currentAccount).getClientUserId() != dialogId && message instanceof Spanned) {
             AnimatedEmojiSpan[] animatedEmojis = ((Spanned) message).getSpans(0, message.length(), AnimatedEmojiSpan.class);
             if (animatedEmojis != null) {
@@ -11715,10 +11800,13 @@ public class ChatActivityEnterView extends FrameLayout implements
             recordDeleteImageView.setLayerColor("Box Red", dotColor);
             recordDeleteImageView.setLayerColor("Cup Grey", greyColor);
             recordDeleteImageView.setLayerColor("Box Grey", greyColor);
-
-            recordDeleteImageView.setLayerColor("Line 1", background);
-            recordDeleteImageView.setLayerColor("Line 2", background);
-            recordDeleteImageView.setLayerColor("Line 3", background);
+            recordDeleteImageView.setLayerColor("Box_Grey 2", greyColor);
+            recordDeleteImageView.setLayerColor("Line 1", greyColor);
+            recordDeleteImageView.setLayerColor("Line 2", greyColor);
+            recordDeleteImageView.setLayerColor("Line 3", greyColor);
+            recordDeleteImageView.setLayerColor("Line 1 Dup", background);
+            recordDeleteImageView.setLayerColor("Line 2 Dup", background);
+            recordDeleteImageView.setLayerColor("Line 3 Dup", background);
         }
     }
 
@@ -11759,6 +11847,31 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         messageEditText.setSelection(start, messageEditText.length());
+    }
+
+    /** Synchronizes the video timeline with an external trim control. */
+    public void setVideoTimelineTrim(float start, float end) {
+        if (videoTimelineView != null) {
+            videoTimelineView.setTrimProgress(start, end);
+        }
+    }
+
+    /** Selects camera-preview-driven animation ticks for the new round-video recorder. */
+    public void setRoundVideoUiFrameClockActive(boolean active) {
+        if (roundVideoUiFrameClockActive == active) return;
+        roundVideoUiFrameClockActive = active;
+        if (recordTimerView != null) recordTimerView.setExternalFrameClock(active);
+        if (recordDot != null) recordDot.setExternalFrameClock(active);
+        if (slideText != null) slideText.setExternalFrameClock(active);
+    }
+
+    /** Advances recording UI on the frame consumed by the camera preview TextureView. */
+    public void onRoundVideoUiFrame(long durationMs) {
+        if (!roundVideoUiFrameClockActive) return;
+        millisecondsRecorded = durationMs;
+        if (recordTimerView != null) recordTimerView.onExternalFrame(durationMs);
+        if (recordDot != null) recordDot.onExternalFrame(durationMs);
+        if (slideText != null) slideText.onExternalFrame();
     }
 
     public int getCursorPosition() {
@@ -13140,6 +13253,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             emojiView.updateColors();
         }
         emojiView.setAllow(allowStickers, allowGifs, true);
+        emojiView.allowLocalPremiumEmojis(LinkedCustomEmoji.canSend(currentAccount));
         emojiView.setVisibility(GONE);
         emojiView.setShowing(false);
         if (windowInsetsInAppController != null) {
@@ -13189,6 +13303,33 @@ public class ChatActivityEnterView extends FrameLayout implements
                 } finally {
                     innerTextChange = 0;
                 }
+            }
+
+            @Override
+            public boolean allowNonPremiumCustomEmoji() {
+                return !UserConfig.getInstance(currentAccount).isPremium()
+                    && NaConfig.INSTANCE.getSendLockedCustomEmojiAsSticker().Bool()
+                    && dialog_id != UserConfig.getInstance(currentAccount).getClientUserId();
+            }
+
+            @Override
+            public boolean canShowNonPremiumCustomEmoji(TLRPC.Document document) {
+                return allowNonPremiumCustomEmoji()
+                    && document != null
+                    && !ChatActivityEnterView.this.isGroupEmojiDocument(document)
+                    && ChatActivityEnterView.this.isCustomEmojiStickerMime(document);
+            }
+
+            @Override
+            public boolean onNonPremiumCustomEmojiSelected(long documentId, TLRPC.Document document, String emoticon, boolean isRecent) {
+                if (!canShowNonPremiumCustomEmoji(document)) {
+                    return false;
+                }
+                if (!stickersEnabled) {
+                    ChatActivityEnterView.this.showRestrictedHint();
+                    return true;
+                }
+                return ChatActivityEnterView.this.sendCustomEmojiAsUploadedSticker(document, emoticon, true, 0, 0);
             }
 
             public void onCustomEmojiSelected(long documentId, TLRPC.Document document, String emoticon, boolean isRecent) {
@@ -13882,6 +14023,170 @@ public class ChatActivityEnterView extends FrameLayout implements
         }
         attachEmojiView();
         checkChannelRights();
+    }
+
+    private boolean isGroupEmojiDocument(TLRPC.Document document) {
+        if (document == null || info == null || info.emojiset == null) {
+            return false;
+        }
+        TLRPC.InputStickerSet inputStickerSet = MessageObject.getInputStickerSet(document);
+        return inputStickerSet instanceof TLRPC.TL_inputStickerSetID && ((TLRPC.TL_inputStickerSetID) inputStickerSet).id == info.emojiset.id;
+    }
+
+    private boolean isCustomEmojiStickerMime(TLRPC.Document document) {
+        if (document == null) {
+            return false;
+        }
+        String mimeType = document.mime_type != null ? document.mime_type : "";
+        return "image/webp".equals(mimeType) || "video/webm".equals(mimeType);
+    }
+
+    private boolean sendCustomEmojiAsUploadedSticker(TLRPC.Document customEmojiDocument, String emoticon, boolean notify, int scheduleDate, int scheduleRepeatPeriod) {
+        if (isLiveComment) {
+            return false;
+        }
+        if (replyingQuote != null && parentFragment != null && replyingQuote.outdated) {
+            parentFragment.showQuoteMessageUpdate();
+            return false;
+        }
+        if (customEmojiDocument == null) {
+            return false;
+        }
+
+        final String sourceMime = customEmojiDocument.mime_type != null ? customEmojiDocument.mime_type : "";
+        if (!isCustomEmojiStickerMime(customEmojiDocument)) {
+            return false;
+        }
+
+        if (isInScheduleMode() && scheduleDate == 0) {
+            AlertsCreator.createScheduleDatePickerDialog(parentActivity, parentFragment.getDialogId(), (n, s, r) -> sendCustomEmojiAsUploadedSticker(customEmojiDocument, emoticon, n, s, r), resourcesProvider);
+            return true;
+        }
+        if (slowModeTimer > 0 && !isInScheduleMode()) {
+            if (delegate != null) {
+                delegate.onUpdateSlowModeButton(slowModeButton, true, slowModeButton.getText());
+            }
+            return true;
+        }
+
+        File file = FileLoader.getInstance(currentAccount).getPathToAttach(customEmojiDocument);
+        if (file == null || !file.exists()) {
+            File cacheFile = FileLoader.getInstance(currentAccount).getPathToAttach(customEmojiDocument, true);
+            if (cacheFile != null && cacheFile.exists()) {
+                file = cacheFile;
+            }
+        }
+        if (file == null || !file.exists()) {
+            String fileName = FileLoader.getAttachFileName(customEmojiDocument);
+            if (TextUtils.isEmpty(fileName)) {
+                return false;
+            }
+            ArrayList<PendingCustomEmojiStickerSend> pendingSends = pendingCustomEmojiStickerSends.get(fileName);
+            boolean shouldLoadFile = pendingSends == null;
+            if (pendingSends == null) {
+                pendingSends = new ArrayList<>();
+                pendingCustomEmojiStickerSends.put(fileName, pendingSends);
+            }
+            pendingSends.add(new PendingCustomEmojiStickerSend(customEmojiDocument, emoticon, notify, scheduleDate, scheduleRepeatPeriod));
+            if (shouldLoadFile) {
+                FileLoader.getInstance(currentAccount).loadFile(customEmojiDocument, null, FileLoader.PRIORITY_NORMAL, 1);
+            }
+            return true;
+        }
+
+        final File fileFinal = file;
+        final String uploadMimeFinal = sourceMime;
+        AlertsCreator.ensurePaidMessageConfirmation(currentAccount, dialog_id, 1, stars -> {
+            Runnable runnable = () -> {
+                if (delegate != null) {
+                    delegate.beforeMessageSend(null, notify, scheduleDate, stars);
+                }
+                if (searchingType != 0) {
+                    setSearchingTypeInternal(0, true);
+                    emojiView.closeSearch(true);
+                    emojiView.hideSearchKeyboard();
+                }
+                setStickersExpanded(false, true, false);
+                final TL_stories.StoryItem storyItem = delegate != null ? delegate.getReplyToStory() : null;
+
+                TLRPC.TL_document uploadDocument = new TLRPC.TL_document();
+                uploadDocument.id = 0;
+                uploadDocument.date = accountInstance.getConnectionsManager().getCurrentTime();
+                uploadDocument.file_reference = new byte[0];
+                uploadDocument.size = fileFinal.length();
+                uploadDocument.dc_id = 0;
+                uploadDocument.mime_type = uploadMimeFinal;
+
+                TLRPC.TL_documentAttributeFilename fileName = new TLRPC.TL_documentAttributeFilename();
+                fileName.file_name = "video/webm".equals(uploadDocument.mime_type) ? "sticker.webm" : "sticker.webp";
+                uploadDocument.attributes.add(fileName);
+
+                boolean hasStickerAttribute = false;
+                boolean hasAnimatedAttribute = false;
+                boolean hasVideoAttribute = false;
+                int videoW = 512;
+                int videoH = 512;
+                for (int i = 0; i < customEmojiDocument.attributes.size(); i++) {
+                    TLRPC.DocumentAttribute attribute = customEmojiDocument.attributes.get(i);
+                    if (attribute instanceof TLRPC.TL_documentAttributeCustomEmoji || attribute instanceof TLRPC.TL_documentAttributeSticker) {
+                        TLRPC.TL_documentAttributeSticker stickerAttribute = new TLRPC.TL_documentAttributeSticker();
+                        stickerAttribute.alt = !TextUtils.isEmpty(emoticon) ? emoticon : attribute.alt;
+                        stickerAttribute.stickerset = new TLRPC.TL_inputStickerSetEmpty();
+                        uploadDocument.attributes.add(stickerAttribute);
+                        hasStickerAttribute = true;
+                    } else {
+                        if (attribute instanceof TLRPC.TL_documentAttributeFilename) {
+                            continue;
+                        }
+                        if (attribute instanceof TLRPC.TL_documentAttributeAnimated) {
+                            hasAnimatedAttribute = true;
+                        } else if (attribute instanceof TLRPC.TL_documentAttributeVideo) {
+                            hasVideoAttribute = true;
+                            videoW = Math.max(1, attribute.w);
+                            videoH = Math.max(1, attribute.h);
+                        }
+                        uploadDocument.attributes.add(attribute);
+                    }
+                }
+                if (!hasStickerAttribute) {
+                    TLRPC.TL_documentAttributeSticker stickerAttribute = new TLRPC.TL_documentAttributeSticker();
+                    stickerAttribute.alt = emoticon != null ? emoticon : "";
+                    stickerAttribute.stickerset = new TLRPC.TL_inputStickerSetEmpty();
+                    uploadDocument.attributes.add(stickerAttribute);
+                }
+
+                if ("video/webm".equals(uploadDocument.mime_type)) {
+                    if (!hasVideoAttribute) {
+                        TLRPC.TL_documentAttributeVideo videoAttribute = new TLRPC.TL_documentAttributeVideo();
+                        videoAttribute.w = videoW;
+                        videoAttribute.h = videoH;
+                        videoAttribute.duration = 0;
+                        uploadDocument.attributes.add(videoAttribute);
+                    }
+                    if (!hasAnimatedAttribute) {
+                        uploadDocument.attributes.add(new TLRPC.TL_documentAttributeAnimated());
+                    }
+                }
+
+                SendMessagesHelper.SendMessageParams sendMessageParams = SendMessagesHelper.SendMessageParams.of(uploadDocument, null, fileFinal.getAbsolutePath(), dialog_id, replyingMessageObject, getThreadMessage(), null, null, null, null, notify, scheduleDate, scheduleRepeatPeriod, 0, null, null, false);
+                sendMessageParams.replyToStoryItem = storyItem;
+                sendMessageParams.replyQuote = replyingQuote;
+                sendMessageParams.quick_reply_shortcut = parentFragment != null ? parentFragment.quickReplyShortcut : null;
+                sendMessageParams.quick_reply_shortcut_id = parentFragment != null ? parentFragment.getQuickReplyId() : 0;
+                sendMessageParams.payStars = stars;
+                sendMessageParams.monoForumPeer = getSendMonoForumPeerId();
+                sendMessageParams.suggestionParams = getSendMessageSuggestionParams();
+                SendMessagesHelper.getInstance(currentAccount).sendMessage(sendMessageParams);
+
+                if (delegate != null) {
+                    delegate.onMessageSend(null, notify, scheduleDate, scheduleRepeatPeriod, stars);
+                }
+            };
+            if (!showConfirmAlert(runnable)) {
+                runnable.run();
+            }
+        });
+        return true;
     }
 
     @Override
@@ -14685,6 +14990,16 @@ public class ChatActivityEnterView extends FrameLayout implements
     @SuppressWarnings("unchecked")
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.fileLoaded || id == NotificationCenter.fileLoadFailed) {
+            ArrayList<PendingCustomEmojiStickerSend> pendingSends = args[0] instanceof String ? pendingCustomEmojiStickerSends.remove(args[0]) : null;
+            if (pendingSends != null && id == NotificationCenter.fileLoaded) {
+                for (int i = 0; i < pendingSends.size(); i++) {
+                    PendingCustomEmojiStickerSend pendingSend = pendingSends.get(i);
+                    sendCustomEmojiAsUploadedSticker(pendingSend.document, pendingSend.emoticon, pendingSend.notify, pendingSend.scheduleDate, pendingSend.scheduleRepeatPeriod);
+                }
+            }
+            return;
+        }
         if (id == NotificationCenter.emojiLoaded) {
             if (emojiView != null) {
                 emojiView.invalidateViews();
@@ -15374,7 +15689,18 @@ public class ChatActivityEnterView extends FrameLayout implements
         StaticLayout cancelLayout;
 
         private boolean pressed;
+        private boolean externalFrameClock;
         public Rect cancelRect = new Rect();
+
+        void setExternalFrameClock(boolean enabled) {
+            externalFrameClock = enabled;
+            lastUpdateTime = System.currentTimeMillis();
+            invalidate();
+        }
+
+        void onExternalFrame() {
+            if (externalFrameClock && cancelToProgress != 1f) invalidate();
+        }
 
         Drawable selectableBackground;
         private int lastSize;
@@ -15601,7 +15927,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 setPressed(false);
             }
 
-            if (cancelToProgress != 1) {
+            if (cancelToProgress != 1 && !externalFrameClock) {
                 invalidate();
             }
         }
@@ -15628,6 +15954,9 @@ public class ChatActivityEnterView extends FrameLayout implements
         long startTime;
         long stopTime;
         long lastSendTypingTime;
+        long externalElapsedMs;
+        long lastDrawRealtimeMs;
+        boolean externalFrameClock;
 
         SpannableStringBuilder replaceIn = new SpannableStringBuilder();
         SpannableStringBuilder replaceOut = new SpannableStringBuilder();
@@ -15649,7 +15978,20 @@ public class ChatActivityEnterView extends FrameLayout implements
         public void start(long milliseconds) {
             isRunning = true;
             startTime = System.currentTimeMillis() - milliseconds;
+            externalElapsedMs = milliseconds;
             lastSendTypingTime = startTime;
+            invalidate();
+        }
+
+        void setExternalFrameClock(boolean enabled) {
+            externalFrameClock = enabled;
+            lastDrawRealtimeMs = SystemClock.elapsedRealtime();
+            invalidate();
+        }
+
+        void onExternalFrame(long durationMs) {
+            if (!externalFrameClock) return;
+            externalElapsedMs = durationMs;
             invalidate();
         }
 
@@ -15674,7 +16016,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                 textPaint.setColor(getThemedColor(Theme.key_chat_recordTime));
             }
             long currentTimeMillis = System.currentTimeMillis();
-            long t = isRunning ? (currentTimeMillis - startTime) : stopTime - startTime;
+            long t = isRunning
+                    ? externalFrameClock ? externalElapsedMs : currentTimeMillis - startTime
+                    : stopTime - startTime;
             long time = t / 1000;
             int ms = (int) (t % 1000L) / 10;
 
@@ -15762,8 +16106,13 @@ public class ChatActivityEnterView extends FrameLayout implements
                 }
             }
 
+            long drawRealtimeMs = SystemClock.elapsedRealtime();
+            long drawDeltaMs = lastDrawRealtimeMs == 0L
+                    ? 16L
+                    : Math.min(50L, drawRealtimeMs - lastDrawRealtimeMs);
+            lastDrawRealtimeMs = drawRealtimeMs;
             if (replaceTransition != 0) {
-                replaceTransition -= 0.15f;
+                replaceTransition -= drawDeltaMs / 116f;
                 if (replaceTransition < 0f) {
                     replaceTransition = 0f;
                 }
@@ -15808,7 +16157,7 @@ public class ChatActivityEnterView extends FrameLayout implements
 
             oldString = newString;
 
-            if (isRunning || replaceTransition != 0) {
+            if ((isRunning || replaceTransition != 0) && !externalFrameClock) {
                 invalidate();
             }
         }
@@ -15826,6 +16175,8 @@ public class ChatActivityEnterView extends FrameLayout implements
         public void reset() {
             isRunning = false;
             stopTime = startTime = 0;
+            externalElapsedMs = 0;
+            lastDrawRealtimeMs = 0;
             stoppedInternal = false;
         }
     }

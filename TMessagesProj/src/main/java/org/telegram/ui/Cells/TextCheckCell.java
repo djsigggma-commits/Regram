@@ -117,12 +117,14 @@ public class TextCheckCell extends FrameLayout {
         this.defaultPaddingDp = padding;
 
         textView = new TextView(context);
+        textView.setTypeface(AndroidUtilities.regular());
         textView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogTextBlack : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 70 : padding, 0, LocaleController.isRTL ? padding : 70, 0));
 
         valueTextView = new TextView(context);
+        valueTextView.setTypeface(AndroidUtilities.regular());
         valueTextView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogIcon : Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
@@ -158,6 +160,8 @@ public class TextCheckCell extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (isMultiline) {
+            textView.setTranslationY(0);
+            valueTextView.setTranslationY(0);
             final int exactWidth = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY);
             final int freeHeight = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
             super.onMeasure(exactWidth, freeHeight);
@@ -175,7 +179,13 @@ public class TextCheckCell extends FrameLayout {
                 }
             }
         } else {
-            final int fixed = AndroidUtilities.dp(valueTextView.getVisibility() == VISIBLE ? 64 : height);
+            final boolean detail = valueTextView.getVisibility() == VISIBLE;
+            final float shift = detail ? AndroidUtilities.dp(app.regram.appearance.M3ListItems.detailRowHeight(64) - 64) / 2f : 0;
+            textView.setTranslationY(shift);
+            valueTextView.setTranslationY(shift);
+            final int fixed = AndroidUtilities.dp(detail
+                    ? app.regram.appearance.M3ListItems.detailRowHeight(64)
+                    : app.regram.appearance.M3ListItems.rowHeight(height));
             // Название в neko-ячейках переносится без ограничения по строкам,
             // а высота оставалась фиксированной — со второй строки текст резало.
             final int wanted = wrapText

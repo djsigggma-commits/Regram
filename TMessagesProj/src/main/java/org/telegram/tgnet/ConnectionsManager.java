@@ -51,9 +51,9 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.StatsController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.proxy.ProxySettings;
-import org.telegram.proxy.WebProxyConnectionTester;
-import org.telegram.proxy.WebProxyTransport;
+import org.telegram.utils.proxy.WebProxyConnectionTester;
+import org.telegram.utils.proxy.WebProxyTransport;
+import org.telegram.utils.proxy.ProxySettings;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.LoginActivity;
 
@@ -438,7 +438,7 @@ public class ConnectionsManager extends BaseController {
         TLObject pluginRequest = object;
         if (app.regram.plugins.PluginsController.getInstance().hasAnyRequestHooks()) {
             app.regram.plugins.HookResult preHook = app.regram.plugins.PluginsController.getInstance()
-                    .executePreRequestHook(currentAccount, object.getClass().getSimpleName(), object);
+                    .executePreRequestHook(currentAccount, app.regram.plugins.PluginsController.hookName(object), object);
             if (preHook.isCancel()) {
                 FileLog.d("Plugins: request " + object.getClass().getSimpleName() + " cancelled by plugin");
                 return;
@@ -520,7 +520,7 @@ public class ConnectionsManager extends BaseController {
                         // re:gram plugins: post_request_hook
                         if (app.regram.plugins.PluginsController.getInstance().hasAnyRequestHooks()) {
                             app.regram.plugins.HookResult postHook = app.regram.plugins.PluginsController.getInstance()
-                                    .executePostRequestHook(currentAccount, normalizedObject.getClass().getSimpleName(), finalResponse, finalError);
+                                    .executePostRequestHook(currentAccount, app.regram.plugins.PluginsController.hookName(normalizedObject), finalResponse, finalError);
                             if (postHook.isCancel()) {
                                 if (onComplete == null && onCompleteTimestamp == null
                                         && finalResponse instanceof TLRPC.Updates) {

@@ -21,6 +21,7 @@ import android.os.Build;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 
 import androidx.annotation.NonNull;
 import androidx.core.graphics.ColorUtils;
@@ -233,25 +234,41 @@ public class ProfileMusicView extends View {
         invalidate();
     }
 
+    private boolean longPressed;
+    private final Runnable longPressRunnable = () -> {
+        if (bounce.isPressed()) {
+            longPressed = true;
+            bounce.setPressed(false);
+            performLongClick();
+        }
+    };
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         final float alpha = Utilities.clamp01((currentHeight) / dp(21));
         if (alpha <= 0) return false;
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            longPressed = false;
             bounce.setPressed(rect.contains(event.getX(), event.getY()));
+            if (bounce.isPressed() && isLongClickable()) {
+                postDelayed(longPressRunnable, ViewConfiguration.getLongPressTimeout());
+            }
         } else if (event.getAction() == MotionEvent.ACTION_MOVE && bounce.isPressed()) {
             if (!rect.contains(event.getX(), event.getY())) {
                 bounce.setPressed(false);
+                removeCallbacks(longPressRunnable);
             }
         } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
             bounce.setPressed(false);
+            removeCallbacks(longPressRunnable);
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (bounce.isPressed()) {
+            removeCallbacks(longPressRunnable);
+            if (bounce.isPressed() && !longPressed) {
                 performClick();
             }
             bounce.setPressed(false);
         }
-        return bounce.isPressed();
+        return bounce.isPressed() || longPressed;
     }
 
     @Override

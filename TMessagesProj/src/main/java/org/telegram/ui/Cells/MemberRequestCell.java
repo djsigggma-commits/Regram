@@ -3,10 +3,13 @@ package org.telegram.ui.Cells;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.util.LongSparseArray;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -48,13 +51,13 @@ public class MemberRequestCell extends FrameLayout {
         nameTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         nameTextView.setTextSize(17);
         nameTextView.setTypeface(AndroidUtilities.bold());
-        addView(nameTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, LocaleController.isRTL ? 12 : 74, 12, LocaleController.isRTL ? 74 : 12, 0));
+        addView(nameTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, LocaleController.isRTL ? 56 : 74, 12, LocaleController.isRTL ? 74 : 56, 0));
 
         statusTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         statusTextView.setMaxLines(1);
         statusTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         statusTextView.setTextSize(14);
-        addView(statusTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, LocaleController.isRTL ? 12 : 74, 36, LocaleController.isRTL ? 74 : 12, 0));
+        addView(statusTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, LocaleController.isRTL ? 56 : 74, 36, LocaleController.isRTL ? 74 : 56, 0));
 
         int btnPadding = AndroidUtilities.dp(17);
         TextView addButton = new TextView(getContext());
@@ -94,25 +97,18 @@ public class MemberRequestCell extends FrameLayout {
         dismissLayoutParams.rightMargin = LocaleController.isRTL ? (int)(addButtonWidth + AndroidUtilities.dp(73 + 6)) : 0;
         addView(dismissButton, dismissLayoutParams);
 
-        TextView banButton = new TextView(getContext());
-        banButton.setBackground(Theme.AdaptiveRipple.filledRectByKey(Theme.key_text_RedRegular, 16));
-        banButton.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
-        banButton.setMaxLines(1);
-        banButton.setPadding(btnPadding, 0, btnPadding, 0);
-        banButton.setText(LocaleController.getString(R.string.Ban));
-        banButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
-        banButton.setTextSize(14);
-        banButton.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        ImageView banButton = new ImageView(getContext());
+        banButton.setScaleType(ImageView.ScaleType.CENTER);
+        banButton.setImageResource(R.drawable.msg_block);
+        banButton.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_text_RedRegular), PorterDuff.Mode.MULTIPLY));
+        banButton.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(Theme.getColor(Theme.key_text_RedRegular), 0.12f), Theme.RIPPLE_MASK_CIRCLE_20DP));
+        banButton.setContentDescription(LocaleController.getString(R.string.Ban));
         banButton.setOnClickListener(v -> {
             if (clickListener != null && importer != null) {
                 clickListener.onBanClicked(importer);
             }
         });
-        FrameLayout.LayoutParams banLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, AndroidUtilities.dp(32), LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT);
-        banLayoutParams.topMargin = AndroidUtilities.dp(62);
-        banLayoutParams.leftMargin = LocaleController.isRTL ? AndroidUtilities.dp(24) : 0;
-        banLayoutParams.rightMargin = LocaleController.isRTL ? 0 : AndroidUtilities.dp(24);
-        addView(banButton, banLayoutParams);
+        addView(banButton, LayoutHelper.createFrame(40, 40, Gravity.TOP | (LocaleController.isRTL ? Gravity.LEFT : Gravity.RIGHT), LocaleController.isRTL ? 8 : 0, 11, LocaleController.isRTL ? 0 : 8, 0));
     }
 
     public void setData(LongSparseArray<TLRPC.User> users, TLRPC.TL_chatInviteImporter importer, boolean isNeedDivider) {

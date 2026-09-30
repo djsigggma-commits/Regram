@@ -39,6 +39,11 @@
     <string name="PluginsInstallAction">Установить</string>
     <string name="PluginsInstallUnknownConfirm">Файл не опознан как плагин. Если поставить, он получит всё: сообщения, файлы, сеть, код приложения.</string>
     <string name="PluginsInstalled">%1$s установлен.</string>
+    <string name="PluginsExportLogs">Выгрузить логи плагинов</string>
+    <string name="PluginsClearLogs">Очистить логи плагинов</string>
+    <string name="PluginsLogsCleared">Логи плагинов очищены.</string>
+    <string name="PluginsUpdateAction">Обновить</string>
+    <string name="PluginsUpdated">%1$s обновлён.</string>
     <string name="PluginsEngineDisabledHint">Движок плагинов выключен. Сначала включите его в Настройках → Плагины.</string>
     <string name="PluginsEngineEnableAndInstall">Включить и установить</string>
     <string name="PluginsEngineTitle">Движок плагинов</string>
@@ -168,4 +173,10 @@
     <string name="PluginWatchdogMuted">%1$s больше не будет предупреждать о тормозах. Вернуть предупреждения можно в настройках плагина.</string>
     <string name="PluginWatchdogWarnings">Предупреждать о тормозах</string>
     <string name="PluginWatchdogWarningsInfo">Сообщать, когда плагин надолго занимает главный поток или перестаёт отвечать.</string>
+    <string name="PluginDeniedGrant">Выдать</string>
+    <string name="PluginGrantedRestart">Разрешение выдано: %1$s. Если не подхватилось — перезапустите плагин.</string>
+    <string name="PluginGrantedRestartAction">Перезапустить</string>
+    <string name="PluginGrantTrustedConfirm">%1$s получит уровень доступа «Доверенный»: с ним плагин может менять код приложения. Выдать?</string>
+    <string name="PluginsAiReviewToolsPrompt">Проверь плагин для Telegram-клиента на то, что может навредить пользователю: скрытый сбор данных, отправка сообщений или файлов на сторону, кража ключей и паролей, подгрузка кода во время работы.\n\nОтвечай на языке: %2$s.\n\nПлагин: %1$s\n\nИсходника здесь нет — читай его инструментами. Файлы: %3$s.\nВстроенные данные (base64-строки и бинарные файлы): %4$s\n\nПрочитай каждый файл до конца через read_source, по диапазонам, и расшифруй каждый встроенный блок через decode_base64, чтобы увидеть, что в нём на самом деле: код, DEX, нативные библиотеки, адреса, ключи. Вердикт давай только по тому, что действительно прочитал, и скажи, что проверить не удалось.</string>
+    <string name="PluginsSourceTrusted">Надёжный источник</string>
 </resources>

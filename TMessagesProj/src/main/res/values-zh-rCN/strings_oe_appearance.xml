@@ -100,8 +100,9 @@
     <string name="OEAppearanceNewLoadingStyle">加载指示器</string>
     <string name="OEAppearanceNewChatHeaderStyle">对话顶栏</string>
     <string name="OEAppearanceNewNavigationBarStyle">导航栏</string>
+    <string name="OEAppearanceM3ListItems">列表项</string>
     <string name="OEAppearanceIosNavigationBarStyle">导航栏</string>
-    <string name="OEAppearanceIosFirstFolderOnTabTap">点按标签页返回首个文件夹</string>
+    <string name="OEAppearanceIosChatHeader">iOS 风格聊天标题栏</string>
     <string name="OEAppearanceHideAi">隐藏 AI</string>
     <string name="OEAppearanceHideAiEditor">AI 编辑器</string>
     <string name="OEAppearanceHideAiSummary">消息摘要</string>
@@ -115,4 +116,9 @@
     <string name="OEAppearanceEmojiSetsInfo">更换应用中的表情</string>
     <string name="OEAppearanceHideSettingsSections">隐藏设置分区</string>
     <string name="OEBottomNavigationBar">底部栏</string>
+    <string name="OEProfileMusicDesign">资料音乐</string>
+    <string name="OEProfileMusicUseOfficial">Telegram 样式</string>
+    <string name="OEProfileMusicUseOfficialInfo">像官方客户端一样在头像下方显示曲目？</string>
+    <string name="OEProfileMusicUseCard">卡片</string>
+    <string name="OEProfileMusicUseCardInfo">在资料页顶部下方以卡片形式显示曲目？</string>
 </resources>

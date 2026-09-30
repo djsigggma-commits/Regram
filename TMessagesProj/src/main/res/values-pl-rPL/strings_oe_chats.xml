@@ -16,6 +16,7 @@
     <string name="OEChatsCameraTypeCamera2">Camera2</string>
     <string name="OEChatsCameraStabilization">Stabilizacja</string>
     <string name="OEChatsCameraTypeCameraX">CameraX</string>
+    <string name="OEChatsCameraTypeTelegram">Telegram (nowy)</string>
     <string name="OEChatsCameraMirrorMode">Tryb lustrzany</string>
     <string name="OEChatsStartWithWideAngle">Zaczynaj od szerokiego kąta</string>
     <string name="OEChatsExtendedFps">Rozszerzony zakres FPS</string>
@@ -121,4 +122,13 @@
     <string name="OEChatsAskWhenBotCommands">Wysłaniem komendy bota</string>
     <string name="OEChatsHdrPhotos">Zdjęcia HDR</string>
     <string name="OEChatsHdrPhotosInfo">Pokazuj zdjęcia HDR w pełnej jasności. Wyłącz, jeśli zdjęcia wyglądają na ciemne.</string>
+    <string name="OEChatsTranslateInSheet">Okno tłumaczenia Telegram</string>
+    <string name="OEChatsTranslateInSheetInfo">Tłumaczenie otwiera okno z oficjalnej aplikacji z wyborem dostawcy</string>
+    <string name="OEChatsInlineMath">Wyniki obliczeń w polu tekstowym</string>
+    <string name="OEChatsInlineMathInfo">Wpisz wyrażenie i „=”, aby zobaczyć wynik; spacja go wstawi.</string>
+    <string name="OEChatsInlineMathCurrency">Waluty przez @calcmulabot</string>
+    <string name="OEChatsInlineMathCurrencyInfo">Wyrażenia z walutami, np. „10 usd to rub =”, są wysyłane do @calcmulabot po kurs.</string>
+    <string name="OEChatsInlineMathAnnouncement">Wynik: %1$s</string>
+    <string name="OELocalPremiumInfo">Emoji premium są wysyłane jako linki, które exteraless i inne obsługujące to klienty wyświetlają jako prawdziwe emoji. Pozostałe funkcje Premium działają tylko na tym urządzeniu.</string>
+    <string name="OELocalPremiumEmojiHint">Nie masz **Telegram Premium**, więc to emoji zostanie wysłane jako link: zobaczą je tylko użytkownicy **exteraless** i klientów, które to obsługują.</string>
 </resources>

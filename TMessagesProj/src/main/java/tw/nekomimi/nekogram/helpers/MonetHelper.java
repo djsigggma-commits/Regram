@@ -127,6 +127,27 @@ public class MonetHelper {
         put("monetAvatarNameDarkPink", 0xffC7508B);
     }};
 
+    private static final HashMap<String, Integer> harmonizedColors = new HashMap<>() {{
+        put("monetYellow", 0xffffb74d);
+        put("monetGreen", 0xff4caf50);
+        put("monetCodeKeyword", 0xffe05356);
+        put("monetCodeOperator", 0xff4dbbff);
+        put("monetCodeConstant", 0xff7f79f3);
+        put("monetCodeString", 0xff37c123);
+        put("monetCodeNumber", 0xff327fe5);
+        put("monetCodeFunction", 0xfff28c39);
+    }};
+
+    private static final java.util.Set<String> LINK_TEXT_KEYS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "chat_messageLinkIn",
+            "chat_messageLinkOut",
+            "windowBackgroundWhiteLinkText",
+            "dialogTextLink"
+    ));
+    private static final double NEUTRAL_ACCENT_CHROMA_THRESHOLD = 8.0;
+    private static final double FALLBACK_LINK_HUE = 250.0;
+    private static final double FALLBACK_LINK_CHROMA = 70.0;
+
     private static final HashMap<String, Integer> materialColors = new HashMap<>() {{
         put("mBlack", 0xff000000);
         put("mWhite", 0xffffffff);
@@ -292,6 +313,10 @@ public class MonetHelper {
     }
 
     public static Integer getColorOrNull(String color) {
+        return getColorOrNull(color, null);
+    }
+
+    public static Integer getColorOrNull(String color, String key) {
         try {
             String rawColor = color == null ? "" : color.trim();
             if (rawColor.isEmpty()) {
@@ -301,6 +326,8 @@ public class MonetHelper {
             int saturation = 100;
             int lightness = 100;
             int alpha = 100;
+            int tone = -1;
+            int chroma = 100;
 
             Matcher matcher = MODIFIER_PATTERN.matcher(rawColor);
             if (matcher.find()) {
@@ -331,6 +358,12 @@ public class MonetHelper {
                         case "a":
                             alpha = parsed;
                             break;
+                        case "t":
+                            tone = Math.max(0, Math.min(100, parsed));
+                            break;
+                        case "c":
+                            chroma = Math.max(0, Math.min(400, parsed));
+                            break;
                     }
                 }
             }
@@ -341,6 +374,10 @@ public class MonetHelper {
             }
 
             int value = resolved;
+            if (tone >= 0 || chroma != 100) {
+                Hct hct = Hct.fromInt(value);
+                value = Hct.from(hct.getHue(), hct.getChroma() * chroma / 100.0, tone >= 0 ? tone : hct.getTone()).toInt();
+            }
             if (saturation != 100) {
                 value = ColorUtils.blendARGB(0xffffffff, value, saturation / 100f);
             }
@@ -349,6 +386,9 @@ public class MonetHelper {
             }
             if (alpha != 100) {
                 value = ColorUtils.setAlphaComponent(value, (int) (alpha * 2.55f));
+            }
+            if (key != null && LINK_TEXT_KEYS.contains(key) && isAccentToken(rawColor) && isAccentPaletteNeutral()) {
+                return makeChromaticLink(value);
             }
             return value;
         } catch (Exception e) {
@@ -380,7 +420,42 @@ public class MonetHelper {
         return resolved;
     }
 
+    private static boolean isAccentToken(String token) {
+        if (token.startsWith("monet_")) {
+            token = token.substring(6);
+        }
+        if (token.startsWith("on_")) {
+            token = token.substring(3);
+        }
+        return token.startsWith("a1_") || token.startsWith("a2_") || token.startsWith("a3_")
+                || token.startsWith("primary") || token.startsWith("secondary")
+                || token.startsWith("tertiary") || token.startsWith("inverse_primary")
+                || token.startsWith("surface_tint");
+    }
+
+    private static boolean isAccentPaletteNeutral() {
+        try {
+            return Hct.fromInt(ApplicationLoader.applicationContext.getColor(android.R.color.system_accent1_500)).getChroma()
+                    < NEUTRAL_ACCENT_CHROMA_THRESHOLD;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static int makeChromaticLink(int original) {
+        double tone = Hct.fromInt(original).getTone();
+        int argb = Hct.from(FALLBACK_LINK_HUE, FALLBACK_LINK_CHROMA, tone).toInt();
+        return ColorUtils.setAlphaComponent(argb, Color.alpha(original));
+    }
+
     private static Integer computeToken(String token) {
+        if (token.startsWith("monet_")) {
+            return resolveToken(token.substring(6));
+        }
+        Integer harmonized = harmonizedColors.get(token);
+        if (harmonized != null) {
+            return harmonizeColor(harmonized);
+        }
         Integer constant = constantColors.get(token);
         if (constant != null) {
             return constant;

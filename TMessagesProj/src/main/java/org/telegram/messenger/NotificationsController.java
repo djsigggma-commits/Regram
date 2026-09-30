@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import app.regram.notifications.NotificationsHelper;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -256,6 +258,8 @@ public class NotificationsController extends BaseController implements Notificat
         };
 
         dialogsNotificationsFacade = new NotificationsSettingsFacade(currentAccount);
+
+        notificationsQueue.postRunnable(() -> NotificationsHelper.loadWearNotificationIds(currentAccount, wearNotificationsIds));
 
         AndroidUtilities.runOnUIThread(() -> {
             getNotificationCenter().addObserver(this, NotificationCenter.fileLoaded);
@@ -522,6 +526,76 @@ public class NotificationsController extends BaseController implements Notificat
         });
     }
 
+    public void processReadTopic(long dialogId, long topicId, int maxId) {
+        if (topicId == 0) {
+            return;
+        }
+        notificationsQueue.postRunnable(() -> {
+            ArrayList<Integer> ids = null;
+            for (int a = 0; a < pushMessages.size(); a++) {
+                MessageObject messageObject = pushMessages.get(a);
+                if (messageObject.getDialogId() != dialogId || messageObject.getId() > maxId || messageObject.isStoryReactionPush) {
+                    continue;
+                }
+                if (MessageObject.getTopicId(currentAccount, messageObject.messageOwner, getMessagesController().isForum(messageObject)) != topicId) {
+                    continue;
+                }
+                if (ids == null) {
+                    ids = new ArrayList<>();
+                }
+                ids.add(messageObject.getId());
+            }
+            if (ids != null) {
+                LongSparseArray<ArrayList<Integer>> map = new LongSparseArray<>();
+                map.put(DialogObject.isChatDialog(dialogId) && ChatObject.isChannel(getMessagesController().getChat(-dialogId)) ? dialogId : 0, ids);
+                removeDeletedMessagesFromNotifications(map, false);
+            }
+        });
+    }
+
+    public void processReadReactions(long dialogId, SparseBooleanArray unreadReactions) {
+        ArrayList<Integer> ids = null;
+        for (int i = 0; i < unreadReactions.size(); i++) {
+            if (!unreadReactions.valueAt(i)) {
+                if (ids == null) {
+                    ids = new ArrayList<>();
+                }
+                ids.add(unreadReactions.keyAt(i));
+            }
+        }
+        if (ids == null) {
+            return;
+        }
+        LongSparseArray<ArrayList<Integer>> map = new LongSparseArray<>();
+        map.put(ChatObject.isChannel(getMessagesController().getChat(-dialogId)) ? dialogId : 0, ids);
+        removeDeletedMessagesFromNotifications(map, true);
+    }
+
+    private void deletePushMessagesFromStorage(ArrayList<MessageObject> messages) {
+        LongSparseArray<ArrayList<Integer>> byDialog = new LongSparseArray<>();
+        for (int a = 0, N = messages.size(); a < N; a++) {
+            MessageObject messageObject = messages.get(a);
+            if (messageObject.getId() == 0) {
+                continue;
+            }
+            long dialogId = messageObject.getDialogId();
+            ArrayList<Integer> ids = byDialog.get(dialogId);
+            if (ids == null) {
+                ids = new ArrayList<>();
+                byDialog.put(dialogId, ids);
+            }
+            ids.add(messageObject.getId());
+        }
+        if (byDialog.size() == 0) {
+            return;
+        }
+        getMessagesStorage().getStorageQueue().postRunnable(() -> {
+            for (int a = 0, N = byDialog.size(); a < N; a++) {
+                getMessagesStorage().deletePushMessages(byDialog.keyAt(a), byDialog.valueAt(a));
+            }
+        });
+    }
+
     public void removeDeletedMessagesFromNotifications(LongSparseArray<ArrayList<Integer>> deletedMessages, boolean isReactions) {
         ArrayList<MessageObject> popupArrayRemove = new ArrayList<>(0);
         notificationsQueue.postRunnable(() -> {
@@ -584,6 +658,7 @@ public class NotificationsController extends BaseController implements Notificat
                 }
             }
             if (!popupArrayRemove.isEmpty()) {
+                deletePushMessagesFromStorage(popupArrayRemove);
                 AndroidUtilities.runOnUIThread(() -> {
                     for (int a = 0, size = popupArrayRemove.size(); a < size; a++) {
                         popupMessages.remove(popupArrayRemove.get(a));
@@ -591,7 +666,7 @@ public class NotificationsController extends BaseController implements Notificat
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.pushMessagesUpdated);
                 });
             }
-            if (old_unread_count != total_unread_count) {
+            if (old_unread_count != total_unread_count || !popupArrayRemove.isEmpty()) {
                 if (!notifyCheck) {
                     delayedPushMessages.clear();
                     showOrUpdateNotification(notifyCheck);
@@ -669,7 +744,8 @@ public class NotificationsController extends BaseController implements Notificat
                     pushDialogsOverrideMention.remove(dialogId);
                 }
             }
-            if (popupArrayRemove.isEmpty()) {
+            if (!popupArrayRemove.isEmpty()) {
+                deletePushMessagesFromStorage(popupArrayRemove);
                 AndroidUtilities.runOnUIThread(() -> {
                     for (int a = 0, size = popupArrayRemove.size(); a < size; a++) {
                         popupMessages.remove(popupArrayRemove.get(a));
@@ -677,7 +753,7 @@ public class NotificationsController extends BaseController implements Notificat
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.pushMessagesUpdated);
                 });
             }
-            if (old_unread_count != total_unread_count) {
+            if (old_unread_count != total_unread_count || !popupArrayRemove.isEmpty()) {
                 if (!notifyCheck) {
                     delayedPushMessages.clear();
                     showOrUpdateNotification(notifyCheck);
@@ -849,7 +925,7 @@ public class NotificationsController extends BaseController implements Notificat
                     int messageId = inbox.get(key);
                     for (int a = 0; a < pushMessages.size(); a++) {
                         MessageObject messageObject = pushMessages.get(a);
-                        if (!messageObject.messageOwner.from_scheduled && messageObject.getDialogId() == key && messageObject.getId() <= messageId && !messageObject.isStoryReactionPush) {
+                        if (messageObject.getDialogId() == key && messageObject.getId() <= messageId && !messageObject.isStoryReactionPush) {
                             if (isPersonalMessage(messageObject)) {
                                 personalCount--;
                             }
@@ -924,6 +1000,9 @@ public class NotificationsController extends BaseController implements Notificat
                 }
             }
             if (!popupArrayRemove.isEmpty()) {
+                deletePushMessagesFromStorage(popupArrayRemove);
+                delayedPushMessages.clear();
+                showOrUpdateNotification(false);
                 AndroidUtilities.runOnUIThread(() -> {
                     for (int a = 0, size = popupArrayRemove.size(); a < size; a++) {
                         popupMessages.remove(popupArrayRemove.get(a));
@@ -1470,7 +1549,7 @@ public class NotificationsController extends BaseController implements Notificat
                     pushDialogsOverrideMention.remove(dialogId);
                     for (int a = 0; a < pushMessages.size(); a++) {
                         MessageObject messageObject = pushMessages.get(a);
-                        if (!messageObject.messageOwner.from_scheduled && messageObject.getDialogId() == dialogId && !messageObject.isStoryReactionPush) {
+                        if (messageObject.getDialogId() == dialogId && !messageObject.isStoryReactionPush) {
                             if (isPersonalMessage(messageObject)) {
                                 personalCount--;
                             }
@@ -1512,7 +1591,7 @@ public class NotificationsController extends BaseController implements Notificat
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.pushMessagesUpdated);
                 });
             }
-            if (old_unread_count != total_unread_count) {
+            if (old_unread_count != total_unread_count || !popupArrayToRemove.isEmpty()) {
                 if (!notifyCheck) {
                     delayedPushMessages.clear();
                     showOrUpdateNotification(notifyCheck);
@@ -3305,6 +3384,8 @@ public class NotificationsController extends BaseController implements Notificat
                 notificationManager.cancel(wearNotificationsIds.valueAt(a));
             }
             wearNotificationsIds.clear();
+            NotificationsHelper.clearPostedSignatures(currentAccount);
+            NotificationsHelper.saveWearNotificationIds(currentAccount, wearNotificationsIds);
         });
     }
 
@@ -3323,6 +3404,8 @@ public class NotificationsController extends BaseController implements Notificat
                 notificationManager.cancel(wearNotificationsIds.valueAt(a));
             }
             wearNotificationsIds.clear();
+            NotificationsHelper.clearPostedSignatures(currentAccount);
+            NotificationsHelper.saveWearNotificationIds(currentAccount, wearNotificationsIds);
             AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.pushMessagesUpdated));
         } catch (Exception e) {
             FileLog.e(e);
@@ -3431,6 +3514,7 @@ public class NotificationsController extends BaseController implements Notificat
             int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
             if (hour >= 11 && hour <= 22) {
                 notificationManager.cancel(notificationId);
+                NotificationsHelper.clearPostedSignatures(currentAccount);
                 showOrUpdateNotification(true);
             } else {
                 scheduleNotificationRepeat();
@@ -4135,6 +4219,234 @@ public class NotificationsController extends BaseController implements Notificat
         return channelId;
     }
 
+    public static class DialogNotificationSettings {
+        public boolean notifyDisabled;
+        public int vibrate;
+        public String soundPath;
+        public boolean isInternalSoundFile;
+        public int ledColor;
+        public int importance;
+        public boolean isDefault;
+        public boolean isInApp;
+        public int chatType;
+    }
+
+    // ! needs to be reusable - stock does this inline. keep in sync with stock code on rebae.
+    public DialogNotificationSettings computeDialogNotificationSettings(SharedPreferences preferences, long dialog_id, long topicId, boolean story, boolean isReactionPush, boolean isStoryReactionPush, long chatId, long userId, boolean isChannel, boolean notifyDisabled) {
+        int vibrate = 0;
+        String soundPath = null;
+        boolean isInternalSoundFile = false;
+        int ledColor = 0xff0000ff;
+        int importance = 0;
+
+        if (!notifyDisabled && !preferences.getBoolean("sound_enabled_" + getSharedPrefKey(dialog_id, topicId), true)) {
+            notifyDisabled = true;
+        }
+
+        String defaultPath = Settings.System.DEFAULT_NOTIFICATION_URI.getPath();
+
+        boolean isDefault = true;
+        boolean isInApp = !ApplicationLoader.mainInterfacePaused;
+        int chatType = TYPE_PRIVATE;
+
+        String customSoundPath;
+        boolean customIsInternalSound = false;
+        int customVibrate;
+        int customImportance;
+        Integer customLedColor;
+        String key = getSharedPrefKey(dialog_id, topicId);
+        if (dialogsNotificationsFacade.getProperty("custom_", dialog_id, topicId, false)) {
+            customVibrate = dialogsNotificationsFacade.getProperty("vibrate_", dialog_id, topicId, 0);
+            customImportance = dialogsNotificationsFacade.getProperty("priority_", dialog_id, topicId, 3);
+            long soundDocumentId = dialogsNotificationsFacade.getProperty("sound_document_id_" , dialog_id, topicId, 0L);
+            if (soundDocumentId != 0) {
+                customIsInternalSound = true;
+                customSoundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
+            } else {
+                customSoundPath = dialogsNotificationsFacade.getPropertyString("sound_path_" , dialog_id, topicId, null);
+            }
+
+            int color = dialogsNotificationsFacade.getProperty("color_", dialog_id, topicId, 0);
+            if (color != 0) {
+                customLedColor = color;
+            } else {
+                customLedColor = null;
+            }
+        } else {
+            customVibrate = 0;
+            customImportance = 3;
+            customSoundPath = null;
+            customLedColor = null;
+        }
+        boolean vibrateOnlyIfSilent = false;
+
+        if (isReactionPush || isStoryReactionPush) {
+            long soundDocumentId = preferences.getLong("ReactionSoundDocId", 0);
+            if (soundDocumentId != 0) {
+                isInternalSoundFile = true;
+                soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
+            } else {
+                soundPath = preferences.getString("ReactionSoundPath", defaultPath);
+            }
+            vibrate = preferences.getInt("vibrate_react", 0);
+            importance = preferences.getInt("priority_react", 1);
+            ledColor = preferences.getInt("ReactionsLed", 0xff0000ff);
+            chatType = isStoryReactionPush ? TYPE_REACTIONS_STORIES : TYPE_REACTIONS_MESSAGES;
+        } else if (chatId != 0) {
+            if (isChannel) {
+                long soundDocumentId = preferences.getLong("ChannelSoundDocId", 0);
+                if (soundDocumentId != 0) {
+                    isInternalSoundFile = true;
+                    soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
+                } else {
+                    soundPath = preferences.getString("ChannelSoundPath", defaultPath);
+                }
+                vibrate = preferences.getInt("vibrate_channel", 0);
+                importance = preferences.getInt("priority_channel", 1);
+                ledColor = preferences.getInt("ChannelLed", 0xff0000ff);
+                chatType = TYPE_CHANNEL;
+            } else {
+                long soundDocumentId = preferences.getLong("GroupSoundDocId", 0);
+                if (soundDocumentId != 0) {
+                    isInternalSoundFile = true;
+                    soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
+                } else {
+                    soundPath = preferences.getString("GroupSoundPath", defaultPath);
+                }
+                vibrate = preferences.getInt("vibrate_group", 0);
+                importance = preferences.getInt("priority_group", 1);
+                ledColor = preferences.getInt("GroupLed", 0xff0000ff);
+                chatType = TYPE_GROUP;
+            }
+        } else if (userId != 0) {
+            long soundDocumentId = preferences.getLong(story ? "StoriesSoundDocId" : "GlobalSoundDocId", 0);
+            if (soundDocumentId != 0) {
+                isInternalSoundFile = true;
+                soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
+            } else {
+                soundPath = preferences.getString(story ? "StoriesSoundPath" : "GlobalSoundPath", defaultPath);
+            }
+            vibrate = preferences.getInt("vibrate_messages", 0);
+            importance = preferences.getInt("priority_messages", 1);
+            ledColor = preferences.getInt("MessagesLed", 0xff0000ff);
+            chatType = story ? TYPE_STORIES : TYPE_PRIVATE;
+        }
+        if (vibrate == 4) {
+            vibrateOnlyIfSilent = true;
+            vibrate = 0;
+        }
+        if (!TextUtils.isEmpty(customSoundPath) && !TextUtils.equals(soundPath, customSoundPath)) {
+            isInternalSoundFile = customIsInternalSound;
+            soundPath = customSoundPath;
+            isDefault = false;
+        }
+        if (customImportance != 3 && importance != customImportance) {
+            importance = customImportance;
+            isDefault = false;
+        }
+        if (customLedColor != null && customLedColor != ledColor) {
+            ledColor = customLedColor;
+            isDefault = false;
+        }
+        if (customVibrate != 0 && customVibrate != 4 && customVibrate != vibrate) {
+            vibrate = customVibrate;
+            isDefault = false;
+        }
+        if (isInApp) {
+            if (!preferences.getBoolean("EnableInAppSounds", true)) {
+                soundPath = null;
+            }
+            if (!preferences.getBoolean("EnableInAppVibrate", true)) {
+                vibrate = 2;
+            }
+            if (preferences.getBoolean("EnableInAppPopup", true)) {
+                importance = 2;
+            } else {
+                importance = 0;
+            }
+        }
+        if (vibrateOnlyIfSilent && vibrate != 2) {
+            try {
+                int mode = audioManager.getRingerMode();
+                if (mode != AudioManager.RINGER_MODE_SILENT && mode != AudioManager.RINGER_MODE_VIBRATE) {
+                    vibrate = 2;
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+
+        if (notifyDisabled) {
+            vibrate = 0;
+            importance = 0;
+            ledColor = 0;
+            soundPath = null;
+        }
+
+        DialogNotificationSettings result = new DialogNotificationSettings();
+        result.notifyDisabled = notifyDisabled;
+        result.vibrate = vibrate;
+        result.soundPath = soundPath;
+        result.isInternalSoundFile = isInternalSoundFile;
+        result.ledColor = ledColor;
+        result.importance = importance;
+        result.isDefault = isDefault;
+        result.isInApp = isInApp;
+        result.chatType = chatType;
+        return result;
+    }
+
+    private String validateChannelIdForDialog(long dialogId, long topicId, boolean story, MessageObject lastMessageObject, long chatId, long userId, boolean isChannel, String name) {
+        try {
+            SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
+            boolean isReactionPush = lastMessageObject != null && lastMessageObject.isReactionPush;
+            int notifyOverride = getNotifyOverride(preferences, dialogId, topicId);
+            boolean value;
+            if (notifyOverride == -1) {
+                value = isGlobalNotificationsEnabled(dialogId, isChannel, isReactionPush, isReactionPush);
+            } else {
+                value = notifyOverride != 2;
+            }
+            DialogNotificationSettings s = computeDialogNotificationSettings(preferences, dialogId, topicId, story, isReactionPush, lastMessageObject != null && lastMessageObject.isStoryReactionPush, chatId, userId, isChannel, !value);
+            int configImportance;
+            if (s.importance == 1 || s.importance == 2) {
+                configImportance = NotificationManager.IMPORTANCE_HIGH;
+            } else if (s.importance == 4) {
+                configImportance = NotificationManager.IMPORTANCE_MIN;
+            } else if (s.importance == 5) {
+                configImportance = NotificationManager.IMPORTANCE_LOW;
+            } else {
+                configImportance = NotificationManager.IMPORTANCE_DEFAULT;
+            }
+            String defaultPath = Settings.System.DEFAULT_NOTIFICATION_URI.getPath();
+            Uri sound = null;
+            if (!s.notifyDisabled && s.soundPath != null && !s.soundPath.equalsIgnoreCase("NoSound")) {
+                if (s.soundPath.equalsIgnoreCase("Default") || s.soundPath.equals(defaultPath)) {
+                    sound = Settings.System.DEFAULT_NOTIFICATION_URI;
+                } else if (s.isInternalSoundFile) {
+                    sound = FileProvider.getUriForFile(ApplicationLoader.applicationContext, ApplicationLoader.getApplicationId() + ".provider", new File(s.soundPath));
+                    ApplicationLoader.applicationContext.grantUriPermission("com.android.systemui", sound, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } else {
+                    sound = Uri.parse(s.soundPath);
+                }
+            }
+            long[] vibrationPattern;
+            if (s.notifyDisabled || s.vibrate == 2) {
+                vibrationPattern = new long[]{0, 0};
+            } else if (s.vibrate == 1) {
+                vibrationPattern = new long[]{0, 100, 0, 100};
+            } else if (s.vibrate == 3) {
+                vibrationPattern = new long[]{0, 1000};
+            } else {
+                vibrationPattern = new long[]{};
+            }
+            return validateChannelId(dialogId, topicId, name, vibrationPattern, s.ledColor, sound, configImportance, s.isDefault, s.isInApp, s.notifyDisabled, s.chatType);
+        } catch (Exception e) {
+            FileLog.e(e);
+            return OTHER_NOTIFICATIONS_CHANNEL;
+        }
+    }
+
     private void showOrUpdateNotification(boolean notifyAboutLast) {
         if (!getUserConfig().isClientActivated() || pushMessages.isEmpty() && storyPushMessages.isEmpty() || PasscodeHelper.isAccountHidden(currentAccount) || !SharedConfig.showNotificationsForAllAccounts && currentAccount != UserConfig.selectedAccount) {
             dismissNotification();
@@ -4422,149 +4734,17 @@ public class NotificationsController extends BaseController implements Notificat
                 }
             }
 
-            if (!notifyDisabled && !preferences.getBoolean("sound_enabled_" + getSharedPrefKey(dialog_id, topicId), true)) {
-                notifyDisabled = true;
-            }
-
+            DialogNotificationSettings dialogSettings = computeDialogNotificationSettings(preferences, dialog_id, topicId, story, lastMessageObject != null && lastMessageObject.isReactionPush, lastMessageObject != null && lastMessageObject.isStoryReactionPush, chatId, userId, isChannel, notifyDisabled);
+            notifyDisabled = dialogSettings.notifyDisabled;
+            vibrate = dialogSettings.vibrate;
+            soundPath = dialogSettings.soundPath;
+            isInternalSoundFile = dialogSettings.isInternalSoundFile;
+            ledColor = dialogSettings.ledColor;
+            importance = dialogSettings.importance;
             String defaultPath = Settings.System.DEFAULT_NOTIFICATION_URI.getPath();
-
-            boolean isDefault = true;
-            boolean isInApp = !ApplicationLoader.mainInterfacePaused;
-            int chatType = TYPE_PRIVATE;
-
-            String customSoundPath;
-            boolean customIsInternalSound = false;
-            int customVibrate;
-            int customImportance;
-            Integer customLedColor;
-            String key = getSharedPrefKey(dialog_id, topicId);
-            if (dialogsNotificationsFacade.getProperty("custom_", dialog_id, topicId, false)) {
-                customVibrate = dialogsNotificationsFacade.getProperty("vibrate_", dialog_id, topicId, 0);
-                customImportance = dialogsNotificationsFacade.getProperty("priority_", dialog_id, topicId, 3);
-                long soundDocumentId = dialogsNotificationsFacade.getProperty("sound_document_id_" , dialog_id, topicId, 0L);
-                if (soundDocumentId != 0) {
-                    customIsInternalSound = true;
-                    customSoundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
-                } else {
-                    customSoundPath = dialogsNotificationsFacade.getPropertyString("sound_path_" , dialog_id, topicId, null);
-                }
-
-                int color = dialogsNotificationsFacade.getProperty("color_", dialog_id, topicId, 0);
-                if (color != 0) {
-                    customLedColor = color;
-                } else {
-                    customLedColor = null;
-                }
-            } else {
-                customVibrate = 0;
-                customImportance = 3;
-                customSoundPath = null;
-                customLedColor = null;
-            }
-            boolean vibrateOnlyIfSilent = false;
-
-            if (lastMessageObject != null && (lastMessageObject.isReactionPush || lastMessageObject.isStoryReactionPush)) {
-                long soundDocumentId = preferences.getLong("ReactionSoundDocId", 0);
-                if (soundDocumentId != 0) {
-                    isInternalSoundFile = true;
-                    soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
-                } else {
-                    soundPath = preferences.getString("ReactionSoundPath", defaultPath);
-                }
-                vibrate = preferences.getInt("vibrate_react", 0);
-                importance = preferences.getInt("priority_react", 1);
-                ledColor = preferences.getInt("ReactionsLed", 0xff0000ff);
-                chatType = lastMessageObject.isStoryReactionPush ? TYPE_REACTIONS_STORIES : TYPE_REACTIONS_MESSAGES;
-            } else if (chatId != 0) {
-                if (isChannel) {
-                    long soundDocumentId = preferences.getLong("ChannelSoundDocId", 0);
-                    if (soundDocumentId != 0) {
-                        isInternalSoundFile = true;
-                        soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
-                    } else {
-                        soundPath = preferences.getString("ChannelSoundPath", defaultPath);
-                    }
-                    vibrate = preferences.getInt("vibrate_channel", 0);
-                    importance = preferences.getInt("priority_channel", 1);
-                    ledColor = preferences.getInt("ChannelLed", 0xff0000ff);
-                    chatType = TYPE_CHANNEL;
-                } else {
-                    long soundDocumentId = preferences.getLong("GroupSoundDocId", 0);
-                    if (soundDocumentId != 0) {
-                        isInternalSoundFile = true;
-                        soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
-                    } else {
-                        soundPath = preferences.getString("GroupSoundPath", defaultPath);
-                    }
-                    vibrate = preferences.getInt("vibrate_group", 0);
-                    importance = preferences.getInt("priority_group", 1);
-                    ledColor = preferences.getInt("GroupLed", 0xff0000ff);
-                    chatType = TYPE_GROUP;
-                }
-            } else if (userId != 0) {
-                long soundDocumentId = preferences.getLong(story ? "StoriesSoundDocId" : "GlobalSoundDocId", 0);
-                if (soundDocumentId != 0) {
-                    isInternalSoundFile = true;
-                    soundPath = getMediaDataController().ringtoneDataStore.getSoundPath(soundDocumentId);
-                } else {
-                    soundPath = preferences.getString(story ? "StoriesSoundPath" : "GlobalSoundPath", defaultPath);
-                }
-                vibrate = preferences.getInt("vibrate_messages", 0);
-                importance = preferences.getInt("priority_messages", 1);
-                ledColor = preferences.getInt("MessagesLed", 0xff0000ff);
-                chatType = story ? TYPE_STORIES : TYPE_PRIVATE;
-            }
-            if (vibrate == 4) {
-                vibrateOnlyIfSilent = true;
-                vibrate = 0;
-            }
-            if (!TextUtils.isEmpty(customSoundPath) && !TextUtils.equals(soundPath, customSoundPath)) {
-                isInternalSoundFile = customIsInternalSound;
-                soundPath = customSoundPath;
-                isDefault = false;
-            }
-            if (customImportance != 3 && importance != customImportance) {
-                importance = customImportance;
-                isDefault = false;
-            }
-            if (customLedColor != null && customLedColor != ledColor) {
-                ledColor = customLedColor;
-                isDefault = false;
-            }
-            if (customVibrate != 0 && customVibrate != 4 && customVibrate != vibrate) {
-                vibrate = customVibrate;
-                isDefault = false;
-            }
-            if (isInApp) {
-                if (!preferences.getBoolean("EnableInAppSounds", true)) {
-                    soundPath = null;
-                }
-                if (!preferences.getBoolean("EnableInAppVibrate", true)) {
-                    vibrate = 2;
-                }
-                if (preferences.getBoolean("EnableInAppPopup", true)) {
-                    importance = 2;
-                } else {
-                    importance = 0;
-                }
-            }
-            if (vibrateOnlyIfSilent && vibrate != 2) {
-                try {
-                    int mode = audioManager.getRingerMode();
-                    if (mode != AudioManager.RINGER_MODE_SILENT && mode != AudioManager.RINGER_MODE_VIBRATE) {
-                        vibrate = 2;
-                    }
-                } catch (Exception e) {
-                    FileLog.e(e);
-                }
-            }
-
-            if (notifyDisabled) {
-                vibrate = 0;
-                importance = 0;
-                ledColor = 0;
-                soundPath = null;
-            }
+            boolean isDefault = dialogSettings.isDefault;
+            boolean isInApp = dialogSettings.isInApp;
+            int chatType = dialogSettings.chatType;
 
             Intent intent = new Intent(ApplicationLoader.applicationContext, LaunchActivity.class);
             intent.setAction("com.tmessages.openchat" + Math.random() + Integer.MAX_VALUE);
@@ -4942,6 +5122,7 @@ public class NotificationsController extends BaseController implements Notificat
         }
 
         ArrayList<NotificationHolder> holders = new ArrayList<>();
+        SparseArray<String> signatures = new SparseArray<>();
 
         boolean useSummaryNotification = Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1 || sortedDialogs.size() > (storyPushMessages.isEmpty() ? 1 : 2);
         if (useSummaryNotification && Build.VERSION.SDK_INT >= 26) {
@@ -5741,17 +5922,32 @@ public class NotificationsController extends BaseController implements Notificat
                 builder.addPerson("tel:+" + user.phone);
             }
 
+            String channelId = null;
             if (Build.VERSION.SDK_INT >= 26) {
-                setNotificationChannel(mainNotification, builder, useSummaryNotification);
+                if (useSummaryNotification) {
+                    boolean alerts = !isSilent && (dialogKey.story ? chatType == TYPE_STORIES : chatType != TYPE_STORIES && dialogId == lastDialogId && topicId == lastTopicId);
+                    builder.setGroupAlertBehavior(alerts ? NotificationCompat.GROUP_ALERT_CHILDREN : NotificationCompat.GROUP_ALERT_SUMMARY);
+                    builder.setOnlyAlertOnce(!alerts);
+                    builder.setChannelId(channelId = validateChannelIdForDialog(dialogId, topicId, dialogKey.story, lastMessageObject, chat != null ? chat.id : 0, chat == null ? dialogId : 0, isChannel, name));
+                } else {
+                    setNotificationChannel(mainNotification, builder, useSummaryNotification);
+                    channelId = mainNotification.getChannelId();
+                }
             }
             FileLog.d("showExtraNotifications: holders.add " + dialogId);
             holders.add(new NotificationHolder(internalId, dialogId, dialogKey.story, topicId, name, user, chat, builder));
             wearNotificationsIds.put(dialogId, internalId);
+            signatures.put(internalId, NotificationsHelper.computeNotificationSignature(channelId, name, dialogKey.story ? null : messageObjects, dialogKey.story ? storyPushMessages.size() : 0, maxId, waitingForPasscode, avatarBitmap != null));
         }
 
         if (useSummaryNotification) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("show summary with id " + notificationId);
+            }
+            if (Build.VERSION.SDK_INT >= 26) {
+                notificationBuilder.setChannelId(OTHER_NOTIFICATIONS_CHANNEL);
+                notificationBuilder.setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN);
+                mainNotification = notificationBuilder.build();
             }
             try {
                 notificationManager.notify(notificationId, mainNotification);
@@ -5777,6 +5973,7 @@ public class NotificationsController extends BaseController implements Notificat
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("cancel notification id " + id);
             }
+            NotificationsHelper.removePostedSignature(currentAccount, id);
             notificationManager.cancel(id);
         }
 
@@ -5784,6 +5981,10 @@ public class NotificationsController extends BaseController implements Notificat
         FileLog.d("showExtraNotifications: holders.size()=" + holders.size());
         for (int a = 0, size = holders.size(); a < size; a++) {
             NotificationHolder holder = holders.get(a);
+            if (NotificationsHelper.shouldSkipNotify(currentAccount, holder.id, signatures.get(holder.id))) {
+                FileLog.d("showExtraNotifications: holders["+a+"] skipped, unchanged");
+                continue;
+            }
             ids.clear();
             if (Build.VERSION.SDK_INT >= 29 && !DialogObject.isEncryptedDialog(holder.dialogId)) {
                 String shortcutId = createNotificationShortcut(holder.notification, holder.dialogId, holder.name, holder.user, holder.chat, personCache.get(holder.dialogId), !holder.story);
@@ -5797,6 +5998,7 @@ public class NotificationsController extends BaseController implements Notificat
                 ShortcutManagerCompat.removeDynamicShortcuts(ApplicationLoader.applicationContext, ids);
             }
         }
+        NotificationsHelper.saveWearNotificationIds(currentAccount, wearNotificationsIds);
     }
 
     private String cutLastName(String name) {

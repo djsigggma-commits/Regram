@@ -82,7 +82,7 @@ public class AiSettingsActivity extends BaseNekoSettingsActivity {
     private int streamingRow;
     private int saveHistoryRow;
     private int viewHistoryRow;
-    private int clearHistoryRow;
+    private int disableToolsRow;    private int clearHistoryRow;
     private int generationDividerRow;
 
     private TemperatureCell temperatureCell;
@@ -137,6 +137,7 @@ public class AiSettingsActivity extends BaseNekoSettingsActivity {
         streamingRow = addRow("streaming");
         saveHistoryRow = addRow("saveHistory");
         viewHistoryRow = addRow("aiHistory");
+        disableToolsRow = addRow("disableTools");
         clearHistoryRow = addRow("clearHistory");
         generationDividerRow = addRow();
     }
@@ -224,6 +225,9 @@ public class AiSettingsActivity extends BaseNekoSettingsActivity {
             ((TextCheckCell) view).setChecked(AiConfig.getSaveHistory());
         } else if (position == viewHistoryRow) {
             showConversationHistory();
+        } else if (position == disableToolsRow) {
+            AiConfig.setDisableTools(!AiConfig.getDisableTools());
+            ((TextCheckCell) view).setChecked(AiConfig.getDisableTools());
         } else if (position == clearHistoryRow) {
             AiConfig.clearConversationHistory();
             BulletinFactory.of(this).createSimpleBulletin(R.raw.ic_delete,
@@ -858,6 +862,9 @@ public class AiSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == saveHistoryRow) {
                         cell.setTextAndCheck(getString(R.string.OEAiSaveHistory),
                                 AiConfig.getSaveHistory(), true);
+                    } else if (position == disableToolsRow) {
+                        cell.setTextAndValueAndCheck(getString(R.string.OEAiDisableTools),
+                                getString(R.string.OEAiDisableToolsInfo), AiConfig.getDisableTools(), true, true);
                     }
                     break;
                 }
@@ -931,7 +938,7 @@ public class AiSettingsActivity extends BaseNekoSettingsActivity {
             if (position == temperatureRow) {
                 return TYPE_TEMPERATURE;
             }
-            if (position == streamingRow || position == saveHistoryRow) {
+            if (position == streamingRow || position == saveHistoryRow || position == disableToolsRow) {
                 return TYPE_CHECK;
             }
             return TYPE_SETTINGS;

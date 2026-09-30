@@ -154,6 +154,7 @@ import org.telegram.tgnet.tl.TL_chatlists;
 import org.telegram.tgnet.tl.TL_stars;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarLayout;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
@@ -2881,7 +2882,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
 
     private NotificationCenter.ObserversGroup observersGroup;
-    private NotificationCenter.ObserversGroup globalObserversGroup;
 
     @Override
     public boolean onFragmentCreate() {
@@ -2944,15 +2944,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
 
         observersGroup = getNotificationCenter().createObserversGroup(this);
-        globalObserversGroup = NotificationCenter.getGlobalInstance().createObserversGroup(this);
 
         if (searchString == null) {
             currentConnectionState = getConnectionsManager().getConnectionState();
 
-            globalObserversGroup.add(NotificationCenter.emojiLoaded);
+            observersGroup.addGlobal(NotificationCenter.emojiLoaded);
             if (!onlySelect) {
-                globalObserversGroup.add(NotificationCenter.closeSearchByActiveAction);
-                globalObserversGroup.add(NotificationCenter.proxySettingsChanged);
+                observersGroup.addGlobal(NotificationCenter.closeSearchByActiveAction);
+                observersGroup.addGlobal(NotificationCenter.proxySettingsChanged);
                 observersGroup.add(NotificationCenter.filterSettingsUpdated);
                 observersGroup.add(NotificationCenter.dialogsUnreadCounterChanged);
             }
@@ -2984,7 +2983,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 .add(NotificationCenter.currentUserPremiumStatusChanged)
                 .add(NotificationCenter.mainUserInfoChanged);
 
-            globalObserversGroup.add(NotificationCenter.didSetPasscode);
+            observersGroup.addGlobal(NotificationCenter.didSetPasscode);
         }
         observersGroup
             .add(NotificationCenter.messagesDeleted)
@@ -3167,10 +3166,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (observersGroup != null) {
             observersGroup.removeAllObservers();
             observersGroup = null;
-        }
-        if (globalObserversGroup != null) {
-            globalObserversGroup.removeAllObservers();
-            globalObserversGroup = null;
         }
 
         if (commentView != null) {
@@ -10868,7 +10863,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 filterTabsView.checkTabsCounter();
             }
             // Inugram: the picker avatar can be null while the community loads.
-if (communityId != 0 && communityAvatarImage != null) {
+            if (communityId != 0 && communityAvatarImage != null) {
                 if ((mask & MessagesController.UPDATE_MASK_CHAT) != 0 || (mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_CHAT_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_CHAT_NAME) != 0) {
                     community = getMessagesController().getChat(communityId);
                     actionBar.setTitle(DialogObject.getName(community));
@@ -12991,7 +12986,10 @@ if (communityId != 0 && communityAvatarImage != null) {
             return;
         }
 
-        slideFragmentLite = SharedConfig.getDevicePerformanceClass() <= SharedConfig.PERFORMANCE_CLASS_AVERAGE || !LiteMode.isEnabled(LiteMode.FLAG_CHAT_SCALE);
+        // exteraGram: при пружине список масштабируется вместе с карточкой, а не
+        // сдвигается на 40dp. Иначе возврат к чатам останавливается на полпути.
+        final boolean springBack = NaConfig.INSTANCE.getBackAnimationStyle().Int() == ActionBarLayout.BACK_ANIMATION_SPRING;
+        slideFragmentLite = !springBack && (SharedConfig.getDevicePerformanceClass() <= SharedConfig.PERFORMANCE_CLASS_AVERAGE || !LiteMode.isEnabled(LiteMode.FLAG_CHAT_SCALE));
         slideFragmentProgress = progress;
         if (fragmentView != null) {
             fragmentView.invalidate();
@@ -13996,7 +13994,7 @@ if (communityId != 0 && communityAvatarImage != null) {
     }
 
     private void showItemOptions() {
-        ItemOptions io = ItemOptions.makeOptions(this, optionsItem);
+        ItemOptions io = ItemOptions.makeOptions(this, optionsItem, true);
         io.setColors(getThemedColor(Theme.key_actionBarDefaultTitle), getThemedColor(Theme.key_actionBarDefaultTitle));
         if (Theme.getActiveTheme().isMonet()) {
             io.setSelectorColor(getThemedColor(Theme.key_dialogButtonSelector));
@@ -14227,8 +14225,7 @@ if (communityId != 0 && communityAvatarImage != null) {
                 () -> presentFragment(new app.regram.ui.RecentlyOnlineActivity()));
 
         // re:gram plugins: пункты плагинов (MAIN_MENU) в конце меню «⋮».
-        app.regram.plugins.menus.MenuInjector.appendMainMenuItems(io, currentAccount);
-
+        app.regram.plugins.menus.MenuInjector.appendMainMenuItems(io, currentAccount, this);
         io.show();
         io.setTranslationY(-dp(64));
     }
@@ -14766,7 +14763,7 @@ if (communityId != 0 && communityAvatarImage != null) {
         // Как в Telegram для iOS: тап по вкладке «Чаты» сначала возвращает в первую папку,
         // и только потом крутит список наверх. switchToCurrentSelectedMode уже ставит
         // список нужной папки в начало, поэтому отдельный scrollToTop тут не нужен.
-        if (AppearanceConfig.iosFirstFolderOnTabTap()
+        if (app.regram.appearance.MainTabsUiHelper.isIosNavigationBar()
                 && filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE
                 && !tabsAnimationInProgress && !filterTabsView.isAnimatingIndicator() && !startedTracking
                 && !filterTabsView.isFirstTabSelected()

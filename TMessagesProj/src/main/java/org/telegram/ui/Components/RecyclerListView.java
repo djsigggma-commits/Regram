@@ -1088,7 +1088,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
 
     }
 
-    private int getCurrentChildPosition(View child) {
+    private int getClickChildPosition(View child) {
         return useLayoutPositionOnClick ? getChildLayoutPosition(child) : getChildAdapterPosition(child);
     }
 
@@ -1191,7 +1191,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
                     if (currentChildView == null || currentChildPosition == -1 || onItemLongClickListener == null && onItemLongClickListenerExtended == null) {
                         return;
                     }
-                    int position = getCurrentChildPosition(currentChildView);
+                    int position = getClickChildPosition(currentChildView);
                     if (position == NO_POSITION) {
                         return;
                     }
@@ -1266,7 +1266,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
                 }
                 currentChildPosition = -1;
                 if (currentChildView != null) {
-                    currentChildPosition = getCurrentChildPosition(currentChildView);
+                    currentChildPosition = getClickChildPosition(currentChildView);
                     MotionEvent childEvent = MotionEvent.obtain(0, 0, event.getActionMasked(), event.getX() - currentChildView.getLeft(), event.getY() - currentChildView.getTop(), 0);
                     if (currentChildView.onTouchEvent(childEvent)) {
                         interceptedByChild = true;
@@ -3189,32 +3189,36 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
             //     canvas.drawColor(0x80FF00FF);
             }
         } else {
-            for (int a = 0, N = getItemDecorationCount(); a < N; a++) {
-                ItemDecoration itemDecoration = getItemDecorationAt(a);
-                if (itemDecoration instanceof IBlur3Capture) {
-                    if (itemDecoration == sectionsItemDecoration && !canCaptureSectionsDecorator) {
-                        continue;
-                    }
-                    final IBlur3Capture capture = (IBlur3Capture) itemDecoration;
-                    capture.capture(canvas, position);
-                }
-            }
-            for (int i = 0, N = getChildCount(); i < N; i++) {
-                final View child = getChildAt(i);
+            captureChildren(canvas, position, drawingTime);
+        }
+    }
 
-                final float left = child.getX();
-                final float top = child.getY();
-                final float right = left + child.getWidth();
-                final float bottom = top + child.getHeight();
-
-                if (!position.intersects(left, top, right, bottom)) {
+    protected void captureChildren(Canvas canvas, RectF position, long drawingTime) {
+        for (int a = 0, N = getItemDecorationCount(); a < N; a++) {
+            ItemDecoration itemDecoration = getItemDecorationAt(a);
+            if (itemDecoration instanceof IBlur3Capture) {
+                if (itemDecoration == sectionsItemDecoration && !canCaptureSectionsDecorator) {
                     continue;
                 }
-
-                ignoreClipChild = true;
-                drawChild(canvas, child, drawingTime);
-                ignoreClipChild = false;
+                final IBlur3Capture capture = (IBlur3Capture) itemDecoration;
+                capture.capture(canvas, position);
             }
+        }
+        for (int i = 0, N = getChildCount(); i < N; i++) {
+            final View child = getChildAt(i);
+
+            final float left = child.getX();
+            final float top = child.getY();
+            final float right = left + child.getWidth();
+            final float bottom = top + child.getHeight();
+
+            if (!position.intersects(left, top, right, bottom)) {
+                continue;
+            }
+
+            ignoreClipChild = true;
+            drawChild(canvas, child, drawingTime);
+            ignoreClipChild = false;
         }
     }
 
@@ -3288,7 +3292,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
         }
         int count = 0;
         for (Class cls : classes) {
-            if (cls != null && !cls.equals(HeaderCell.class)) {
+            if (cls != null && !cls.equals(HeaderCell.class) && !cls.equals(tw.nekomimi.nekogram.ui.cells.HeaderCell.class)) {
                 count++;
             }
         }
@@ -3298,7 +3302,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
         final Class[] filtered = new Class[count];
         int index = 0;
         for (Class cls : classes) {
-            if (cls != null && !cls.equals(HeaderCell.class)) {
+            if (cls != null && !cls.equals(HeaderCell.class) && !cls.equals(tw.nekomimi.nekogram.ui.cells.HeaderCell.class)) {
                 filtered[index++] = cls;
             }
         }
@@ -3373,7 +3377,8 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
             // Вынесенный заголовок секции в карточку не входит — иначе он
             // оказывается её первой строкой, а смысл выноса ровно обратный
             view -> !(view instanceof TextInfoPrivacyCell || view instanceof ShadowSectionCell || view instanceof FiltersSetupActivity.HintInnerCell || view instanceof GraySectionCell || view instanceof CollapseTextCell)
-                    && !(view instanceof HeaderCell && app.regram.appearance.AppearanceConfig.sectionsSeparatedHeaders())
+                    && !((view instanceof HeaderCell || view instanceof tw.nekomimi.nekogram.ui.cells.HeaderCell)
+                            && app.regram.appearance.AppearanceConfig.sectionsSeparatedHeaders())
                     && !Objects.equals(view.getTag(), TAG_NOT_SECTION),
             padding,
             roundRadius,
@@ -3544,9 +3549,9 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     private boolean useSegmentedSections() {
         return segmentedSectionsEnabled
                 && sectionsItemDecoration != null
-                && app.regram.appearance.AppearanceConfig.dividerStyle()
-                        == app.regram.appearance.AppearanceConfig.DIVIDER_SEGMENTS;
-    }
+                && (app.regram.appearance.AppearanceConfig.dividerStyle()
+                        == app.regram.appearance.AppearanceConfig.DIVIDER_SEGMENTS
+                        || app.regram.appearance.M3ListItems.enabled());    }
 
     /** Внутренний угол сегмента: у exteraGram min(радиус секции, 4dp). */
     private float segmentInnerRadius() {

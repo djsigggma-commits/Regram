@@ -183,7 +183,7 @@ public class TextCell extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = dp(heightDp);
+        int height = dp(app.regram.appearance.M3ListItems.rowHeight(heightDp));
 
         if (lastWidth != 0 && lastWidth != width && valueText != null) {
             valueTextView.setText(TextUtils.ellipsize(valueText, valueTextView.getPaint(), AndroidUtilities.displaySize.x / 2.5f, TextUtils.TruncateAt.END), false);
@@ -204,7 +204,11 @@ public class TextCell extends FrameLayout {
             subtitleView.measure(MeasureSpec.makeMeasureSpec(width - dp(71 + leftPadding) - valueWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(20), MeasureSpec.EXACTLY));
         }
         if (imageView.getVisibility() == VISIBLE) {
-            if (isIcon) {
+            if (isM3ColorfulIcon()) {
+                imageView.setPadding(dp(6), dp(6), dp(6), dp(6));
+                imageView.setTranslationX(0);
+                imageView.measure(MeasureSpec.makeMeasureSpec(dp(36), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(36), MeasureSpec.EXACTLY));
+            } else if (isIcon) {
                 imageView.measure(MeasureSpec.makeMeasureSpec(dp(24), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(31), MeasureSpec.EXACTLY));
             } else {
                 imageView.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(height, MeasureSpec.AT_MOST));
@@ -271,9 +275,9 @@ public class TextCell extends FrameLayout {
         valueSpoilersTextView.layout(viewLeft, viewTop, viewLeft + valueSpoilersTextView.getMeasuredWidth(), viewTop + valueSpoilersTextView.getMeasuredHeight());
 
         if (LocaleController.isRTL) {
-            viewLeft = getMeasuredWidth() - textView.getMeasuredWidth() - dp(imageView.getVisibility() == VISIBLE ? offsetFromImage : leftPadding);
+            viewLeft = getMeasuredWidth() - textView.getMeasuredWidth() - dp(imageView.getVisibility() == VISIBLE ? textOffsetFromImage() : leftPadding);
         } else {
-            viewLeft = dp(imageView.getVisibility() == VISIBLE ? offsetFromImage : leftPadding);
+            viewLeft = dp(imageView.getVisibility() == VISIBLE ? textOffsetFromImage() : leftPadding);
         }
         if (subtitleView.getVisibility() == View.VISIBLE) {
             int margin = heightDp > 50 ? 4 : 2;
@@ -287,7 +291,11 @@ public class TextCell extends FrameLayout {
         }
         if (imageView.getVisibility() == VISIBLE) {
             viewTop = dp(heightDp > 50 ? 0 : 2) + (height - imageView.getMeasuredHeight()) / 2 - imageView.getPaddingTop() + dp(1);
-            viewLeft = !LocaleController.isRTL ? dp(imageLeft) : width - imageView.getMeasuredWidth() - dp(imageLeft);
+            final int iconLeft = isM3ColorfulIcon() ? 14 : imageLeft;
+            if (isM3ColorfulIcon()) {
+                viewTop = (height - imageView.getMeasuredHeight()) / 2;
+            }
+            viewLeft = !LocaleController.isRTL ? dp(iconLeft) : width - imageView.getMeasuredWidth() - dp(iconLeft);
             imageView.layout(viewLeft, viewTop, viewLeft + imageView.getMeasuredWidth(), viewTop + imageView.getMeasuredHeight());
         }
 
@@ -869,6 +877,18 @@ public class TextCell extends FrameLayout {
 
     protected int getOffsetFromImage(boolean colourful) {
         return colourful ? 65 : 71;
+    }
+
+    private boolean isM3ColorfulIcon() {
+        return imageView.getBackground() instanceof SettingsActivity.SettingCell.Background
+                && app.regram.appearance.M3ListItems.enabled();
+    }
+
+    private int textOffsetFromImage() {
+        if ((offsetFromImage == 65 || offsetFromImage == 71) && app.regram.appearance.M3ListItems.enabled()) {
+            return 60;
+        }
+        return offsetFromImage;
     }
 
     @Override

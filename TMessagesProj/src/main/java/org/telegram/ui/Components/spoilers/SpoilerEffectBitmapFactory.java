@@ -164,6 +164,11 @@ public class SpoilerEffectBitmapFactory {
                     backgroundCanvas = new Canvas(backgroundBitmap);
                     doDraw(backgroundCanvas, new Rect(0, 0, size, size));
                 } else {
+                    // Refresh only the area covered by visible spoilers this frame; keep the rest of
+                    // the tile's previous noise. Erasing the whole tile and repainting just the clip
+                    // made any spoiler that didn't refresh its region this frame sample transparent
+                    // pixels -> blink while scrolling (worst for cells entering at the screen edges,
+                    // whose invalidation is deferred by Choreographer60FpsContent).
                     backgroundCanvas.drawRect(clipRegionDump, clearPaint);
                 }
                 backgroundCanvas.save();

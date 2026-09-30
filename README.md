@@ -1,6 +1,6 @@
 # re:gram
 
-Android-клиент Telegram на основе **exteraless 12.10.3-beta12**, с переносами из
+Android-клиент Telegram на основе **exteraless 12.10.5-beta13.1**, с переносами из
 **Inugram 12.10.1-43 / md3-sliders** и **Nagram XF 1251**.
 
 **Статус: частичная интеграция, не полное объединение. Debug-APK собирается и
@@ -471,7 +471,6 @@ python3 tools/generate_branding.py
 ```
 
 ## Авторы и лицензии
-
 Сохранены [LICENSE](LICENSE), лицензии Inugram / Nagram XF и
 [README основы](docs/upstream/exteraless.md). Внутренние Java-пакеты и имена
 API плагинов намеренно не переименованы: массовая замена нарушила бы совместимость.

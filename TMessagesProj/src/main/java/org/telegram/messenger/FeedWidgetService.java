@@ -56,7 +56,9 @@ class FeedRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, N
     }
 
     public void onDestroy() {
-
+        if (accountInstance != null) {
+            accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
+        }
     }
 
     public int getCount() {
@@ -161,6 +163,7 @@ class FeedRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory, N
                 messages.clear();
                 ArrayList<MessageObject> messArr = (ArrayList<MessageObject>) args[2];
                 messages.addAll(messArr);
+                accountInstance.getNotificationCenter().removeObserver(this, NotificationCenter.messagesDidLoad);
                 countDownLatch.countDown();
             }
         }

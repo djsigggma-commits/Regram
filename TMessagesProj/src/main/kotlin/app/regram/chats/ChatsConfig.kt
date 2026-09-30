@@ -22,6 +22,9 @@ object ChatsConfig {
     private val sync = Any()
     private val configs = ArrayList<ConfigItem>()
 
+    @JvmStatic
+    fun getConfigTypes(): Map<String, Int> = configs.associate { it.key to it.type }
+
     @Volatile
     private var configLoaded = false
 
@@ -127,6 +130,12 @@ object ChatsConfig {
     @JvmField
     val hideCameraTile = addConfig("OEChatsHideCameraTile", ConfigItem.configTypeBool, false)
 
+    @JvmField
+    val inlineMathResult = addConfig("OEChatsInlineMathResult", ConfigItem.configTypeBool, true)
+
+    @JvmField
+    val inlineMathCurrency = addConfig("OEChatsInlineMathCurrency", ConfigItem.configTypeBool, true)
+
     /**
      * Отправлять фото в высоком качестве по умолчанию. Дефолт true, как в exteraGram.
      * При включённом бейдж на превью инвертируется: помечается не «HD», а «SD» —
@@ -169,6 +178,8 @@ object ChatsConfig {
     @JvmField
     val hideChannelSearchButton = addConfig("OEChatsHideChannelSearchButton", ConfigItem.configTypeBool, false)
 
+    @JvmField
+    val translateInSheet = addConfig("OEChatsTranslateInSheet", ConfigItem.configTypeBool, false)
     // ---- Камера (расширенные) ----
 
     /** Запоминать последнюю использованную камеру (только UI). */
@@ -211,6 +222,7 @@ object ChatsConfig {
     const val CAMERA_TYPE_SYSTEM = 0
     const val CAMERA_TYPE_CAMERA_2 = 1
     const val CAMERA_TYPE_CAMERA_X = 2
+    const val CAMERA_TYPE_TELEGRAM = 3
 
     // ---- Статические геттеры для горячих мест в Java ----
 
@@ -235,12 +247,12 @@ object ChatsConfig {
         return pauseOnMinimizeRound.Bool()
     }
 
-    /** Тип камеры для кружков: 0 системная, 1 Camera2, 2 CameraX. */
+    /** Тип камеры для кружков: 0 системная, 1 Camera2, 2 CameraX, 3 новый рекордер Telegram. */
     @JvmStatic
     fun cameraType(): Int {
         ensureLoaded()
         val type = cameraType.Int()
-        return if (type in CAMERA_TYPE_SYSTEM..CAMERA_TYPE_CAMERA_X) type else CAMERA_TYPE_SYSTEM
+        return if (type in CAMERA_TYPE_SYSTEM..CAMERA_TYPE_TELEGRAM) type else CAMERA_TYPE_SYSTEM
     }
 
     @JvmStatic

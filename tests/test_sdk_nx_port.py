@@ -384,7 +384,7 @@ def test_short_menu_form_retains_the_callback(sdk, monkeypatch):
     plugin = sdk.base.BasePlugin()
     callback = lambda context: None
     assert plugin.add_menu_item(plugin.MenuType.CHAT_CONTEXT, 'Action', on_click=callback, item_id='action') == 'action'
-    assert plugin._menu_callbacks['action'] is callback
+    assert plugin._exteraless_menu_callbacks['action'] is callback
     assert plugin.MenuType.CHAT_CONTEXT == sdk.base.MenuItemType.MESSAGE_CONTEXT_MENU
     with pytest.raises(TypeError):
         plugin.add_menu_item(sdk.base.MenuItemData(plugin.MenuType.CHAT_CONTEXT, 'Action', callback), text='conflict')
@@ -555,8 +555,8 @@ def test_hooks_unwrap_field_shaped_class_wrappers(sdk, monkeypatch):
     aliases = load_module(monkeypatch, 'extera_utils.class_aliases')
     java_class = object()
     wrapper = aliases._FieldShapedClass(java_class, {})
-    assert sdk.base.BasePlugin._resolve_class(wrapper) is java_class
-    assert sdk.base.BasePlugin._resolve_class(java_class) is java_class
+    assert sdk.base.BasePlugin._exteraless_resolve_class(wrapper) is java_class
+    assert sdk.base.BasePlugin._exteraless_resolve_class(java_class) is java_class
 
 
 def test_broken_sub_page_item_does_not_drop_the_whole_page(sdk, loader, monkeypatch):
@@ -999,7 +999,7 @@ def test_menu_item_accepts_what_the_catalogue_passes(sdk):
     """MenuItemData у exteraGram — dict, и плагины приносят либо свой dict, либо
     свои объекты с теми же полями, либо набор именованных аргументов."""
     plugin = sdk.base.BasePlugin()
-    plugin._attach('test_plugin')
+    plugin._exteraless_attach('test_plugin')
     from_dict = plugin.add_menu_item({'menu_type': 'message_context_menu',
                                       'text': 'Export', 'on_click': lambda ctx: None})
     class Duck:                       # атрибуты вместо dict
@@ -1010,7 +1010,85 @@ def test_menu_item_accepts_what_the_catalogue_passes(sdk):
     positional = plugin.add_menu_item(sdk.base.MenuItemType.CHAT_CONTEXT, 'Reply',
                                       on_click=lambda ctx: None)
     assert all((from_dict, from_object, positional))
-    assert len(plugin._state('_menu_callbacks', dict)) == 3
+    assert len(plugin._exteraless_state('_exteraless_menu_callbacks', dict)) == 3
     with pytest.raises(TypeError, match='either MenuItemData or individual'):
         plugin.add_menu_item(sdk.base.MenuItemData('drawer_menu', 'x', lambda ctx: None),
                              text='conflict')
+def test_get_setting_survives_repeated_reads(sdk, monkeypatch):
+    bridge = types.SimpleNamespace(getSetting=lambda plugin_id, key: 'true', log=lambda *args: None)
+    monkeypatch.setattr(sdk.base, 'PythonBridge', bridge)
+    plugin = sdk.base.BasePlugin()
+    plugin._exteraless_attach('test_plugin')
+    assert plugin.get_setting('flag', False) is True
+    assert plugin.get_setting('flag', False) is True
+    assert plugin.get_setting('other', False) is True
+
+
+def test_plugin_method_named_like_old_internals_survives_attach(sdk):
+    class Plugin(sdk.base.BasePlugin):
+        def _plugin_id(self, other):
+            return f"id:{other}"
+
+    plugin = Plugin()
+    plugin._exteraless_attach('test_plugin')
+    assert plugin._plugin_id('x') == 'id:x'
+    assert plugin.plugin_id == 'test_plugin'
+
+
+def test_log_capture_forwards_lines_with_owner_and_level(loader, monkeypatch):
+    captured = []
+
+    class Bridge:
+        @staticmethod
+        def logStream(owner, level, text):
+            captured.append((owner, level, text))
+
+    monkeypatch.setattr(loader, '_permissions', lambda: Bridge)
+    monkeypatch.setattr(loader, 'caller_plugin_id', lambda: 'admin_tools')
+
+    class Sink:
+        def __init__(self):
+            self.data = ''
+
+        def write(self, text):
+            self.data += text
+            return len(text)
+
+        def flush(self):
+            pass
+
+    sink = Sink()
+    stream = loader._PluginLogStream(sink, 'W')
+    stream.write('first ')
+    stream.write('line\nsecond')
+    stream.write(' line\n')
+    assert sink.data == 'first line\nsecond line\n'
+    assert captured == [('admin_tools', 'W', 'first line'), ('admin_tools', 'W', 'second line')]
+
+    captured.clear()
+    handler = loader._PluginLogHandler()
+    handler.setFormatter(__import__('logging').Formatter('%(name)s: %(message)s'))
+    logger = __import__('logging').getLogger('zwylib.async')
+    logger.addHandler(handler)
+    logger.propagate = False
+    try:
+        logger.error('task failed')
+    finally:
+        logger.removeHandler(handler)
+    assert captured == [('admin_tools', 'E', 'zwylib.async: task failed')]
+
+
+def test_custom_sub_page_rows_keep_their_identity_across_rebuilds(sdk, loader, monkeypatch):
+    factory = object()
+
+    def build():
+        return [sdk.settings.Custom(factory=factory, factory_args=object(),
+                                    create_sub_fragment=lambda cid=cid: [sdk.settings.Text(f'Add filter {cid}')])
+                for cid in (1, 2)]
+
+    record = settings_record(sdk, loader, monkeypatch, [])
+    record.instance.create_settings = build
+    before = json.loads(loader.get_settings_json('test_plugin'))
+    after = json.loads(loader.get_settings_json('test_plugin'))
+    assert [row['row_id'] for row in before] == [row['row_id'] for row in after]
+    assert before[0]['row_id'] != before[1]['row_id']

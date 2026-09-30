@@ -356,16 +356,12 @@ public class MessageDrawable extends Drawable {
         boolean drawWithShadow = gradientShader == null && !isSelected && !isCrossfadeBackground;
         int shadowColor = getColor(isOut ? Theme.key_chat_outBubbleShadow : Theme.key_chat_inBubbleShadow);
         if (lastDrawWithShadow != drawWithShadow || currentBackgroundDrawableRadius[idx2][idx] != newRad || (drawWithShadow && shadowDrawableColor[idx] != shadowColor) || backgroundDrawableColor[idx2][idx] != color) {
-            currentBackgroundDrawableRadius[idx2][idx] = newRad;
+            backupRect.set(getBounds());
             try {
                 Bitmap bitmap = Bitmap.createBitmap(dp(50), dp(40), Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bitmap);
 
-                backupRect.set(getBounds());
-
                 if (drawWithShadow) {
-                    shadowDrawableColor[idx] = shadowColor;
-
                     Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
                     LinearGradient gradientShader = new LinearGradient(0, 0, 0, dp(40), new int[]{0x155F6569, 0x295F6569}, null, Shader.TileMode.CLAMP);
@@ -395,13 +391,18 @@ public class MessageDrawable extends Drawable {
                 draw(canvas, shadowPaint);
 
                 backgroundDrawable[idx2][idx] = new NinePatchDrawable(bitmap, getByteBuffer(bitmap.getWidth() / 2 - 1, bitmap.getWidth() / 2 + 1, bitmap.getHeight() / 2 - 1, bitmap.getHeight() / 2 + 1, color).array(), new Rect(), null);
-                setBounds(backupRect);
+                currentBackgroundDrawableRadius[idx2][idx] = newRad;
+                if (drawWithShadow) {
+                    shadowDrawableColor[idx] = shadowColor;
+                }
+                backgroundDrawableColor[idx2][idx] = color;
             } catch (Throwable ignore) {
 
+            } finally {
+                setBounds(backupRect);
             }
         }
         lastDrawWithShadow = drawWithShadow;
-        backgroundDrawableColor[idx2][idx] = color;
         return backgroundDrawable[idx2][idx];
     }
 
@@ -455,10 +456,6 @@ public class MessageDrawable extends Drawable {
         }
         boolean forceSetColor = false;
         if (currentShadowDrawableRadius[idx] != newRad) {
-            currentShadowDrawableRadius[idx] = newRad;
-            if (shadowDrawableBitmap[idx] != null) {
-                shadowDrawableBitmap[idx].recycle();
-            }
             try {
                 Bitmap bitmap = Bitmap.createBitmap(dp(50), dp(40), Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bitmap);
@@ -486,9 +483,14 @@ public class MessageDrawable extends Drawable {
                     draw(canvas, shadowPaint);
                 }
 
+                Bitmap previousBitmap = shadowDrawableBitmap[idx];
                 shadowDrawableBitmap[idx] = bitmap;
                 shadowDrawable[idx] = new NinePatchDrawable(bitmap, getByteBuffer(bitmap.getWidth() / 2 - 1, bitmap.getWidth() / 2 + 1, bitmap.getHeight() / 2 - 1, bitmap.getHeight() / 2 + 1, centralColorHint).array(), new Rect(), null);
+                currentShadowDrawableRadius[idx] = newRad;
                 forceSetColor = true;
+                if (previousBitmap != null) {
+                    previousBitmap.recycle();
+                }
             } catch (Throwable ignore) {
 
             }

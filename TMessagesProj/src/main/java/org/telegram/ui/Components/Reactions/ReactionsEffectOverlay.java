@@ -87,6 +87,8 @@ public class ReactionsEffectOverlay {
     private View cell;
     private boolean useWindow;
     private ViewGroup decorView;
+    private BaseFragment baseFragment;
+    private static final ArrayList<ReactionsEffectOverlay> activeOverlays = new ArrayList<>();
     private static long lastHapticTime;
     ArrayList<AvatarParticle> avatars = new ArrayList<>();
     public long startTime;
@@ -113,6 +115,7 @@ public class ReactionsEffectOverlay {
         this.animationType = animationType;
         this.currentAccount = currentAccount;
         this.cell = cell;
+        this.baseFragment = fragment;
         ReactionsLayoutInBubble.ReactionButton reactionButton = null;
         if (cell instanceof ChatMessageCell) {
             reactionButton = ((ChatMessageCell) cell).getReactionButton(visibleReaction);
@@ -481,6 +484,9 @@ public class ReactionsEffectOverlay {
 
                                     ViewGroup viewGroup = (ViewGroup) getParent();
                                     viewGroup.addView(nextReactionOverlay.windowView);
+                                    if (!activeOverlays.contains(nextReactionOverlay)) {
+                                        activeOverlays.add(nextReactionOverlay);
+                                    }
                                     nextReactionOverlay.isStories = true;
                                     nextReactionOverlay.started = true;
                                     nextReactionOverlay.startTime = System.currentTimeMillis();
@@ -741,6 +747,7 @@ public class ReactionsEffectOverlay {
     }
 
     private void removeCurrentView() {
+        activeOverlays.remove(this);
         try {
             if (useWindow) {
                 windowManager.removeView(windowView);
@@ -749,6 +756,21 @@ public class ReactionsEffectOverlay {
             }
         } catch (Exception e) {
 
+        }
+    }
+
+    public static void dismissByFragment(BaseFragment fragment) {
+        for (int i = activeOverlays.size() - 1; i >= 0; i--) {
+            ReactionsEffectOverlay overlay = activeOverlays.get(i);
+            if (overlay.baseFragment == fragment) {
+                if (currentOverlay == overlay) {
+                    currentOverlay = null;
+                }
+                if (currentShortOverlay == overlay) {
+                    currentShortOverlay = null;
+                }
+                overlay.removeCurrentView();
+            }
         }
     }
 
@@ -794,6 +816,7 @@ public class ReactionsEffectOverlay {
             reactionsEffectOverlay.decorView = (FrameLayout) baseFragment.getParentActivity().getWindow().getDecorView();
             reactionsEffectOverlay.decorView.addView(reactionsEffectOverlay.windowView);
         }
+        activeOverlays.add(reactionsEffectOverlay);
         cell.invalidate();
         if (cell instanceof ChatMessageCell && ((ChatMessageCell) cell).getCurrentMessagesGroup() != null && cell.getParent() != null) {
             ((View) cell.getParent()).invalidate();

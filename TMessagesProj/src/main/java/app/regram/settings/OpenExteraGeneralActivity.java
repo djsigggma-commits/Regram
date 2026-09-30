@@ -13,9 +13,15 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.TypedValue;
+import android.graphics.Typeface;
 import android.view.View;
+import android.view.Gravity;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,8 +53,9 @@ import java.util.regex.Pattern;
 import app.regram.OpenExteraConfig;
 import app.regram.general.GeneralConfig;
 import app.regram.general.GeneralHelper;
-import app.regram.nowplaying.ProfileMusicStamp;
-import tw.nekomimi.nekogram.NekoConfig;
+import app.regram.nowplaying.LastFmNowPlaying;
+import app.regram.nowplaying.LastFmWebFetcher;
+import app.regram.nowplaying.ProfileMusicStamp;import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.config.ConfigItem;
 import tw.nekomimi.nekogram.helpers.AppRestartHelper;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
@@ -632,40 +639,176 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
         showDialog(dialog, d -> AndroidUtilities.hideKeyboard(editText));
     }
 
-    private void applyLastFmToProfileMusic(String nick) {
-        AlertDialog progress = getParentActivity() != null
-                ? new AlertDialog(getParentActivity(), AlertDialog.ALERT_TYPE_SPINNER) : null;
-        if (progress != null) {
-            progress.setCanCancel(false);
-            progress.showDelayed(300);
+    private void showLastFmDebug() {
+        Context context = getParentActivity();
+        if (context == null) {
+            return;
         }
-        ProfileMusicStamp.apply(currentAccount, nick, (ok, reason) -> {
-            if (progress != null) {
-                progress.dismiss();
+        TextView logView = new TextView(context);
+        logView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+        logView.setTypeface(Typeface.MONOSPACE);
+        logView.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+        logView.setTextIsSelectable(true);
+
+        ScrollView scrollView = new ScrollView(context);
+        scrollView.addView(logView, new ScrollView.LayoutParams(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        LinearLayout actions = new LinearLayout(context);
+        actions.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout firstRow = new LinearLayout(context);
+        LinearLayout secondRow = new LinearLayout(context);
+        actions.addView(firstRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36));
+        actions.addView(secondRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 36, 0, 6, 0, 0));
+
+        LinearLayout container = new LinearLayout(context);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.addView(actions, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
+                LayoutHelper.WRAP_CONTENT, 20f, 0f, 20f, 10f));
+        container.addView(scrollView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 320, 24f, 0f, 24f, 0f));
+
+        Runnable[] refresh = new Runnable[1];
+        AlertDialog dialog = new AlertDialog.Builder(context, resourcesProvider)
+                .setTitle(getString(R.string.OEGeneralLastFmDebug))
+                .setView(container)
+                .setPositiveButton(getString(R.string.Close), null)
+                .create();
+        refresh[0] = () -> {
+            String nick = GeneralConfig.lastfmNick();
+            String text = "nick: " + (TextUtils.isEmpty(nick) ? "-" : nick)
+                    + "\nmode: " + (LastFmNowPlaying.isWebMode() ? "webview" : "okhttp")
+                    + "\nchallenge passed: " + LastFmWebFetcher.isReady()
+                    + "\ncookies: " + LastFmWebFetcher.cookieSummary()
+                    + "\n\n" + LastFmNowPlaying.debugLog();
+            if (!TextUtils.equals(logView.getText(), text)) {
+                boolean atBottom = !scrollView.canScrollVertically(1);
+                logView.setText(text);
+                if (atBottom) {
+                    scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+                }
             }
-            if (getParentActivity() == null) {
+            if (dialog.isShowing()) {
+                AndroidUtilities.runOnUIThread(refresh[0], 500);
+            }
+        };
+
+        addLastFmDebugAction(firstRow, getString(R.string.OEGeneralLastFmDebugTest), () -> {
+            String nick = GeneralConfig.lastfmNick();
+            if (TextUtils.isEmpty(nick)) {
+                LastFmNowPlaying.debug("test: nick is not set");
                 return;
             }
-            int resId;
-            int icon;
-            if (ok) {
-                resId = R.string.OEGeneralLastFmApplied;
-                icon = R.raw.done;
-            } else if (reason == ProfileMusicStamp.REASON_NO_MUSIC) {
-                resId = R.string.OEGeneralLastFmNoMusic;
-                icon = R.raw.info;
-            } else if (reason == ProfileMusicStamp.REASON_DOWNLOAD) {
-                resId = R.string.OEGeneralLastFmNoFile;
-                icon = R.raw.error;
-            } else if (reason == ProfileMusicStamp.REASON_UPLOAD) {
-                resId = R.string.OEGeneralLastFmNoUpload;
-                icon = R.raw.error;
-            } else {
-                resId = R.string.OEGeneralLastFmFailed;
-                icon = R.raw.error;
-            }
-            BulletinFactory.of(this).createSimpleBulletin(icon, getString(resId)).show();
+            LastFmNowPlaying.forget(nick);
+            LastFmNowPlaying.debug("test: " + nick);
+            LastFmNowPlaying.request(nick, (resultNick, track) -> {
+            });
         });
+        addLastFmDebugAction(firstRow, getString(R.string.OEGeneralLastFmDebugMode),
+                () -> LastFmNowPlaying.setWebMode(!LastFmNowPlaying.isWebMode()));
+        addLastFmDebugAction(firstRow, getString(R.string.OEGeneralLastFmDebugPage), this::showLastFmWebView);
+        addLastFmDebugAction(secondRow, getString(R.string.OEGeneralLastFmDebugCookies), LastFmWebFetcher::resetCookies);
+        addLastFmDebugAction(secondRow, getString(R.string.OEGeneralLastFmDebugClear), LastFmNowPlaying::clearDebug);
+        addLastFmDebugAction(secondRow, getString(R.string.OEGeneralLastFmDebugCopy),
+                () -> AndroidUtilities.addToClipboard(logView.getText()));
+
+        showDialog(dialog, d -> AndroidUtilities.cancelRunOnUIThread(refresh[0]));
+        refresh[0].run();
+    }
+
+    private void addLastFmDebugAction(LinearLayout row, String text, Runnable action) {
+        TextView button = new TextView(getParentActivity());
+        button.setText(text);
+        button.setGravity(Gravity.CENTER);
+        button.setSingleLine(true);
+        button.setEllipsize(TextUtils.TruncateAt.END);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        button.setTypeface(AndroidUtilities.bold());
+        button.setTextColor(getThemedColor(Theme.key_featuredStickers_addButton));
+        button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(8),
+                Theme.multAlpha(getThemedColor(Theme.key_featuredStickers_addButton), 0.1f),
+                Theme.multAlpha(getThemedColor(Theme.key_featuredStickers_addButton), 0.25f)));
+        button.setOnClickListener(v -> action.run());
+        row.addView(button, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f,
+                row.getChildCount() == 0 ? 0 : 6, 0, 0, 0));
+    }
+
+    private void showLastFmWebView() {
+        Context context = getParentActivity();
+        if (context == null) {
+            return;
+        }
+        WebView webView = LastFmWebFetcher.debugWebView();
+        AndroidUtilities.removeFromParent(webView);
+        FrameLayout frame = new FrameLayout(context);
+        frame.addView(webView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 420));
+        AlertDialog dialog = new AlertDialog.Builder(context, resourcesProvider)
+                .setTitle(getString(R.string.OEGeneralLastFmDebugPage))
+                .setView(frame)
+                .setPositiveButton(getString(R.string.Close), null)
+                .create();
+        showDialog(dialog, d -> AndroidUtilities.removeFromParent(webView));
+    }
+
+    private void applyLastFmToProfileMusic(String nick) {
+        AlertDialog progress = getParentActivity() != null
+                ? new AlertDialog(getParentActivity(), AlertDialog.ALERT_TYPE_LOADING, resourcesProvider) : null;
+        if (progress != null) {
+            progress.setTitle(getString(R.string.OEGeneralLastFm));
+            progress.setMessage(getString(R.string.OEGeneralLastFmStageDownload));
+            progress.showDelayed(300);
+        }
+        ProfileMusicStamp.apply(currentAccount, nick, new ProfileMusicStamp.Callback() {
+            @Override
+            public void onStage(int stage, int percent) {
+                if (progress == null) {
+                    return;
+                }
+                int resId;
+                if (stage == ProfileMusicStamp.STAGE_DOWNLOAD) {
+                    resId = R.string.OEGeneralLastFmStageDownload;
+                } else if (stage == ProfileMusicStamp.STAGE_PREPARE) {
+                    resId = R.string.OEGeneralLastFmStagePrepare;
+                } else if (stage == ProfileMusicStamp.STAGE_UPLOAD) {
+                    resId = R.string.OEGeneralLastFmStageUpload;
+                } else {
+                    resId = R.string.OEGeneralLastFmStageSave;
+                }
+                progress.setMessage(getString(resId));
+                progress.setProgress(percent);
+            }
+
+            @Override
+            public void onFinished(boolean ok, int reason) {
+                onLastFmApplied(progress, ok, reason);
+            }
+        });
+    }
+
+    private void onLastFmApplied(AlertDialog progress, boolean ok, int reason) {
+        if (progress != null) {
+            progress.dismiss();
+        }
+        if (getParentActivity() == null) {
+            return;
+        }
+        int resId;
+        int icon;
+        if (ok) {
+            resId = R.string.OEGeneralLastFmApplied;
+            icon = R.raw.done;
+        } else if (reason == ProfileMusicStamp.REASON_NO_MUSIC) {
+            resId = R.string.OEGeneralLastFmNoMusic;
+            icon = R.raw.info;
+        } else if (reason == ProfileMusicStamp.REASON_DOWNLOAD) {
+            resId = R.string.OEGeneralLastFmNoFile;
+            icon = R.raw.error;
+        } else if (reason == ProfileMusicStamp.REASON_UPLOAD) {
+            resId = R.string.OEGeneralLastFmNoUpload;
+            icon = R.raw.error;
+        } else {
+            resId = R.string.OEGeneralLastFmFailed;
+            icon = R.raw.error;
+        }
+        BulletinFactory.of(this).createSimpleBulletin(icon, getString(resId)).show();
     }
 
     private void showRestartHint() {
@@ -794,6 +937,10 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
     protected boolean onItemLongClick(View view, int position, float x, float y) {
         if (position == pushGatewayRow) {
             showUnifiedPushStatistics();
+            return true;
+        }
+        if (position == lastfmRow) {
+            showLastFmDebug();
             return true;
         }
         return super.onItemLongClick(view, position, x, y);

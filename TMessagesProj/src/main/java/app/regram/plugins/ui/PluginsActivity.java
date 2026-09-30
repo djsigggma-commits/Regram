@@ -64,6 +64,9 @@ public class PluginsActivity extends BaseFragment {
 
     private static final int MENU_SEARCH = 0;
     private static final int MENU_INFO = 1;
+    private static final int MENU_OTHER = 10;
+    private static final int MENU_EXPORT_LOGS = 3;
+    private static final int MENU_CLEAR_LOGS = 4;
 
     private static final int ID_ENGINE_TOGGLE = -1;
     private static final int ID_RECOMMENDED = -2;
@@ -88,6 +91,13 @@ public class PluginsActivity extends BaseFragment {
                     finishFragment();
                 } else if (id == MENU_INFO) {
                     presentFragment(new PluginsInfoActivity());
+                } else if (id == MENU_EXPORT_LOGS) {
+                    exportPluginLogs();
+                } else if (id == MENU_CLEAR_LOGS) {
+                    app.regram.plugins.PluginLog.clear();
+                    BulletinFactory.of(PluginsActivity.this)
+                            .createSimpleBulletin(R.raw.done, getString(R.string.PluginsLogsCleared))
+                            .show();
                 }
             }
         });
@@ -111,6 +121,10 @@ public class PluginsActivity extends BaseFragment {
                                 });
         search.setSearchFieldHint(getString(R.string.Search));
         actionBar.createMenu().addItem(MENU_INFO, R.drawable.msg_info);
+        org.telegram.ui.ActionBar.ActionBarMenuItem other =
+                actionBar.createMenu().addItem(MENU_OTHER, R.drawable.ic_ab_other);
+        other.addSubItem(MENU_EXPORT_LOGS, R.drawable.msg_share, getString(R.string.PluginsExportLogs));
+        other.addSubItem(MENU_CLEAR_LOGS, R.drawable.msg_delete, getString(R.string.PluginsClearLogs));
 
         FrameLayout contentView = new FrameLayout(context);
         contentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
@@ -176,6 +190,23 @@ public class PluginsActivity extends BaseFragment {
             }
         }
         return filtered;
+    }
+
+    private void exportPluginLogs() {
+        final android.app.Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        org.telegram.messenger.Utilities.globalQueue.postRunnable(() -> {
+            final File file = app.regram.plugins.PluginLog.export();
+            AndroidUtilities.runOnUIThread(() -> {
+                if (file == null) {
+                    BulletinFactory.of(this).createErrorBulletin(getString(R.string.ErrorOccurred)).show();
+                    return;
+                }
+                tw.nekomimi.nekogram.utils.ShareUtil.shareFile(activity, file);
+            });
+        });
     }
 
     private void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
@@ -320,6 +351,9 @@ public class PluginsActivity extends BaseFragment {
             String ext = source.getName().contains(".")
                     ? source.getName().substring(source.getName().lastIndexOf('.'))
                     : ".plugin";
+            if (ext.equalsIgnoreCase(".py")) {
+                ext = ".plugin";
+            }
             File copy = new File(dir, plugin.id + ext);
             try (InputStream in = new java.io.FileInputStream(source);
                  FileOutputStream out = new FileOutputStream(copy)) {
@@ -354,15 +388,14 @@ public class PluginsActivity extends BaseFragment {
         if (!controller.isEngineEnabled()) {
             return;
         }
-        controller.setPluginEnabled(plugin.id, !plugin.enabled);
-        Plugin updated = controller.getPlugin(plugin.id);
-        boolean enabled = updated != null && updated.enabled;
-        updateRows();
-        if (enabled && updated.loadError != null) {
-            // Плагин уже падал: покажем, на чём именно, иначе включение
-            // выглядит как «щёлкнул и ничего».
-            showPluginInfo(updated);
-        }
+        controller.setPluginEnabled(plugin.id, !plugin.enabled, failedId -> {
+            Plugin updated = controller.getPlugin(plugin.id);
+            boolean enabled = updated != null && updated.enabled;
+            updateRows();
+            if (enabled && updated.loadError != null && getParentActivity() != null) {
+                showPluginInfo(updated);
+            }
+        });
     }
 
     private void updateRows() {
@@ -531,9 +564,10 @@ public class PluginsActivity extends BaseFragment {
             if (action == 0) {
                 PythonPluginsEngine.getInstance().openPluginSettings(plugin, this);
             } else if (action == 1) {
-                controller.reloadPlugin(plugin.id);
-                refreshPlugins(false);
-                updateRows();
+                controller.reloadPlugin(plugin.id, () -> {
+                    refreshPlugins(false);
+                    updateRows();
+                });
             } else if (action == 2) {
                 AndroidUtilities.addToClipboard(plugin.id);
             } else if (action == 3) {
@@ -669,8 +703,17 @@ public class PluginsActivity extends BaseFragment {
                     .setPositiveButton(getString(R.string.OK), null)
                     .create());
         }
-        refreshPlugins(true);
+        refreshPlugins(false);
         updateRows();
+        if (PluginsController.getInstance().isEngineEnabled()) {
+            PluginsController.getInstance().rescanPlugins(() -> {
+                if (fragmentView == null) {
+                    return;
+                }
+                refreshPlugins(false);
+                updateRows();
+            });
+        }
     }
 
     @Override

@@ -3966,6 +3966,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 musicView.setMusicDocument(userInfo.saved_music);
             }
             musicView.setOnClickListener(v -> openSavedMusic());
+            musicView.setOnLongClickListener(v -> {
+                showProfileMusicDesignDialog();
+                return true;
+            });
 
             actionsView = new ProfileActionsView(context, dp(74));
             setActionsMode();
@@ -4801,7 +4805,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     return Unit.INSTANCE;
                 });
 
-                if (tw.nekomimi.nekogram.helpers.remote.BaseRemoteHelper.hasMetadataChannel()) {
+                {
                 builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search_solar,
                         (it) -> {
                             Browser.openUrl(context, "tg://update");
@@ -10987,12 +10991,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         if (userId != 0) {
             TLRPC.User user = getMessagesController().getUser(userId);
-            if (userInfo != null && userInfo.saved_music != null && (imageUpdater == null || myProfile)
-                    && app.regram.nowplaying.NowPlayingController.shouldShowCard(userInfo.saved_music)) {
-                hasMusicCard = true;
-                app.regram.nowplaying.LastFmNowPlaying.prefetch(
-                        app.regram.nowplaying.ProfileMusicMark.nickFrom(
-                                FileLoader.getDocumentFileName(userInfo.saved_music), userId));
+            if (userInfo != null && userInfo.saved_music != null && (imageUpdater == null || myProfile)) {
+                if (app.regram.appearance.AppearanceConfig.profileMusicCard()
+                        && app.regram.nowplaying.NowPlayingController.shouldShowCard(userInfo.saved_music)) {
+                    hasMusicCard = true;
+                    app.regram.nowplaying.LastFmNowPlaying.prefetch(
+                            app.regram.nowplaying.ProfileMusicMark.nickFrom(
+                                    FileLoader.getDocumentFileName(userInfo.saved_music), userId));
+                } else {
+                    hasMusic = true;
+                }
             }
 
             if (emptyRow < 0 && emptyRow2 < 0) {
@@ -11491,6 +11499,23 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    private void showProfileMusicDesignDialog() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final boolean card = app.regram.appearance.AppearanceConfig.profileMusicCard();
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), resourcesProvider);
+        builder.setTitle(getString(R.string.OEProfileMusicDesign));
+        builder.setMessage(getString(card ? R.string.OEProfileMusicUseOfficialInfo : R.string.OEProfileMusicUseCardInfo));
+        builder.setPositiveButton(getString(card ? R.string.OEProfileMusicUseOfficial : R.string.OEProfileMusicUseCard), (dialog, which) -> {
+            app.regram.appearance.AppearanceConfig.profileMusicCard.setConfigBool(!card);
+            updateListAnimated(false);
+            needLayout(true);
+        });
+        builder.setNegativeButton(getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
     private void openSavedMusic() {
         if (savedMusicList == null) {
             if (
@@ -11855,7 +11880,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         newString2 = getString(R.string.StarRatingLevelNegative).toLowerCase(Locale.ROOT);
                     } else {
                         if (!NekoConfig.sendOnlinePackets.Bool() || NekoConfig.sendOfflinePacketAfterOnline.Bool()) {
-                            newString2 = getString(R.string.VoipOfflineTitle);
+                            final int lastSeen = app.regram.ghost.OwnLastSeen.seconds(currentAccount, user);
+                            newString2 = lastSeen > 0 ? app.regram.ghost.OwnLastSeen.format(lastSeen) : getString(R.string.VoipOfflineTitle);
                         } else {
                             newString2 = LocaleController.getString(R.string.Online);
                         }
@@ -11942,12 +11968,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 boolean rightIconIsPremium = false, rightIconIsStatus = false;
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 if (a == 0 && !copyFromChatActivity) {
+                    BadgeDTO userBadge = BadgesController.INSTANCE.getBadge(user);
+                    nameTextView[a].setRightDrawable2OnClick(null);
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.ScamMessage);
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.AccDescrVerified);
+                    } else if (userBadge != null) {
+                        nameTextView[a].setRightDrawable2(getBadgeDrawable(userBadge, false, a));
+                        nameTextView[a].setRightDrawable2OnClick(v -> BadgesController.INSTANCE.showBadgeBulletin(this, userBadge, user, resourcesProvider, currentAccount));
+                        nameTextViewRightDrawable2ContentDescription = userBadge.getText();
                     } else if (getMessagesController().isDialogMuted(dialogId != 0 ? dialogId : userId, topicId)) {
                         nameTextView[a].setRightDrawable2(getThemedDrawable(Theme.key_drawable_muteIconDrawable));
                         nameTextViewRightDrawable2ContentDescription = LocaleController.getString(R.string.NotificationsMuted);
@@ -11956,13 +11988,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawable2ContentDescription = null;
                     }
                     Long selfEmojiDocId = (user != null && user.self) ? UserObject.getEmojiStatusDocumentId(user) : null;
-                    BadgeDTO userBadge = BadgesController.INSTANCE.getBadge(user);
-                    if (userBadge != null) {
-                        rightIconIsStatus = true;
-                        rightIconIsPremium = false;
-                        nameTextView[a].setRightDrawable(getBadgeDrawable(userBadge, false, a));
-                        nameTextViewRightDrawableContentDescription = userBadge.getText();
-                    } else if (user != null/* && !getMessagesController().premiumFeaturesBlocked()*/ && !MessagesController.isSupportUser(user) && (DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0 || (user.self && selfEmojiDocId != null && selfEmojiDocId != 0))) {
+                    if (user != null/* && !getMessagesController().premiumFeaturesBlocked()*/ && !MessagesController.isSupportUser(user) && (DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0 || (user.self && selfEmojiDocId != null && selfEmojiDocId != 0))) {
                         rightIconIsStatus = true;
                         rightIconIsPremium = false;
                         if (user.self && (selfEmojiDocId != null && selfEmojiDocId != 0) && DialogObject.getEmojiStatusDocumentId(user.emoji_status) == 0) {
@@ -11983,21 +12009,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextViewRightDrawableContentDescription = null;
                     }
                 } else if (a == 1) {
+                    BadgeDTO userBadge = BadgesController.INSTANCE.getBadge(user);
+                    nameTextView[a].setRightDrawable2OnClick(null);
                     if (user.scam || user.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(user.scam ? 0 : 1));
                     } else if (user.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
+                    } else if (userBadge != null) {
+                        nameTextView[a].setRightDrawable2(getBadgeDrawable(userBadge, true, a));
+                        nameTextView[a].setRightDrawable2OnClick(v -> BadgesController.INSTANCE.showBadgeBulletin(this, userBadge, user, resourcesProvider, currentAccount));
                     } else {
                         nameTextView[a].setRightDrawable2(null);
                     }
                     Long selfEmojiDocId2 = (user != null && user.self) ? UserObject.getEmojiStatusDocumentId(user) : null;
-                    BadgeDTO userBadge2 = BadgesController.INSTANCE.getBadge(user);
-                    if (userBadge2 != null) {
-                        rightIconIsStatus = true;
-                        rightIconIsPremium = false;
-                        nameTextView[a].setRightDrawable(getBadgeDrawable(userBadge2, true, a));
-                        nameTextViewRightDrawableContentDescription = userBadge2.getText();
-                    } else if (/*!getMessagesController().premiumFeaturesBlocked() && */user != null && !MessagesController.isSupportUser(user) && (DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0 || (user.self && selfEmojiDocId2 != null && selfEmojiDocId2 != 0))) {
+                    if (/*!getMessagesController().premiumFeaturesBlocked() && */user != null && !MessagesController.isSupportUser(user) && (DialogObject.getEmojiStatusDocumentId(user.emoji_status) != 0 || (user.self && selfEmojiDocId2 != null && selfEmojiDocId2 != 0))) {
                         rightIconIsStatus = true;
                         rightIconIsPremium = false;
                         if (user.self && (selfEmojiDocId2 != null && selfEmojiDocId2 != 0) && DialogObject.getEmojiStatusDocumentId(user.emoji_status) == 0) {
@@ -12291,22 +12316,24 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 nameTextView[a].setRightDrawableOutside(a == 0);
                 nameTextView[a].setRightDrawableOnClick(null);
                 if (a != 0) {
+                    BadgeDTO chatBadge = BadgesController.INSTANCE.getBadge(chat);
+                    nameTextView[a].setRightDrawable2OnClick(null);
                     if (chat.scam || chat.fake) {
                         nameTextView[a].setRightDrawable2(getScamDrawable(chat.scam ? 0 : 1));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.ScamMessage);
                     } else if (chat.verified) {
                         nameTextView[a].setRightDrawable2(getVerifiedCrossfadeDrawable(a));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrVerified);
+                    } else if (chatBadge != null) {
+                        nameTextView[a].setRightDrawable2(getBadgeDrawable(chatBadge, true, a));
+                        final TLRPC.Chat badgeChat = chat;
+                        nameTextView[a].setRightDrawable2OnClick(v -> BadgesController.INSTANCE.showBadgeBulletin(this, chatBadge, badgeChat, resourcesProvider, currentAccount));
+                        nameTextViewRightDrawableContentDescription = chatBadge.getText();
                     } else {
                         nameTextView[a].setRightDrawable2(null);
                         nameTextViewRightDrawableContentDescription = null;
                     }
-                    BadgeDTO chatBadge = BadgesController.INSTANCE.getBadge(chat);
-                    if (chatBadge != null) {
-                        nameTextView[a].setRightDrawable(getBadgeDrawable(chatBadge, true, a));
-                        nameTextView[a].setRightDrawableOutside(true);
-                        nameTextViewRightDrawableContentDescription = chatBadge.getText();
-                    } else if (DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
+                    if (DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(chat.emoji_status, true, false, a));
                         nameTextView[a].setRightDrawableOutside(true);
                         nameTextViewRightDrawableContentDescription = null;
@@ -12948,11 +12975,17 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             java.util.Map<String, Object> pluginMenuContext = new java.util.HashMap<>();
             pluginMenuContext.put("account", currentAccount);
             pluginMenuContext.put("dialog_id", getDialogId());
+            pluginMenuContext.put("fragment", this);
+            if (getParentActivity() != null) {
+                pluginMenuContext.put("context", getParentActivity());
+            }
             if (userId != 0) {
                 pluginMenuContext.put("user", getMessagesController().getUser(userId));
+                pluginMenuContext.put("userId", userId);
             }
             if (chatId != 0) {
                 pluginMenuContext.put("chat", getMessagesController().getChat(chatId));
+                pluginMenuContext.put("chatId", chatId);
             }
             pluginsMenu = app.regram.plugins.menus.MenuInjector.attachSwipeBackMenu(
                     otherItem,
@@ -13648,6 +13681,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 ArrayList<File> files = new ArrayList<>();
 
                 files.addAll(Arrays.asList(dir.listFiles()));
+                files.addAll(Arrays.asList(app.regram.plugins.PluginLog.files()));
 
                 File filesDir = ApplicationLoader.getFilesDirFixed();
                 filesDir = new File(filesDir, "malformed_database/");
@@ -13854,6 +13888,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 case VIEW_TYPE_MUSIC: {
                     ProfileMusicCard card = new ProfileMusicCard(mContext, resourcesProvider);
                     card.setOnCardClickListener(ProfileActivity.this::openSavedMusic);
+                    card.setOnCardLongClickListener(ProfileActivity.this::showProfileMusicDesignDialog);
                     view = card;
                     view.setTag(RecyclerListView.TAG_NOT_SECTION);
                     break;
@@ -14143,8 +14178,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
                         detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
                     } else if (position == noteRow) {
-                        final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
-                        if (userInfo == null) return;
+                        if (userInfo == null || userInfo.note == null) return;
                         TLRPC.TL_textWithEntities note = userInfo.note;
                         CharSequence text;
                         if (!UserConfig.getInstance(currentAccount).isPremium()) {
@@ -15322,7 +15356,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     new SearchResult(218, getString(R.string.VoipUseLessData), "useLessDataForCallsRow", getString(R.string.DataSettings), R.drawable.msg2_data, () -> f.presentFragment(new DataSettingsActivity())).withLink("tg://settings/data/use-less-data"),
                     new SearchResult(219, getString(R.string.VoipQuickReplies), "quickRepliesRow", getString(R.string.DataSettings), R.drawable.msg2_data, () -> f.presentFragment(new DataSettingsActivity())),
                     new SearchResult(220, getString(R.string.ProxySettings), getString(R.string.DataSettings), R.drawable.msg2_data, () -> f.presentFragment(new ProxyListActivity())).withLink("tg://settings/data/proxy"),
-                    new SearchResult(221, getString(R.string.UseProxyForCalls), "callsRow", getString(R.string.DataSettings), getString(R.string.ProxySettings), R.drawable.msg2_data, () -> f.presentFragment(new ProxyListActivity())).withLink("tg://settings/data/proxy/use-for-calls"),
                     new SearchResult(111, getString(R.string.PrivacyDeleteCloudDrafts), "clearDraftsRow", getString(R.string.DataSettings), R.drawable.msg2_data, () -> f.presentFragment(new DataSettingsActivity())).withLink("tg://settings/privacy/data-settings/delete-cloud-drafts"),
                     new SearchResult(222, getString(R.string.SaveToGallery), "saveToGallerySectionRow", getString(R.string.DataSettings), R.drawable.msg2_data, () -> f.presentFragment(new DataSettingsActivity())),
                     new SearchResult(223, getString(R.string.SaveToGalleryPrivate), "saveToGalleryPeerRow", getString(R.string.DataSettings), getString(R.string.SaveToGallery), R.drawable.msg2_data, () -> f.presentFragment(new DataSettingsActivity())).withLink("tg://settings/data/save-to-photos/chats"),
@@ -17038,8 +17071,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         final ItemOptions o = ItemOptions.makeOptions(this, view);
         o.setScrimViewBackground(listView.getClipBackground(view));
         o.setLongPressSelectionEnabled(false);
-        o.addIf(userInfo != null, R.drawable.msg_copy, getString(R.string.Copy), () -> {
-            if (userInfo == null) return;
+        o.addIf(userInfo != null && userInfo.note != null, R.drawable.msg_copy, getString(R.string.Copy), () -> {
+            if (userInfo == null || userInfo.note == null) return;
             final CharSequence text = MessageObject.formatTextWithEntities(userInfo.note, false);
             AndroidUtilities.addToClipboard(text);
             BulletinFactory.of(ProfileActivity.this)
@@ -17057,11 +17090,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 .setTitle(getString(R.string.ProfileNotesRemoveTitle))
                 .setMessage(getString(R.string.ProfileNotesRemoveText))
                 .setPositiveButton(getString(R.string.Delete), (di, w) -> {
-                    final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
+                    final TLRPC.UserFull cachedUserInfo = getMessagesController().getUserFull(userId);
+                    if (cachedUserInfo != null) {
+                        cachedUserInfo.flags2 &=~ TLObject.FLAG_22;
+                        cachedUserInfo.note = null;
+                        getMessagesStorage().updateUserInfo(cachedUserInfo, true);
+                    }
                     if (userInfo != null) {
                         userInfo.flags2 &=~ TLObject.FLAG_22;
                         userInfo.note = null;
-                        getMessagesStorage().updateUserInfo(userInfo, true);
                     }
 
                     final TLRPC.TL_updateContactNote req = new TLRPC.TL_updateContactNote();

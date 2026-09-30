@@ -810,6 +810,7 @@ public class MessagesController extends BaseController implements NotificationCe
         final boolean isVotes = !isReactions;
 
         final MessagesStorage messagesStorage = getMessagesStorage();
+        final int expectedCount = getUnreadContentCount(dialogId, topicId, isReactions);
         messagesStorage.getStorageQueue().postRunnable(() -> {
             boolean needRequest = true;
             try {
@@ -862,10 +863,24 @@ public class MessagesController extends BaseController implements NotificationCe
                     req.add_offset = count - 1;
                     request = req;
                 }
+                final boolean canApplyServerCount = topicId == 0 || isReactions && isMonoForum(dialogId);
                 getConnectionsManager().sendRequestTyped(request, AndroidUtilities::runOnUIThread, (res, error) -> {
                     int messageId = 0;
                     if (error == null && res != null && res.messages != null && !res.messages.isEmpty()) {
                         messageId = res.messages.get(0).id;
+                    }
+                    if (error == null && res != null && res.messages != null && canApplyServerCount) {
+                        if (messageId != 0) {
+                            int serverCount = Math.max(res.count, res.messages.size());
+                            int current = getUnreadContentCount(dialogId, topicId, isReactions);
+                            if (current > 0 && current == expectedCount && serverCount < current) {
+                                setUnreadContentCount(dialogId, topicId, serverCount, isReactions, true);
+                            }
+                        } else if (count > 1) {
+                            // add_offset != 0, so we can't trust server count. rerun with count = 1 (i.e. add_offset = 0)
+                            getNextReactionMentionInternal(dialogId, topicId, 1, isReactions, callback);
+                            return;
+                        }
                     }
                     int finalMessageId = messageId;
                     AndroidUtilities.runOnUIThread(() -> callback.accept(finalMessageId));
@@ -9489,6 +9504,17 @@ public class MessagesController extends BaseController implements NotificationCe
         if ((messages == null || messages.isEmpty()) && taskId == 0) {
             return;
         }
+        if (taskId == 0 && taskRequest == null && messages != null && messages.size() > 100) {
+            final boolean splitRandoms = randoms != null && randoms.size() == messages.size();
+            for (int start = 0; start < messages.size(); start += 100) {
+                final int end = Math.min(messages.size(), start + 100);
+                final ArrayList<Long> chunkRandoms = splitRandoms ? new ArrayList<>(randoms.subList(start, end))
+                        : start == 0 ? randoms : null;
+                deleteMessages(new ArrayList<>(messages.subList(start, end)), chunkRandoms, encryptedChat, dialogId, forAll, mode,
+                        cacheOnly, 0, null, topicId, movedToScheduled, movedToScheduledMessageId);
+            }
+            return;
+        }
 
         // --- AyuGram hook
         int ayuDeletedMessagesCount = 0;
@@ -10301,7 +10327,13 @@ public class MessagesController extends BaseController implements NotificationCe
 
     protected void deleteDialog(long did, int first, int onlyHistory, int max_id, boolean revoke, TLRPC.InputPeer peer, long taskId) {
         if (onlyHistory == 3 && NaConfig.INSTANCE.getEnableSaveDeletedMessages().Bool()) {
+            if (first == 1) {
+                com.radolyn.ayugram.messages.AyuDeletedDialogs.onDialogEmptied(currentAccount, did);
+            }
             return;
+        }
+        if (first == 1 && (onlyHistory == 0 || onlyHistory == 1)) {
+            com.radolyn.ayugram.messages.AyuDeletedDialogs.forget(currentAccount, did);
         }
         if (onlyHistory == 2) {
             if (did == getUserConfig().getClientUserId()) {
@@ -14052,6 +14084,9 @@ public class MessagesController extends BaseController implements NotificationCe
                     reloadDialogsReadValue(dialogsToReload, 0);
                 }
                 loadUnreadDialogs();
+                if (loadType == DIALOGS_LOAD_TYPE_CACHE && folderId == 0) {
+                    com.radolyn.ayugram.messages.AyuDeletedDialogs.restore(currentAccount);
+                }
                 if (dialogsRes.dialogs != null) {
                     for (int i = 0; i < dialogsRes.dialogs.size(); i++) {
                         final long dialogId = dialogsRes.dialogs.get(i).id;
@@ -17628,7 +17663,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     newTaskId = taskId;
                 }
 
-                if (!NekoConfig.unlimitedPinnedDialogs.Bool()) getConnectionsManager().sendRequest(req, (response, error) -> {
+                getConnectionsManager().sendRequest(req, (response, error) -> {
                     if (newTaskId != 0) {
                         getMessagesStorage().removePendingTask(newTaskId);
                     }
@@ -17640,9 +17675,6 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void loadPinnedDialogs(final int folderId, long newDialogId, ArrayList<Long> order) {
-        if (NekoConfig.unlimitedPinnedDialogs.Bool()) {
-            return;
-        }
         if (loadingPinnedDialogs.indexOfKey(folderId) >= 0 || getUserConfig().isPinnedDialogsLoaded(folderId)) {
             return;
         }
@@ -17746,6 +17778,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 getMessagesStorage().getStorageQueue().postRunnable(() -> AndroidUtilities.runOnUIThread(() -> {
                     loadingPinnedDialogs.delete(folderId);
                     applyDialogsNotificationsSettings(newPinnedDialogs);
+                    final boolean keepLocalPins = NekoConfig.unlimitedPinnedDialogs.Bool();
                     boolean changed = false;
                     boolean added = false;
                     int maxPinnedNum = 0;
@@ -17774,9 +17807,11 @@ public class MessagesController extends BaseController implements NotificationCe
                             continue;
                         }
                         maxPinnedNum = Math.max(dialog.pinnedNum, maxPinnedNum);
-                        dialog.pinned = false;
-                        dialog.pinnedNum = 0;
-                        changed = true;
+                        if (!keepLocalPins) {
+                            dialog.pinned = false;
+                            dialog.pinnedNum = 0;
+                            changed = true;
+                        }
                         pinnedNum++;
                     }
 
@@ -17835,7 +17870,9 @@ public class MessagesController extends BaseController implements NotificationCe
                         sortDialogs(null);
                         getNotificationCenter().postNotificationName(NotificationCenter.dialogsNeedReload);
                     }
-                    getMessagesStorage().unpinAllDialogsExceptNew(pinnedDialogs, folderId);
+                    if (!keepLocalPins) {
+                        getMessagesStorage().unpinAllDialogsExceptNew(pinnedDialogs, folderId);
+                    }
                     getMessagesStorage().putDialogs(toCache, 1);
                     getUserConfig().setPinnedDialogsLoaded(folderId, true);
                     getUserConfig().saveConfig(false);
@@ -18148,7 +18185,7 @@ public class MessagesController extends BaseController implements NotificationCe
         // re:gram plugins: on_updates_hook (CANCEL = контейнер не обрабатывается)
         app.regram.plugins.HookResult hookResult = app.regram.plugins.PluginsController.getInstance().hasAnyUpdatesContainerHooks()
                 ? app.regram.plugins.PluginsController.getInstance()
-                        .executeOnUpdatesHook(currentAccount, originalUpdates.getClass().getSimpleName(), originalUpdates)
+                        .executeOnUpdatesHook(currentAccount, app.regram.plugins.PluginsController.hookName(originalUpdates), originalUpdates)
                 : app.regram.plugins.HookResult.DEFAULT;
         if (hookResult.isCancel()) {
             return;
@@ -18712,7 +18749,7 @@ public class MessagesController extends BaseController implements NotificationCe
             int updateIndex = 0;
             for (TLRPC.Update u : updates) {
                 app.regram.plugins.HookResult updateResult = app.regram.plugins.PluginsController.getInstance()
-                        .executeOnUpdateHook(currentAccount, u.getClass().getSimpleName(), u);
+                        .executeOnUpdateHook(currentAccount, app.regram.plugins.PluginsController.hookName(u), u);
                 TLRPC.Update replacement = updateResult.replacement(TLRPC.Update.class);
                 if (allowed == null && (updateResult.isCancel() || (replacement != null && replacement != u))) {
                     allowed = new ArrayList<>(updates.size());
@@ -21003,6 +21040,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     } else if (baseUpdate instanceof TL_update.TL_updateReadChannelDiscussionInbox) {
                         TL_update.TL_updateReadChannelDiscussionInbox update = (TL_update.TL_updateReadChannelDiscussionInbox) baseUpdate;
                         getNotificationCenter().postNotificationName(NotificationCenter.threadMessagesRead, -update.channel_id, update.top_msg_id, update.read_max_id, 0);
+                        getNotificationsController().processReadTopic(-update.channel_id, update.top_msg_id, update.read_max_id);
                         if ((update.flags & 1) != 0) {
                             getMessagesStorage().updateRepliesMaxReadId(update.broadcast_id, update.broadcast_post, update.read_max_id, 0,true);
                             getNotificationCenter().postNotificationName(NotificationCenter.commentsRead, update.broadcast_id, update.broadcast_post, update.read_max_id);
@@ -21565,6 +21603,7 @@ public class MessagesController extends BaseController implements NotificationCe
         if (webPages != null) {
             getMessagesStorage().putWebPages(webPages);
         }
+        com.radolyn.ayugram.messages.AyuSpyController.onUpdatesRead(currentAccount, markAsReadMessagesOutbox, markAsReadEncrypted, markContentAsReadMessages, markContentAsReadMessagesDate, date);
         if (markAsReadMessagesInbox != null || markAsReadMessagesOutbox != null || markAsReadEncrypted != null || markContentAsReadMessages != null || stillUnreadMessagesCount != null) {
             if (markAsReadMessagesInbox != null || markAsReadMessagesOutbox != null || markContentAsReadMessages != null || stillUnreadMessagesCount != null) {
                 getMessagesStorage().updateDialogsWithReadMessages(markAsReadMessagesInbox, markAsReadMessagesOutbox, markContentAsReadMessages, stillUnreadMessagesCount, true);
@@ -21648,11 +21687,66 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public void checkUnreadReactions(long dialogId, long topicId, SparseBooleanArray unreadReactions) {
+        getNotificationsController().processReadReactions(dialogId, unreadReactions);
         checkUnreadReactionsInternal(dialogId, topicId, unreadReactions, true);
     }
 
     public void checkUnreadPollVotes(long dialogId, long topicId, SparseBooleanArray unreadPollVotes) {
         checkUnreadReactionsInternal(dialogId, topicId, unreadPollVotes, false);
+    }
+
+    private final LongSparseArray<ArrayList<Integer>> pendingContentReadAcks = new LongSparseArray<>();
+
+    public void onMessageUnreadContentRead(long dialogId, long topicId, int messageId, boolean isReactions) {
+        AndroidUtilities.runOnUIThread(() -> {
+            int current = getUnreadContentCount(dialogId, topicId, isReactions);
+            if (current == 1) {
+                if (isReactions) {
+                    markReactionsAsRead(dialogId, topicId);
+                } else {
+                    markPollVotesAsRead(dialogId, topicId);
+                }
+            } else if (current > 1) {
+                setUnreadContentCount(dialogId, topicId, current - 1, isReactions, false);
+            }
+            if (messageId <= 0 || DialogObject.isEncryptedDialog(dialogId)) {
+                return;
+            }
+            ArrayList<Integer> ids = pendingContentReadAcks.get(dialogId);
+            if (ids == null) {
+                ids = new ArrayList<>();
+                pendingContentReadAcks.put(dialogId, ids);
+                AndroidUtilities.runOnUIThread(() -> {
+                    ArrayList<Integer> pending = pendingContentReadAcks.get(dialogId);
+                    pendingContentReadAcks.remove(dialogId);
+                    if (pending == null) {
+                        return;
+                    }
+                    TLRPC.Chat chat = DialogObject.isChatDialog(dialogId) ? getChat(-dialogId) : null;
+                    if (ChatObject.isChannel(chat)) {
+                        TLRPC.TL_channels_readMessageContents req = new TLRPC.TL_channels_readMessageContents();
+                        req.channel = getInputChannel(chat);
+                        if (req.channel == null) {
+                            return;
+                        }
+                        req.id.addAll(pending);
+                        getConnectionsManager().sendRequest(req, null);
+                    } else {
+                        TLRPC.TL_messages_readMessageContents req = new TLRPC.TL_messages_readMessageContents();
+                        req.id.addAll(pending);
+                        getConnectionsManager().sendRequest(req, (response, error) -> {
+                            if (error == null) {
+                                TLRPC.TL_messages_affectedMessages res = (TLRPC.TL_messages_affectedMessages) response;
+                                processNewDifferenceParams(-1, res.pts, -1, res.pts_count);
+                            }
+                        });
+                    }
+                }, 300);
+            }
+            if (!ids.contains(messageId)) {
+                ids.add(messageId);
+            }
+        });
     }
 
     private void checkUnreadReactionsInternal(long dialogId, long topicId, SparseBooleanArray unreadReactions, boolean isReactions) {
@@ -21911,6 +22005,46 @@ public class MessagesController extends BaseController implements NotificationCe
 
     public boolean isDialogMuted(long dialogId) {
         return isDialogMuted(dialogId, 0, null);
+    }
+
+    private int getUnreadContentCount(long dialogId, long topicId, boolean isReactions) {
+        if (topicId == 0) {
+            TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
+            if (dialog == null) {
+                return -1;
+            }
+            return isReactions ? dialog.unread_reactions_count : dialog.unread_poll_votes_count;
+        }
+        TLRPC.TL_forumTopic topic = getTopicsController().findTopic(-dialogId, topicId);
+        if (topic == null) {
+            return -1;
+        }
+        return isReactions ? topic.unread_reactions_count : topic.unread_poll_votes_count;
+    }
+
+    private void setUnreadContentCount(long dialogId, long topicId, int count, boolean isReactions, boolean notifyChat) {
+        if (topicId == 0) {
+            TLRPC.Dialog dialog = dialogs_dict.get(dialogId);
+            if (isReactions) {
+                dialog.unread_reactions_count = count;
+            } else {
+                dialog.unread_poll_votes_count = count;
+            }
+        } else if (isReactions) {
+            getTopicsController().updateReactionsUnread(dialogId, topicId, count, false);
+        } else {
+            getTopicsController().updatePollVotesUnread(dialogId, topicId, count, false);
+        }
+        if (isReactions) {
+            getMessagesStorage().updateUnreadReactionsCount(dialogId, topicId, count);
+        } else {
+            getMessagesStorage().updateUnreadPollVotesCount(dialogId, topicId, count);
+        }
+        if (notifyChat) {
+            getNotificationCenter().postNotificationName(isReactions ? NotificationCenter.dialogsUnreadReactionsCounterChanged : NotificationCenter.dialogsUnreadPollVotesCounterChanged, dialogId, topicId, count, null);
+        } else {
+            getNotificationCenter().postNotificationName(NotificationCenter.updateInterfaces, UPDATE_MASK_REACTIONS_READ);
+        }
     }
 
     public boolean isDialogMuted(long dialogId, long topicId) {
@@ -23480,7 +23614,11 @@ public class MessagesController extends BaseController implements NotificationCe
             loadMessagesInternal(dialogId, 0, true, count, finalMessageId, 0, true, 0, classGuid, 2, 0, 0, 0, -1, 0, 0, 0, false, 0, true, false, false, null, 0L);
         }
 
-        return () -> getConnectionsManager().cancelRequestsForGuid(classGuid);
+        return () -> {
+            getNotificationCenter().removeObserver(delegate, NotificationCenter.messagesDidLoadWithoutProcess);
+            getNotificationCenter().removeObserver(delegate, NotificationCenter.loadingMessagesFailed);
+            getConnectionsManager().cancelRequestsForGuid(classGuid);
+        };
     }
 
     public int getChatPendingRequestsOnClosed(long chatId) {

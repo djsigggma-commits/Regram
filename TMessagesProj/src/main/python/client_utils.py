@@ -65,7 +65,7 @@ def _require(perm: str, what: str, detail=None):
     модуля это был бы цикл. Плагин определяется по стеку, поэтому проверка
     работает и в колбэках из Java, где plugin_context не выставлен.
     """
-    from extera_utils.plugin_loader import require_permission
+    require_permission = _internal("plugin_loader").require_permission
     require_permission(perm, what, detail=detail)
 
 
@@ -83,6 +83,22 @@ def get_hook_account():
 def get_selected_account() -> int:
     """The account currently selected in the UI."""
     return int(_jclass("org.telegram.messenger.UserConfig").selectedAccount)
+
+
+def _enter_hook_account(account):
+    previous = getattr(_hook_state, "account", _MISSING)
+    _hook_state.account = account
+    return previous
+
+
+def _exit_hook_account(previous):
+    if previous is _MISSING:
+        try:
+            del _hook_state.account
+        except AttributeError:
+            pass
+    else:
+        _hook_state.account = previous
 
 
 @contextmanager
@@ -231,7 +247,9 @@ def run_on_queue(fn, queue: str = None, delay: int = 0, delay_ms: int = None,
     # Владельца берём в момент постановки в очередь: исполняться _run будет на
     # чужом потоке, где кадра плагина на стеке уже нет, и Java-гейт без метки
     # пропустил бы обращения плагина к сети и рефлексии.
-    from extera_utils.plugin_loader import java_runtime_mark, plugin_frame_owner
+    _module = _internal("plugin_loader")
+    java_runtime_mark = _module.java_runtime_mark
+    plugin_frame_owner = _module.plugin_frame_owner
     owner = plugin_frame_owner()
 
     def _run():
@@ -260,6 +278,29 @@ def run_on_queue(fn, queue: str = None, delay: int = 0, delay_ms: int = None,
 
 # TL requests
 
+_request_delegate_class = None
+
+
+def _request_delegate_type():
+    global _request_delegate_class
+    cls = _request_delegate_class
+    if cls is not None:
+        return cls
+    from java import dynamic_proxy
+    from android_utils import safe_call
+
+    RequestDelegate = _jclass("org.telegram.tgnet.RequestDelegate")
+
+    class _RequestDelegate(dynamic_proxy(RequestDelegate)):
+        def run(self, response, error):
+            # Колбэк уходит в Java: ошибка плагина не должна ронять приложение.
+            with hook_scope(self._exteraless_account):
+                safe_call(self._exteraless_fn, response, error)
+
+    _request_delegate_class = _RequestDelegate
+    return _RequestDelegate
+
+
 def RequestCallback(fn, account=None):
     """Wrap ``fn(response, error)`` as a Java ``RequestDelegate``.
 
@@ -274,20 +315,10 @@ def RequestCallback(fn, account=None):
     account when not given), so account-scoped helpers called from within it
     target the account the request was sent on.
     """
-    from java import dynamic_proxy
-
-    RequestDelegate = _jclass("org.telegram.tgnet.RequestDelegate")
     resolved = _resolve_account(account, "RequestCallback")
-
-    class _RequestDelegate(dynamic_proxy(RequestDelegate)):
-        def run(self, response, error):
-            # Колбэк уходит в Java: ошибка плагина не должна ронять приложение.
-            from android_utils import safe_call
-
-            with hook_scope(resolved):
-                safe_call(fn, response, error)
-
-    proxy = _RequestDelegate()
+    proxy = _request_delegate_type()()
+    proxy._exteraless_fn = fn
+    proxy._exteraless_account = resolved
     # Marks an already-wrapped callback so send_request does not double-wrap.
     try:
         proxy.__dict__["_regram_request_delegate"] = True
@@ -772,8 +803,7 @@ def send_video(peer_id, path, caption=None, parse_mode=None,
 
 
 def _send_document_like(peer_id, path, caption, parse_mode, replyToMsg, resolved,
-                        mime, helper_name, kwargs=None):
-    # Одна проверка на send_document/send_audio: обе идут сюда.
+                        mime, helper_name, kwargs=None):    # Одна проверка на send_document/send_audio: обе идут сюда.
     _require("messages.send", helper_name)
     opts = dict(kwargs or {})
     if replyToMsg is not None:
@@ -800,7 +830,6 @@ def _send_document_like(peer_id, path, caption, parse_mode, replyToMsg, resolved
             get_account_instance(resolved), str(path), str(path), None,
             caption_str, mime, int(peer_id), reply_to, reply_to_top, None, None,
             None, notify, schedule_date, None, None, 0, invert_media)
-
     if entities is not None:
         _log(f"{helper_name}: parse_mode entities are not supported for "
              "documents in this build — sending plain caption")
@@ -808,12 +837,13 @@ def _send_document_like(peer_id, path, caption, parse_mode, replyToMsg, resolved
 
 
 def send_document(peer_id, path, caption=None, parse_mode=None,
-                  replyToMsg=None, account=None, **kwargs):
+                  replyToMsg=None, account=None, replyToTopMsg=None, **kwargs):
     """Send an arbitrary file as a document to *peer_id*."""
+    if replyToTopMsg is not None:
+        kwargs.setdefault("replyToTopMsg", replyToTopMsg)
     _send_document_like(peer_id, path, caption, parse_mode, replyToMsg,
                         _resolve_account(account, "send_document"), None,
                         "send_document", kwargs)
-
 
 def send_audio(peer_id, path, caption=None, parse_mode=None,
                replyToMsg=None, account=None, **kwargs):
@@ -1068,6 +1098,19 @@ class AccountClient:
 # android_utils, and an ImportError at module level kills the whole plugin.
 from android_utils import log, run_on_ui_thread  # noqa: E402,F401
 
+
+_internal_modules = {}
+
+
+def _internal(name):
+    module = _internal_modules.get(name)
+    if module is None:
+        import importlib
+        module = importlib.import_module("extera_utils." + name)
+        _internal_modules[name] = module
+    return module
+
+
 # Alias used by some plugins for the same "topmost visible fragment" lookup.
 get_current_fragment = get_last_fragment
 
@@ -1079,75 +1122,44 @@ def get_client(account=None) -> AccountClient:
 
 # NotificationCenter
 
-_delegate_proxy_base = None
-
-
-def _delegate_proxy_class():
-    """dynamic_proxy-база делегата — лениво, на хосте java нет.
-
-    Экземпляр обязан быть именно java-объектом: пример из документации
-    передаёт delegate в ``NotificationCenter.addObserver`` как есть.
-    """
-    global _delegate_proxy_base
-    if _delegate_proxy_base is None:
+def _notification_delegate_base():
+    try:
         from java import dynamic_proxy
-
-        interface = _jclass(
-            "org.telegram.messenger.NotificationCenter$NotificationCenterDelegate")
-
-        class _Proxy(dynamic_proxy(interface)):
-            def didReceivedNotification(self, notification_id, account, args):
-                """Override in a subclass. `args` is a Java Object[] array."""
-
-            def start_observing(self, notification_id: int, account=None):
-                """addObserver(self) on the account's NotificationCenter."""
-                get_notification_center(account).addObserver(self, int(notification_id))
-                return self
-
-            def stop_observing(self, notification_id: int, account=None):
-                """removeObserver(self) on the account's NotificationCenter."""
-                get_notification_center(account).removeObserver(self, int(notification_id))
-                return self
-
-        _delegate_proxy_base = _Proxy
-    return _delegate_proxy_base
+        return dynamic_proxy(_jclass(
+            "org.telegram.messenger.NotificationCenter$NotificationCenterDelegate"))
+    except Exception:
+        return object
 
 
-class _DelegateMeta(type):
-    """Подклассы собираются от dynamic_proxy-базы, а не от python-корня.
-
-    Сам корневой класс остаётся python-классом: база нужна в момент
-    объявления подкласса, то есть при импорте плагина на устройстве, а
-    импорт client_utils на хосте не должен трогать JVM.
-    """
-
-    def __new__(mcls, name, bases, namespace, **kwargs):
-        if any(isinstance(base, _DelegateMeta) for base in bases):
-            bases = (_delegate_proxy_class(),) + tuple(
-                base for base in bases if not isinstance(base, _DelegateMeta))
-        return super().__new__(mcls, name, bases, namespace, **kwargs)
-
-    def __instancecheck__(cls, instance):
-        if cls.__name__ == "NotificationCenterDelegate":
-            return isinstance(instance, _delegate_proxy_class())
-        return super().__instancecheck__(instance)
-
-
-class NotificationCenterDelegate(metaclass=_DelegateMeta):
+class NotificationCenterDelegate(_notification_delegate_base()):
     """Python base for NotificationCenter.NotificationCenterDelegate.
 
-    Subclass it and override didReceivedNotification(id, account, args); the
-    instance is a Java delegate, so it goes straight into addObserver().
+    The instance itself is the Java delegate: pass it straight to
+    addObserver/removeObserver, like on exteraGram. Override
+    didReceivedNotification(id, account, args) in a subclass or assign it on
+    the instance. `.java` is kept for plugins written against the old proxy.
 
     NOTE: the hook-account scope does NOT propagate into
     didReceivedNotification — bind explicitly with get_client(account)
     (PLUGINS-API.md §4.1).
     """
 
-    def __new__(cls, *args, **kwargs):
-        # Прямой экземпляр корня (без подкласса) — тоже прокси, как в SDK.
-        # Подклассы собираются от dynamic_proxy-базы и этот __new__ не видят.
-        return _delegate_proxy_class()()
+    def didReceivedNotification(self, notification_id, account, args):
+        """Override in a subclass. `args` is a Java Object[] array."""
+
+    @property
+    def java(self):
+        return self
+
+    def start_observing(self, notification_id: int, account=None):
+        """addObserver(self) on the account's NotificationCenter."""
+        get_notification_center(account).addObserver(self.java, int(notification_id))
+        return self
+
+    def stop_observing(self, notification_id: int, account=None):
+        """removeObserver(self) on the account's NotificationCenter."""
+        get_notification_center(account).removeObserver(self.java, int(notification_id))
+        return self
 
 
 def __getattr__(name: str):

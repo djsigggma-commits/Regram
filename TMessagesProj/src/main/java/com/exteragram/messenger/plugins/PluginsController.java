@@ -39,22 +39,9 @@ public abstract class PluginsController {
         if (android.text.TextUtils.isEmpty(filePath)) {
             return;
         }
-        android.app.Activity activity = fragment == null ? null : fragment.getParentActivity();
-        if (activity == null) {
-            activity = org.telegram.ui.LaunchActivity.instance;
-        }
-        if (activity == null) {
-            activity = org.telegram.messenger.AndroidUtilities.findActivity(
-                    org.telegram.messenger.ApplicationLoader.applicationContext);
-        }
-        if (activity == null) {
-            return;
-        }
-        final android.app.Activity target = activity;
-        final java.io.File file = new java.io.File(filePath);
-        org.telegram.messenger.AndroidUtilities.runOnUIThread(() ->
-                app.regram.plugins.PluginInstallHelper.confirmAndInstall(target, file));
-    }
+        app.regram.plugins.PythonPluginsEngine.getInstance().showInstallDialog(fragment,
+                new com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet
+                        .PluginInstallParams(filePath, trusted));    }
 
     public void showInstallDialog(org.telegram.ui.ActionBar.BaseFragment fragment,
                                   org.telegram.messenger.MessageObject messageObject) {
@@ -86,13 +73,17 @@ public abstract class PluginsController {
 
     public abstract void shutdown(Runnable onDone);
 
-    public abstract void runOnPluginsQueue(Runnable runnable);
+    public static void runOnPluginsQueue(Runnable runnable) {
+        app.regram.plugins.PluginsController.runOnPluginsQueue(runnable);
+    }
 
     public abstract String getPluginPath(String id);
 
     public abstract PythonPluginsEngine getPluginEngine(String pluginId);
 
-    public abstract PythonPluginsEngine getPluginEngine(java.io.File file);
+    public static PythonPluginsEngine getPluginEngine(java.io.File file) {
+        return app.regram.plugins.PluginsController.engineForFile(file);
+    }
 
     public abstract boolean isPluginEngineAvailable();
 

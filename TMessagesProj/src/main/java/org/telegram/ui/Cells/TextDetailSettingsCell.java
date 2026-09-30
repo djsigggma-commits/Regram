@@ -37,6 +37,7 @@ public class TextDetailSettingsCell extends FrameLayout {
         super(context);
 
         textView = new EmojiTextView(context);
+        textView.setTypeface(AndroidUtilities.regular());
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setLines(1);
@@ -47,6 +48,7 @@ public class TextDetailSettingsCell extends FrameLayout {
         addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 21, 10, 21, 0));
 
         valueTextView = new EmojiTextView(context);
+        valueTextView.setTypeface(AndroidUtilities.regular());
         valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
         valueTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
@@ -69,7 +71,10 @@ public class TextDetailSettingsCell extends FrameLayout {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (!multiline) {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(64) + (needDivider ? 1 : 0), MeasureSpec.EXACTLY));
+            final float shift = app.regram.appearance.M3ListItems.enabled() ? AndroidUtilities.dp(4) : 0;
+            textView.setTranslationY(shift);
+            valueTextView.setTranslationY(shift);
+            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(app.regram.appearance.M3ListItems.detailRowHeight(64)) + (needDivider ? 1 : 0), MeasureSpec.EXACTLY));
         } else {
             super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
         }

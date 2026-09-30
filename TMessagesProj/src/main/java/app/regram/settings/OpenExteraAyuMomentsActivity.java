@@ -57,6 +57,7 @@ public class OpenExteraAyuMomentsActivity extends BaseNekoSettingsActivity {
     private static final ConfigItem[] AYU_FEATURE_CONFIGS = {
             NaConfig.INSTANCE.getRegexFiltersEnabled(),
             NaConfig.INSTANCE.getSaveLocalLastSeen(),
+            NaConfig.INSTANCE.getSaveReadDate(),
             NaConfig.INSTANCE.getEnableSaveDeletedMessages(),
             NaConfig.INSTANCE.getEnableSaveEditsHistory(),
             NaConfig.INSTANCE.getMessageSavingSaveMedia(),
@@ -65,12 +66,15 @@ public class OpenExteraAyuMomentsActivity extends BaseNekoSettingsActivity {
             NaConfig.INSTANCE.getTranslucentDeletedMessages(),
             NaConfig.INSTANCE.getUseDeletedIcon(),
             NaConfig.INSTANCE.getForwardProtectedAsCopy(),
+            NaConfig.INSTANCE.getAskBeforeOpeningStory(),
     };
 
     private int headerRow;
     private int ghostRow;
+    private int askStoryRow;
     private int regexRow;
     private int saveLastSeenRow;
+    private int saveReadDateRow;
     private int saveDeletedRow;
     private int saveEditsRow;
     private int saveMediaRow;
@@ -110,8 +114,10 @@ public class OpenExteraAyuMomentsActivity extends BaseNekoSettingsActivity {
 
         headerRow = addRow("ayuHeader");
         ghostRow = addRow("ayuGhost");
+        askStoryRow = addRow(NaConfig.INSTANCE.getAskBeforeOpeningStory().getKey());
         regexRow = addRow(NaConfig.INSTANCE.getRegexFiltersEnabled().getKey());
         saveLastSeenRow = addRow(NaConfig.INSTANCE.getSaveLocalLastSeen().getKey());
+        saveReadDateRow = addRow(NaConfig.INSTANCE.getSaveReadDate().getKey());
         saveDeletedRow = addRow(NaConfig.INSTANCE.getEnableSaveDeletedMessages().getKey());
         saveEditsRow = addRow(NaConfig.INSTANCE.getEnableSaveEditsHistory().getKey());
         saveMediaRow = botUserRow = botChatRow = translucentRow = -1;
@@ -184,6 +190,8 @@ public class OpenExteraAyuMomentsActivity extends BaseNekoSettingsActivity {
     protected void onItemClick(View view, int position, float x, float y) {
         if (position == ghostRow) {
             presentFragment(new GhostModeActivity());
+        } else if (position == askStoryRow) {
+            toggleAyuConfig(view, NaConfig.INSTANCE.getAskBeforeOpeningStory(), false);
         } else if (position == regexRow) {
             // Как в эталоне: тап по тексту ведёт в список фильтров, тап по переключателю — включает.
             boolean onSwitch = LocaleController.isRTL
@@ -196,6 +204,8 @@ public class OpenExteraAyuMomentsActivity extends BaseNekoSettingsActivity {
             }
         } else if (position == saveLastSeenRow) {
             toggleAyuConfig(view, NaConfig.INSTANCE.getSaveLocalLastSeen(), false);
+        } else if (position == saveReadDateRow) {
+            toggleAyuConfig(view, NaConfig.INSTANCE.getSaveReadDate(), false);
         } else if (position == saveDeletedRow) {
             toggleAyuConfig(view, NaConfig.INSTANCE.getEnableSaveDeletedMessages(), true);
         } else if (position == saveEditsRow) {
@@ -533,13 +543,23 @@ public class OpenExteraAyuMomentsActivity extends BaseNekoSettingsActivity {
                     TextCheckCell cell = (TextCheckCell) holder.itemView;
                     cell.setEnabled(true, null);
                     cell.setIcon(0);
-                    if (position == regexRow) {
+                    if (position == askStoryRow) {
+                        cell.setTextAndValueAndCheck(
+                                getString(R.string.AskBeforeOpeningStory),
+                                getString(R.string.AskBeforeOpeningStoryInfo),
+                                NaConfig.INSTANCE.getAskBeforeOpeningStory().Bool(), true, true);
+                    } else if (position == regexRow) {
                         cell.setTextAndValueAndCheck(
                                 getString(NaConfig.INSTANCE.getRegexFiltersEnabled().getKey()),
                                 getString(R.string.RegexFiltersNotice),
                                 NaConfig.INSTANCE.getRegexFiltersEnabled().Bool(), true, true);
                     } else if (position == saveLastSeenRow) {
                         bindAyuCheck(cell, NaConfig.INSTANCE.getSaveLocalLastSeen(), true);
+                    } else if (position == saveReadDateRow) {
+                        cell.setTextAndValueAndCheck(
+                                getString(R.string.OEAyuSaveReadDate),
+                                getString(R.string.OEAyuSaveReadDateInfo),
+                                NaConfig.INSTANCE.getSaveReadDate().Bool(), true, true);
                     } else if (position == saveDeletedRow) {
                         bindAyuCheck(cell, NaConfig.INSTANCE.getEnableSaveDeletedMessages(), true);
                     } else if (position == saveEditsRow) {

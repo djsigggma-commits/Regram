@@ -20,11 +20,11 @@ import app.regram.pillstack.pills.BasePill;
 import app.regram.pillstack.pills.CachePill;
 import app.regram.pillstack.pills.DcPingPill;
 import app.regram.pillstack.pills.GhostPill;
+import app.regram.pillstack.pills.LastSeenPill;
 import app.regram.pillstack.pills.NetSpeedPill;
 import app.regram.pillstack.pills.ProxyPill;
 import app.regram.pillstack.pills.RamPill;
 import app.regram.pillstack.pills.WeatherPill;
-
 /**
  * Реестр доступных пилюль: имя, иконка, цвета и фабрика вью.
  *
@@ -108,6 +108,10 @@ public class PillRegistry {
                 R.drawable.ayu_ghost,
                 IconBackgroundColors.PURPLE.top, IconBackgroundColors.PURPLE.bottom,
                 GhostPill::new));
+        register(new PillInfo(PillType.LAST_SEEN.id, LocaleController.getString(R.string.PillStackLastSeen),
+                R.drawable.msg_online,
+                IconBackgroundColors.GREEN.top, IconBackgroundColors.GREEN.bottom,
+                LastSeenPill::new));
         register(new PillInfo(PillType.RAM.id, LocaleController.getString(R.string.PillStackRam),
                 R.drawable.pillstack_ram,
                 IconBackgroundColors.CYAN.top, IconBackgroundColors.CYAN.bottom,

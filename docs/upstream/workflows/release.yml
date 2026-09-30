@@ -23,6 +23,8 @@ jobs:
   build:
     name: Gradle Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       build_timestamp: ${{ steps.release_build_step.outputs.build_timestamp }}
     env:
@@ -88,7 +90,7 @@ jobs:
       - name: Release Build
         id: release_build_step
         env:
-          COMMIT_ID: ${{ github.event.head_commit.id }}
+          COMMIT_ID: ${{ github.event.head_commit.id || github.sha }}
         run: |
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           export BUILD_TIMESTAMP=$(date +%s)
@@ -100,6 +102,26 @@ jobs:
           name: Release
           path: |
             TMessagesProj/build/outputs/apk/release/*.apk
+      - name: Publish GitHub pre-release
+        if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || inputs.publish) && !contains(github.event.head_commit.message, '[skip publish]') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMITS_JSON: ${{ toJSON(github.event.commits) }}
+        run: |
+          SHORT=$(echo "$GITHUB_SHA" | cut -c1-7)
+          TAG="ci-$SHORT"
+          NOTES=$(echo "$COMMITS_JSON" | jq -r 'if type == "array" then map("• " + (.message | split("\n")[0])) | join("\n") else "" end')
+          if [ -z "$NOTES" ]; then
+            NOTES="CI build $SHORT"
+          fi
+          gh release create "$TAG" TMessagesProj/build/outputs/apk/release/*.apk \
+            --target "$GITHUB_SHA" --prerelease --latest=false \
+            --title "exteraless CI $SHORT" --notes "$NOTES"
+          gh release list --limit 100 --json tagName,isPrerelease,createdAt \
+            -q '[.[] | select(.isPrerelease and (.tagName | startswith("ci-")))] | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
+            while read -r old; do
+              gh release delete "$old" --yes --cleanup-tag
+            done
       - name: Send APK to Telegram
         if: ${{ (github.event_name != 'workflow_dispatch' || inputs.publish) && !contains(github.event.head_commit.message, '[skip publish]') }}
         env:

@@ -49,6 +49,11 @@ public final class PythonBridge {
 
     public static void log(String pluginId, String message) {
         FileLog.d("[plugin:" + pluginId + "] " + message);
+        PluginLog.append(pluginId, "I", message);
+    }
+
+    public static void logStream(String pluginId, String level, String message) {
+        PluginLog.append(pluginId, level, message);
     }
 
     // ---------- регистрация хуков ----------

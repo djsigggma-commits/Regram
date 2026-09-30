@@ -5749,7 +5749,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             double duration = 0;
             AnimatedFileDrawable animation = photoImage.getAnimation();
             if (animation != null) {
-                duration = currentMessageObject.audioPlayerDuration = animation.getDurationMs() / 1000;
+                duration = animation.getDurationMs() / 1000;
+                if (duration > 0 && currentMessageObject.getDuration() > duration + 1) {
+                    duration = currentMessageObject.getDuration();
+                }
+                currentMessageObject.audioPlayerDuration = (int) duration;
                 if (currentMessageObject.messageOwner.ttl > 0 && currentMessageObject.messageOwner.destroyTime == 0 && !currentMessageObject.needDrawBluredPreview() && currentMessageObject.isVideo() && animation.hasBitmap()) {
                     delegate.didStartVideoStream(currentMessageObject);
                 }
@@ -5766,6 +5770,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 if (delegate != null && animation.getCurrentProgressMs() >= 3000) {
                     delegate.videoTimerReached();
                 }
+            }
+            if (duration < 0) {
+                duration = 0;
             }
             if (lastTime != duration) {
                 String str = AndroidUtilities.formatShortDuration((int) duration);
@@ -6468,11 +6475,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.startSpoilers);
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.stopSpoilers);
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
-        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didUpdatePremiumGiftStickers);
-        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.userInfoDidLoad);
+        if (observersGroup != null) {
+            observersGroup.removeAllObservers();
+            observersGroup = null;
+        }
 
         cancelShakeAnimation();
         if (checkBox != null) {
@@ -6571,15 +6577,24 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         Choreographer60FpsContent.getInstance().removeFrameCallback(invalidateOutboundsRunnable);
     }
 
+    private NotificationCenter.ObserversGroup observersGroup;
+
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
 
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.startSpoilers);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.stopSpoilers);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
-        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didUpdatePremiumGiftStickers);
-        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.userInfoDidLoad);
+        if (observersGroup != null) {
+            observersGroup.removeAllObservers();
+            observersGroup = null;
+        }
+
+        observersGroup = NotificationCenter.getInstance(currentAccount)
+            .createObserversGroup(this)
+            .add(NotificationCenter.userInfoDidLoad)
+            .addGlobal(NotificationCenter.startSpoilers)
+            .addGlobal(NotificationCenter.stopSpoilers)
+            .addGlobal(NotificationCenter.emojiLoaded)
+            .addGlobal(NotificationCenter.didUpdatePremiumGiftStickers);
 
         if (currentMessageObject != null) {
             currentMessageObject.animateComments = false;

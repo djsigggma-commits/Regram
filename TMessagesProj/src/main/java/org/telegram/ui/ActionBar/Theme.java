@@ -4099,9 +4099,9 @@ public class Theme {
             themeInfo = new ThemeInfo();
             themeInfo.name = "Monet Dark";
             themeInfo.assetName = monetAssetName("monet_dark");
-            themeInfo.previewBackgroundColor = MonetHelper.getColor("surface_dark");
-            themeInfo.previewInColor = MonetHelper.getColor("neutral_20");
-            themeInfo.previewOutColor = MonetHelper.getColor("primary_dark");
+            themeInfo.previewBackgroundColor = MonetHelper.getColor("n1_900");
+            themeInfo.previewInColor = MonetHelper.getColor("n1_800");
+            themeInfo.previewOutColor = MonetHelper.getColor("a1_200");
             themeInfo.sortIndex = 7;
             themes.add(themeInfo);
             themesDict.put("Monet Dark", themeInfo);
@@ -7748,6 +7748,10 @@ public class Theme {
                             if ((idx = line.indexOf('=')) != -1) {
                                 String key = line.substring(0, idx);
                                 String param = line.substring(idx + 1).trim();
+                                boolean harmonize = param.endsWith("h");
+                                if (harmonize) {
+                                    param = param.substring(0, param.length() - 1).trim();
+                                }
                                 int value;
                                 if (param.length() > 0 && param.charAt(0) == '#') {
                                     try {
@@ -7757,9 +7761,12 @@ public class Theme {
                                     }
                                 } else {
                                     Integer monetValue = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                                            ? MonetHelper.getColorOrNull(param)
+                                            ? MonetHelper.getColorOrNull(param, key)
                                             : null;
                                     value = monetValue != null ? monetValue : Utilities.parseInt(param);
+                                }
+                                if (harmonize && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    value = MonetHelper.harmonizeColor(value);
                                 }
                                 int keyFromString = ThemeColors.stringKeyToInt(key);
                                 if (keyFromString >= 0) {

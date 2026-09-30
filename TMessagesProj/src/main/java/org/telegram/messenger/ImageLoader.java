@@ -140,6 +140,7 @@ public class ImageLoader {
     private HashMap<String, Integer> forceLoadingImages = new HashMap<>();
     private static ThreadLocal<byte[]> bytesLocal = new ThreadLocal<>();
     private static ThreadLocal<byte[]> bytesThumbLocal = new ThreadLocal<>();
+    private static final int MAX_REUSABLE_BYTE_ARRAY_SIZE = 16 * 1024 * 1024;
     private int currentHttpTasksCount = 0;
     private int currentArtworkTasksCount = 0;
     private boolean canForce8888;
@@ -172,6 +173,23 @@ public class ImageLoader {
             }
         }
         return false;
+    }
+
+    private static byte[] getByteArray(ThreadLocal<byte[]> local, int len) {
+        if (len <= MAX_REUSABLE_BYTE_ARRAY_SIZE) {
+            byte[] data = local.get();
+            if (data != null && data.length > MAX_REUSABLE_BYTE_ARRAY_SIZE) {
+                local.remove();
+                data = null;
+            }
+            if (data == null || data.length < len) {
+                data = new byte[len];
+                local.set(data);
+            }
+            return data;
+        }
+        local.remove();
+        return new byte[len];
     }
 
     private static final android.util.LruCache<Integer, BitmapDrawable> inu_strippedCache = new android.util.LruCache<>(64);
@@ -1265,12 +1283,7 @@ public class ImageLoader {
                                 if (secureDocumentKey != null) {
                                     RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
                                     int len = (int) f.length();
-                                    byte[] bytes = bytesLocal.get();
-                                    byte[] data = bytes != null && bytes.length >= len ? bytes : null;
-                                    if (data == null) {
-                                        bytes = data = new byte[len];
-                                        bytesLocal.set(bytes);
-                                    }
+                                    byte[] data = getByteArray(bytesLocal, len);
                                     f.readFully(data, 0, len);
                                     f.close();
                                     EncryptedFileInputStream.decryptBytesWithKeyFile(data, 0, len, secureDocumentKey);
@@ -1363,12 +1376,7 @@ public class ImageLoader {
                             RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
                             int len = (int) f.length();
                             int offset = 0;
-                            byte[] bytesThumb = bytesThumbLocal.get();
-                            byte[] data = bytesThumb != null && bytesThumb.length >= len ? bytesThumb : null;
-                            if (data == null) {
-                                bytesThumb = data = new byte[len];
-                                bytesThumbLocal.set(bytesThumb);
-                            }
+                            byte[] data = getByteArray(bytesThumbLocal, len);
                             f.readFully(data, 0, len);
                             f.close();
                             boolean error = false;
@@ -1474,11 +1482,12 @@ public class ImageLoader {
                         if (mediaId != null && mediaThumbPath == null) {
                             if (mediaIsVideo) {
                                 if (mediaId == 0) {
-                                    AnimatedFileDrawable fileDrawable = new AnimatedFileDrawable(cacheFileFinal, true, 0, 0, null, null, null, 0, 0, true, null);
-                                    image = fileDrawable.getFrameAtTime(0, true);
-                                    fileDrawable.recycle();
+                                    image = getVideoFrame(cacheFileFinal);
                                 } else {
                                     image = MediaStore.Video.Thumbnails.getThumbnail(ApplicationLoader.applicationContext.getContentResolver(), mediaId, MediaStore.Video.Thumbnails.MINI_KIND, opts);
+                                    if (image == null) {
+                                        image = getVideoFrame(cacheFileFinal);
+                                    }
                                 }
                             } else {
                                 image = MediaStore.Images.Thumbnails.getThumbnail(ApplicationLoader.applicationContext.getContentResolver(), mediaId, MediaStore.Images.Thumbnails.MINI_KIND, opts);
@@ -1518,12 +1527,7 @@ public class ImageLoader {
                                     RandomAccessFile f = new RandomAccessFile(cacheFileFinal, "r");
                                     int len = (int) f.length();
                                     int offset = 0;
-                                    byte[] bytes = bytesLocal.get();
-                                    byte[] data = bytes != null && bytes.length >= len ? bytes : null;
-                                    if (data == null) {
-                                        bytes = data = new byte[len];
-                                        bytesLocal.set(bytes);
-                                    }
+                                    byte[] data = getByteArray(bytesLocal, len);
                                     f.readFully(data, 0, len);
                                     f.close();
                                     boolean error = false;
@@ -1666,6 +1670,15 @@ public class ImageLoader {
                 canvas.drawBitmap(bitmap, 0, 0, paint);
             }
             return finalBitmap;
+        }
+
+        private Bitmap getVideoFrame(File file) {
+            AnimatedFileDrawable fileDrawable = new AnimatedFileDrawable(file, true, 0, 0, null, null, null, 0, 0, true, null);
+            try {
+                return fileDrawable.getFrameAtTime(0, true);
+            } finally {
+                fileDrawable.recycle();
+            }
         }
 
         private void loadLastFrame(RLottieDrawable lottieDrawable, int w, int h, boolean lastFrame, boolean reaction) {
@@ -1814,12 +1827,7 @@ public class ImageLoader {
 
     public static Bitmap getStrippedPhotoBitmap(byte[] photoBytes, String filter) {
         int len = photoBytes.length - 3 + Bitmaps.header.length + Bitmaps.footer.length;
-        byte[] bytes = bytesLocal.get();
-        byte[] data = bytes != null && bytes.length >= len ? bytes : null;
-        if (data == null) {
-            bytes = data = new byte[len];
-            bytesLocal.set(bytes);
-        }
+        byte[] data = getByteArray(bytesLocal, len);
         System.arraycopy(Bitmaps.header, 0, data, 0, Bitmaps.header.length);
         System.arraycopy(photoBytes, 3, data, Bitmaps.header.length, photoBytes.length - 3);
         System.arraycopy(Bitmaps.footer, 0, data, Bitmaps.header.length + photoBytes.length - 3, Bitmaps.footer.length);
@@ -2079,7 +2087,13 @@ public class ImageLoader {
     public ImageLoader() {
         thumbGeneratingQueue.setPriority(Thread.MIN_PRIORITY);
 
-        int memoryClass = ((ActivityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryClass();
+        final ActivityManager activityManager = (ActivityManager) ApplicationLoader.applicationContext.getSystemService(Context.ACTIVITY_SERVICE);
+        // the app declares android:largeHeap, so the real budget is getLargeMemoryClass(); sizing
+        // the cache off getMemoryClass() leaves it too small to hold the shared media grid and
+        // PhotoViewer's full-screen bitmaps at once, so opening a photo evicts the whole grid.
+        int memoryClass = (ApplicationLoader.applicationContext.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_LARGE_HEAP) != 0
+            ? activityManager.getLargeMemoryClass()
+            : activityManager.getMemoryClass();
         int maxSize;
         if (canForce8888 = memoryClass >= 192) {
             maxSize = 80;

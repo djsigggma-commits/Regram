@@ -231,8 +231,12 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
     }
 
     private static int monetStyleName() {
-        return AppearanceConfig.monetStyle.Int() == AppearanceConfig.MONET_STYLE_CLASSIC
-                ? R.string.MonetStyleClassic : R.string.MonetStyleTelemone;
+        switch (AppearanceConfig.monetStyle.Int()) {
+            case AppearanceConfig.MONET_STYLE_CLASSIC:
+                return R.string.MonetStyleClassic;
+            default:
+                return R.string.MonetStyleTelemone;
+        }
     }
     private int bubbleRadiusInfoRow;
     private int chatListHeaderRow;

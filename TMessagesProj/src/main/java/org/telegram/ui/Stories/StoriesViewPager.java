@@ -58,6 +58,8 @@ public class StoriesViewPager extends ViewPager {
     private int selectedPositionInPage;
     private int updateVisibleItemPosition = -1;
 
+    private final ArrayList<PeerStoriesView> cachedViews = new ArrayList<>();
+
     public StoriesViewPager(int account, @NonNull Context context, StoryViewer storyViewer, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.currentAccount = account;
@@ -71,8 +73,6 @@ public class StoriesViewPager extends ViewPager {
                 }
                 return dialogs.size();
             }
-
-            private final ArrayList<PeerStoriesView> cachedViews = new ArrayList<>();
 
             @NonNull
             @Override
@@ -239,6 +239,16 @@ public class StoriesViewPager extends ViewPager {
             return false;
         }
         return true;
+    }
+
+    public void destroy() {
+        for (int i = 0; i < getChildCount(); i++) {
+            ((PeerStoriesView) ((FrameLayout) getChildAt(i)).getChildAt(0)).destroy();
+        }
+        for (int i = 0; i < cachedViews.size(); i++) {
+            cachedViews.get(i).destroy();
+        }
+        cachedViews.clear();
     }
 
     @Nullable

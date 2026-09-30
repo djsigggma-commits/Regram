@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
-import androidx.media3.common.util.Consumer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +24,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
@@ -137,12 +137,47 @@ public final class MainMenuHelper {
         if (item == MainMenuItem.BOTS) {
             return addAttachMenuBotMenuItems(io, ctx);
         }
+        if (item == MainMenuItem.PLUGINS) {
+            return addPluginsMenuItem(io, ctx);
+        }
         final MenuItemInfo info = resolveMenuItem(id, ctx);
         if (info == null || info.onClick() == null) {
             return false;
         }
         io.add(info.iconRes(), info.text(), info.onClick());
         bindLongClick(io, info.onLongClick());
+        return true;
+    }
+
+    public static boolean addPluginsMenuItem(ItemOptions io, MenuContext ctx) {
+        final MenuItemInfo info = resolveMenuItem(MainMenuItem.PLUGINS.getId(), ctx);
+        if (info == null || info.onClick() == null) {
+            return false;
+        }
+        final List<MenuItemInfo> plugins = app.regram.plugins.menus.MenuInjector.mainMenuItems(ctx.currentAccount(), ctx.fragment());
+        if (plugins.isEmpty()) {
+            io.add(info.iconRes(), info.text(), info.onClick());
+            return true;
+        }
+        final ItemOptions swipeback = io.makeSwipeback();
+        swipeback.add(R.drawable.ic_ab_back, LocaleController.getString(R.string.Back), io::closeSwipeback);
+        swipeback.addGap();
+        for (MenuItemInfo plugin : plugins) {
+            swipeback.add(plugin.iconRes(), plugin.text(), () -> {
+                io.dismiss();
+                plugin.onClick().run();
+            });
+        }
+        io.add(info.iconRes(), info.text(), () -> io.openSwipeback(swipeback));
+        final ActionBarMenuSubItem last = io.getLast();
+        if (last != null) {
+            last.setRightIcon(R.drawable.msg_arrowright);
+            last.setOnLongClickListener(v -> {
+                io.dismiss();
+                info.onClick().run();
+                return true;
+            });
+        }
         return true;
     }
 
@@ -183,12 +218,28 @@ public final class MainMenuHelper {
         if (item == MainMenuItem.BOTS) {
             return resolveDrawerBotMenuItems(ctx);
         }
+        if (item == MainMenuItem.PLUGINS) {
+            return resolveDrawerPluginMenuItems(ctx);
+        }
         if (item == MainMenuItem.ARCHIVE && !hasArchivedChats(ctx.currentAccount())) {
             // Пустой архив в шторке не показывается.
             return Collections.emptyList();
         }
         final MenuItemInfo info = resolveMenuItem(id, ctx);
         return info == null ? Collections.emptyList() : Collections.singletonList(info);
+    }
+
+    private static List<MenuItemInfo> resolveDrawerPluginMenuItems(MenuContext ctx) {
+        final MenuItemInfo info = resolveMenuItem(MainMenuItem.PLUGINS.getId(), ctx);
+        final ArrayList<MenuItemInfo> result = new ArrayList<>();
+        if (info != null) {
+            result.add(info);
+        }
+        for (MenuItemInfo plugin : app.regram.plugins.menus.MenuInjector.mainMenuItems(ctx.currentAccount(), ctx.fragment())) {
+            final Runnable openPlugins = info != null ? info.onClick() : null;
+            result.add(new MenuItemInfo(plugin.iconRes() != 0 ? plugin.iconRes() : R.drawable.msg_plugins, plugin.text(), plugin.onClick(), openPlugins));
+        }
+        return result;
     }
 
     private static List<MenuItemInfo> resolveDrawerBotMenuItems(MenuContext ctx) {
@@ -428,7 +479,7 @@ public final class MainMenuHelper {
             if (bot.inactive || bot.side_menu_disclaimer_needed) {
                 final android.content.Context context = ctx.fragment() != null && ctx.fragment().getContext() != null
                         ? ctx.fragment().getContext() : launchActivity;
-                WebAppDisclaimerAlert.show(context, (Consumer<Boolean>) allowSendMessage -> {
+                WebAppDisclaimerAlert.show(context, (Utilities.Callback<Boolean>) allowSendMessage -> {
                     final TLRPC.TL_messages_toggleBotInAttachMenu req = new TLRPC.TL_messages_toggleBotInAttachMenu();
                     req.bot = MessagesController.getInstance(ctx.currentAccount()).getInputUser(bot.bot_id);
                     req.enabled = true;

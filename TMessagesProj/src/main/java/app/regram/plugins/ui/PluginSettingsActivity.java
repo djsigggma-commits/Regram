@@ -486,6 +486,9 @@ public class PluginSettingsActivity extends BasePreferencesActivity {
                 return obj;
             }
         }
+        if (owner != null && holdsSubPage(candidate, null)) {
+            return candidate;
+        }
         return null;
     }
 

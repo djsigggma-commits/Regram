@@ -52,7 +52,7 @@ public class PluginCell extends FrameLayout implements NotificationCenter.Notifi
     private final LinearLayout headerLayout;
     private final LinearLayout textsLayout;
     private final TextView pluginNameView;
-    private final TextView subtitleView;
+    private final LinkSpanDrawable.LinksTextView subtitleView;
     private final LinkSpanDrawable.LinksTextView descriptionView;
     private final View divider;
     private final ImageView shareButton;
@@ -234,10 +234,11 @@ public class PluginCell extends FrameLayout implements NotificationCenter.Notifi
         textsLayout.addView(pluginNameView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
                 LayoutHelper.WRAP_CONTENT));
 
-        subtitleView = new TextView(context);
+        subtitleView = new LinkSpanDrawable.LinksTextView(context);
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         subtitleView.setEllipsize(TextUtils.TruncateAt.END);
         subtitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+        subtitleView.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
         textsLayout.addView(subtitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
                 LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
 
@@ -368,18 +369,22 @@ public class PluginCell extends FrameLayout implements NotificationCenter.Notifi
                 delegate instanceof PluginPermissionsDelegate ? VISIBLE : GONE);
     }
 
-    public void set(Plugin plugin, PluginCellDelegate delegate) {
-        setDelegate(delegate);
-        if (plugin == null) {
-            setModel(null);
-            return;
+    private static final android.util.LruCache<String, CharSequence> FORMATTED_DESCRIPTIONS = new android.util.LruCache<>(64);
+
+    private static CharSequence formattedDescription(String description) {
+        CharSequence formatted = FORMATTED_DESCRIPTIONS.get(description);
+        if (formatted == null) {
+            formatted = LocaleUtils.fullyFormatText(description);
+            FORMATTED_DESCRIPTIONS.put(description, formatted);
         }
-        PluginsController controller = PluginsController.getInstance();
-        setModel(new Model(plugin, controller.isPluginPinned(plugin.id),
-                controller.isCompactView(), delegate));
+        return formatted;
     }
 
-    private void setModel(Model model) {
+    public void set(Plugin plugin, PluginCellDelegate delegate) {
+        setDelegate(delegate);
+        final PluginsController controller = PluginsController.getInstance();
+        final Model model = plugin == null ? null : new Model(plugin, controller.isPluginPinned(plugin.id),
+                controller.isCompactView(), delegate);
         if (model == null || model.plugin == null) {
             pluginId = null;
             pluginIcon = null;
@@ -400,7 +405,7 @@ public class PluginCell extends FrameLayout implements NotificationCenter.Notifi
         }
 
         pluginNameView.setText(model.name);
-        subtitleView.setText(model.subtitle);
+        subtitleView.setText(com.exteragram.messenger.utils.text.LocaleUtils.formatWithUsernames(model.subtitle));
 
         if (model.loadError != null) {
             // Ошибка вытесняет описание: если плагин не поднялся, всё остальное
@@ -411,7 +416,7 @@ public class PluginCell extends FrameLayout implements NotificationCenter.Notifi
             descriptionView.setTypeface(AndroidUtilities.getTypeface("fonts/rmono.ttf"));
             descriptionView.setVisibility(VISIBLE);
         } else if (!TextUtils.isEmpty(model.description)) {
-            descriptionView.setText(LocaleUtils.fullyFormatText(model.description));
+            descriptionView.setText(formattedDescription(model.description));
             descriptionView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             descriptionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             descriptionView.setTypeface(android.graphics.Typeface.DEFAULT);

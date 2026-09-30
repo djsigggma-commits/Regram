@@ -118,9 +118,10 @@
     <string name="OEAppearanceNewLoadingStyle">Loading Indicators</string>
     <string name="OEAppearanceNewChatHeaderStyle">Chat Header</string>
     <string name="OEAppearanceNewNavigationBarStyle">Navigation Bar</string>
+    <string name="OEAppearanceM3ListItems">List Items</string>
     <string name="OEAppearanceIosDesign" translatable="false">iOS Design</string>
     <string name="OEAppearanceIosNavigationBarStyle">Navigation Bar</string>
-    <string name="OEAppearanceIosFirstFolderOnTabTap">Tab Tap Opens First Folder</string>
+    <string name="OEAppearanceIosChatHeader">iOS Chat Header</string>
     <string name="OEAppearanceHideAi">Hide AI</string>
     <string name="OEAppearanceHideAiEditor">AI Editor</string>
     <string name="OEAppearanceHideAiSummary">Message Summary</string>
@@ -134,4 +135,9 @@
     <string name="OEAppearanceEmojiSetsInfo">Change emoji across the app</string>
     <string name="OEAppearanceHideSettingsSections">Hide Settings Sections</string>
     <string name="OEBottomNavigationBar">Bottom Bar</string>
+    <string name="OEProfileMusicDesign">Profile Music</string>
+    <string name="OEProfileMusicUseOfficial">Telegram Style</string>
+    <string name="OEProfileMusicUseOfficialInfo">Show the track under the avatar, like in the official app?</string>
+    <string name="OEProfileMusicUseCard">Card</string>
+    <string name="OEProfileMusicUseCardInfo">Show the track as a card below the profile header?</string>
 </resources>

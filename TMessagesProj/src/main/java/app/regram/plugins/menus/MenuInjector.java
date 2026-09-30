@@ -18,15 +18,21 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.ItemOptions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import app.regram.drawer.DrawerMenuItemView;
+import app.regram.drawer.MainMenuHelper;
+import app.regram.drawer.MainMenuItem;
+import app.regram.drawer.MainMenuLayout;
 import app.regram.plugins.MenuItemRecord;
 import app.regram.plugins.PluginsController;
-
 /**
  * Рендерер пунктов меню плагинов в меню Telegram. Зовётся из патчей ядра:
  *  - {@link #fillMessageMenu} — конец {@code ChatActivity.fillMessageMenu} (MESSAGE_CONTEXT_MENU);
@@ -61,7 +67,21 @@ public final class MenuInjector {
 
     private static final ArrayList<MessageMenuEntry> messageMenuEntries = new ArrayList<>();
 
+    private static final ConcurrentHashMap<String, Serializable> COMPILED_CONDITIONS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Integer> ICON_IDS = new ConcurrentHashMap<>();
+    private static final java.util.Set<String> FAILED_CONDITIONS = ConcurrentHashMap.newKeySet();
+
     private MenuInjector() {
+    }
+
+    public static void releaseMessageMenu(BaseFragment fragment) {
+        if (messageMenuEntries.isEmpty()) {
+            return;
+        }
+        Object owner = messageMenuEntries.get(0).context.get("fragment");
+        if (owner == null || owner == fragment) {
+            messageMenuEntries.clear();
+        }
     }
 
     // ---------- общее ----------
@@ -72,9 +92,19 @@ public final class MenuInjector {
             return true;
         }
         try {
-            return MVEL.evalToBoolean(item.condition, context);
+            Serializable compiled = COMPILED_CONDITIONS.get(item.condition);
+            if (compiled == null) {
+                compiled = MVEL.compileExpression(item.condition);
+                if (COMPILED_CONDITIONS.size() < 512) {
+                    COMPILED_CONDITIONS.put(item.condition, compiled);
+                }
+            }
+            Boolean result = MVEL.executeExpression(compiled, context, Boolean.class);
+            return result != null && result;
         } catch (Throwable t) {
-            FileLog.e("MenuInjector: condition failed for " + item.pluginId + "/" + item.itemId, t);
+            if (FAILED_CONDITIONS.size() < 512 && FAILED_CONDITIONS.add(item.pluginId + "/" + item.itemId + "/" + item.condition)) {
+                FileLog.e("MenuInjector: condition failed for " + item.pluginId + "/" + item.itemId, t);
+            }
             return false;
         }
     }
@@ -88,8 +118,14 @@ public final class MenuInjector {
         if (ctx == null) {
             return 0;
         }
+        Integer cached = ICON_IDS.get(icon);
+        if (cached != null) {
+            return cached;
+        }
         try {
-            return ctx.getResources().getIdentifier(icon, "drawable", ctx.getPackageName());
+            int id = ctx.getResources().getIdentifier(icon, "drawable", ctx.getPackageName());
+            ICON_IDS.put(icon, id);
+            return id;
         } catch (Throwable t) {
             FileLog.e("MenuInjector: bad icon " + icon, t);
             return 0;
@@ -119,6 +155,9 @@ public final class MenuInjector {
         Context context = fragment != null ? fragment.getParentActivity() : null;
         Map<String, Object> menuContext = new HashMap<>();
         menuContext.put("message", message);
+        menuContext.put("chat", null);
+        menuContext.put("user", null);
+        menuContext.put("encryptedChat", null);
         if (chat != null) {
             menuContext.put("chat", chat);
             menuContext.put("chatId", chat.id);
@@ -176,7 +215,8 @@ public final class MenuInjector {
      * @param onItemClick колбэк закрытия шторки из DrawerMenuView (может быть null)
      */
     public static void appendDrawerItems(LinearLayout container, int currentAccount, Runnable onItemClick) {
-        if (container == null || !PluginsController.getInstance().isEngineEnabled()) {
+        if (container == null || !PluginsController.getInstance().isEngineEnabled()
+                || MainMenuLayout.getLayout().contains(MainMenuItem.PLUGINS.getId())) {
             return;
         }
         List<MenuItemRecord> records =
@@ -295,41 +335,48 @@ public final class MenuInjector {
      * Добавить пункты плагинов в меню «⋮» главного экрана. Зовётся в
      * {@code DialogsActivity.showItemOptions} перед {@code io.show()}.
      */
-    public static void appendMainMenuItems(ItemOptions io, int currentAccount) {
-        if (io == null || !PluginsController.getInstance().isEngineEnabled()) {
-            return;
+    public static List<MainMenuHelper.MenuItemInfo> mainMenuItems(int currentAccount, BaseFragment fragment) {
+        if (!PluginsController.getInstance().isEngineEnabled()) {
+            return Collections.emptyList();
         }
-        List<MenuItemRecord> records =
-                PluginsController.getInstance().getMenuItemsFor(MenuItemRecord.MenuType.MAIN_MENU);
+        LinkedHashSet<MenuItemRecord> records = new LinkedHashSet<>(
+                PluginsController.getInstance().getMenuItemsFor(MenuItemRecord.MenuType.MAIN_MENU));
+        records.addAll(PluginsController.getInstance().getMenuItemsFor(MenuItemRecord.MenuType.DRAWER_MENU));
         if (records.isEmpty()) {
-            return;
+            return Collections.emptyList();
         }
         Map<String, Object> menuContext = new HashMap<>();
         menuContext.put("account", currentAccount);
-        boolean addedAny = false;
+        if (fragment != null) {
+            menuContext.put("fragment", fragment);
+            if (fragment.getParentActivity() != null) {
+                menuContext.put("context", fragment.getParentActivity());
+            }
+        }
+        ArrayList<MainMenuHelper.MenuItemInfo> result = new ArrayList<>(records.size());
         for (MenuItemRecord record : records) {
             if (!isVisible(record, menuContext)) {
                 continue;
             }
-            if (!addedAny) {
-                io.addGap();
-                addedAny = true;
-            }
-            CharSequence text = record.text != null ? record.text : record.itemId;
-            Runnable onClick = () -> {
-                Map<String, Object> clickContext = new HashMap<>();
-                clickContext.put("account", currentAccount);
-                PluginsController.getInstance()
-                        .dispatchMenuClick(record.pluginId, record.itemId, clickContext);
-            };
-            int iconRes = resolveIcon(null, record.icon);
-            if (record.subtext != null) {
-                io.add(text, record.subtext, onClick);
-            } else if (iconRes != 0) {
-                io.add(iconRes, text, onClick);
-            } else {
-                io.add(text, onClick);
-            }
+            int icon = resolveIcon(null, record.icon);
+            result.add(new MainMenuHelper.MenuItemInfo(icon, record.text != null ? record.text : record.itemId, () ->
+                    PluginsController.getInstance().dispatchMenuClick(record.pluginId, record.itemId, new HashMap<>(menuContext)), null));
         }
+        return result;
+    }
+
+    public static void appendMainMenuItems(ItemOptions io, int currentAccount, BaseFragment fragment) {
+        if (io == null || !PluginsController.getInstance().isEngineEnabled()) {
+            return;
+        }
+        if (MainMenuLayout.isCustomized() && MainMenuLayout.getLayout().contains(MainMenuItem.PLUGINS.getId())) {
+            return;
+        }
+        MainMenuHelper.MenuContext ctx = MainMenuHelper.createMenuContext(currentAccount, fragment);
+        if (mainMenuItems(currentAccount, fragment).isEmpty()) {
+            return;
+        }
+        io.addGap();
+        MainMenuHelper.addPluginsMenuItem(io, ctx);
     }
 }

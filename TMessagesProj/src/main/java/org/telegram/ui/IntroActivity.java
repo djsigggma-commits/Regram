@@ -132,6 +132,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
     private TLRPC.TL_langPackLanguage suggestedLanguagePack;
 
     private boolean destroyed;
+    private NotificationCenter.NotificationCenterDelegate switchLanguageDelegate;
 
     private boolean isOnLogout;
 
@@ -467,6 +468,10 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         destroyed = true;
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.suggestedLangpack);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.configLoaded);
+        if (switchLanguageDelegate != null) {
+            NotificationCenter.getGlobalInstance().removeObserver(switchLanguageDelegate, NotificationCenter.reloadInterface);
+            switchLanguageDelegate = null;
+        }
         MessagesController.getGlobalMainSettings().edit().putLong("intro_crashed_time", 0).apply();
     }
 
@@ -567,20 +572,22 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         loaderDialog.setCanCancel(false);
         loaderDialog.showDelayed(1000);
 
-        NotificationCenter.getGlobalInstance().addObserver(new NotificationCenter.NotificationCenterDelegate() {
+        switchLanguageDelegate = new NotificationCenter.NotificationCenterDelegate() {
             @Override
             public void didReceivedNotification(int id, int account, Object... args) {
                 if (id == NotificationCenter.reloadInterface) {
                     loaderDialog.dismiss();
 
                     NotificationCenter.getGlobalInstance().removeObserver(this, id);
+                    switchLanguageDelegate = null;
                     AndroidUtilities.runOnUIThread(() -> {
                         presentFragment(new LoginActivity().setIntroView(frameContainerView, startMessagingButton), true);
                         destroyed = true;
                     }, 100);
                 }
             }
-        }, NotificationCenter.reloadInterface);
+        };
+        NotificationCenter.getGlobalInstance().addObserver(switchLanguageDelegate, NotificationCenter.reloadInterface);
         LocaleController.getInstance().applyLanguage(localeInfo, true, false, currentAccount);
     }
 
@@ -646,6 +653,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             messageTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             messageTextView.setLineSpacing(dpf2(2.33f), 1f);
+            messageTextView.setTypeface(AndroidUtilities.regular());
             messageTextView.setGravity(Gravity.CENTER);
             frameLayout.addView(messageTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 16, 286, 16, 0));
 

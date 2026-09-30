@@ -49,6 +49,9 @@ import tw.nekomimi.nekogram.settings.NekoEmojiSettingsActivity;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 import xyz.nextalone.nagram.NaConfig;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Экран «Оформление» раздела openExtera — визуальный порт AppearancePreferencesActivity
  * из exteraGram. Живые превью (аватарки, список чатов, папки) портированы 1:1 из
@@ -113,10 +116,11 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     private int md3SwitchRow;
     private int md3ChatHeaderRow;
     private int md3NavBarRow;
+    private int md3ListItemsRow;
     private boolean md3Expanded;
     private int iosGroupRow;
     private int iosNavBarRow;
-    private int iosFolderTapRow;
+    private int iosChatHeaderRow;
     private boolean iosExpanded;
     // Скрытие апстримных AI-функций: своя сворачиваемая группа.
     private int hideAiGroupRow;
@@ -167,6 +171,15 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     public OpenExteraAppearanceActivity() {
         super();
         AppearanceConfig.init();
+    }
+
+    @Override
+    protected List<CollapsibleGroup> collapsibleGroups() {
+        return Arrays.asList(
+                new CollapsibleGroup(() -> md3Expanded, expanded -> md3Expanded = expanded),
+                new CollapsibleGroup(() -> iosExpanded, expanded -> iosExpanded = expanded),
+                new CollapsibleGroup(() -> hideAiExpanded, expanded -> hideAiExpanded = expanded),
+                new CollapsibleGroup(() -> hideSettingsExpanded, expanded -> hideSettingsExpanded = expanded));
     }
 
     @Override
@@ -222,15 +235,16 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             md3SwitchRow = addRow("md3Switch");
             md3ChatHeaderRow = addRow("md3ChatHeader");
             md3NavBarRow = addRow("md3NavBar");
+            md3ListItemsRow = addRow("md3ListItems");
         } else {
-            md3LoadingRow = md3SliderRow = md3SwitchRow = md3ChatHeaderRow = md3NavBarRow = -1;
+            md3LoadingRow = md3SliderRow = md3SwitchRow = md3ChatHeaderRow = md3NavBarRow = md3ListItemsRow = -1;
         }
         iosGroupRow = addRow("iosStyles");
         if (iosExpanded) {
             iosNavBarRow = addRow("iosNavBar");
-            iosFolderTapRow = addRow("iosFolderTap");
+            iosChatHeaderRow = addRow("iosChatHeader");
         } else {
-            iosNavBarRow = iosFolderTapRow = -1;
+            iosNavBarRow = iosChatHeaderRow = -1;
         }
         hideAiGroupRow = addRow("hideAi");
         if (hideAiExpanded) {
@@ -319,9 +333,15 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
      *
      * rebuildAllFragmentViews(false, ...) намеренно пропускает последний фрагмент
      * стека — то есть ровно тот, который открыт. Свои строки поэтому обновляем
-     * сами: галочки внутри группы и счётчик «N/5» ставятся при привязке, а стиль
+     * сами: галочки внутри группы и счётчик «N/6» ставятся при привязке, а стиль
      * переключателей и слайдеров читается при отрисовке.
      */
+    private void notifyRow(int row) {
+        if (listAdapter != null && row >= 0) {
+            listAdapter.notifyItemChanged(row);
+        }
+    }
+
     private void rebuildAllAndSelf(View clicked, boolean checked) {
         if (clicked instanceof org.telegram.ui.Cells.CheckBoxCell) {
             ((org.telegram.ui.Cells.CheckBoxCell) clicked).setChecked(checked, true);
@@ -589,9 +609,15 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             AppearanceConfig.newNavigationBarStyle.setConfigBool(enable);
             if (enable) {
                 AppearanceConfig.iosNavigationBarStyle.setConfigBool(false);
+                notifyRow(iosNavBarRow);
                 leaveFloatingBottomNavigation();
             }
             rebuildAllAndSelf(view, enable);
+            return;
+        } else if (position == md3ListItemsRow) {
+            AppearanceConfig.m3ListItems.setConfigBool(!AppearanceConfig.m3ListItems.Bool());
+            onM3ListItemsChanged();
+            rebuildAllAndSelf(view, AppearanceConfig.m3ListItems.Bool());
             return;
         } else if (position == iosGroupRow) {
             iosExpanded = !iosExpanded;
@@ -602,12 +628,13 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             AppearanceConfig.iosNavigationBarStyle.setConfigBool(enable);
             if (enable) {
                 AppearanceConfig.newNavigationBarStyle.setConfigBool(false);
+                notifyRow(md3NavBarRow);
             }
             rebuildAllAndSelf(view, enable);
             return;
-        } else if (position == iosFolderTapRow) {
-            AppearanceConfig.iosFirstFolderOnTabTap.setConfigBool(!AppearanceConfig.iosFirstFolderOnTabTap.Bool());
-            rebuildAllAndSelf(view, AppearanceConfig.iosFirstFolderOnTabTap.Bool());
+        } else if (position == iosChatHeaderRow) {
+            AppearanceConfig.iosChatHeader.setConfigBool(!AppearanceConfig.iosChatHeader.Bool());
+            rebuildAllAndSelf(view, AppearanceConfig.iosChatHeader.Bool());
             return;
         } else if (position == hideAiGroupRow) {
             hideAiExpanded = !hideAiExpanded;
@@ -756,7 +783,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             }
             return;
         } else if (position == separateHeadersRow
-                && AppearanceConfig.dividerStyle.Int() == AppearanceConfig.DIVIDER_SEGMENTS) {
+                && AppearanceConfig.sectionsSeparatedHeadersForced()) {
             // При «Сегментах» строка нарисована выключенной,
             // клик по ней ничего не меняет.
             return;
@@ -927,7 +954,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                     // Ячейки переиспользуются, поэтому «включённость» надо возвращать явно:
                     // иначе строка, побывавшая заблокированной, останется полупрозрачной.
                     cell.setEnabled(position != separateHeadersRow
-                            || AppearanceConfig.dividerStyle.Int() != AppearanceConfig.DIVIDER_SEGMENTS, null);
+                            || !AppearanceConfig.sectionsSeparatedHeadersForced(), null);
                     if (position == centerTitleRow) {
                         cell.setTextAndCheck(getString(R.string.OEAppearanceCenterTitle),
                                 AppearanceConfig.INSTANCE.centerTitle(), true);
@@ -940,7 +967,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                     } else if (position == customThemesRow) {
                         cell.setTextAndCheck(getString(R.string.OEAppearanceCustomThemes), AppearanceConfig.customThemes.Bool(), false);
                     } else if (position == separateHeadersRow) {
-                        cell.setTextAndCheck(getString(R.string.OEAppearanceSeparateHeaders), AppearanceConfig.separateHeaders.Bool(), true);
+                        cell.setTextAndCheck(getString(R.string.OEAppearanceSeparateHeaders), AppearanceConfig.sectionsSeparatedHeaders(), true);
                     } else if (position == glassMessageMenuRow) {
                         cell.setTextAndValueAndCheck(getString(R.string.OEAppearanceGlassMessageMenu), getString(R.string.OEAppearanceGlassMessageMenuInfo), AppearanceConfig.glassMessageMenu.Bool(), true, true);
                     } else if (position == forceBlurRow) {
@@ -1016,13 +1043,16 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                                 AppearanceConfig.newChatHeaderStyle.Bool(), true, true);
                     } else if (position == md3NavBarRow) {
                         cell.setText(getString(R.string.OEAppearanceNewNavigationBarStyle), "",
-                                AppearanceConfig.newNavigationBarStyle.Bool(), false, true);
+                                AppearanceConfig.newNavigationBarStyle.Bool(), true, true);
+                    } else if (position == md3ListItemsRow) {
+                        cell.setText(getString(R.string.OEAppearanceM3ListItems), "",
+                                AppearanceConfig.m3ListItems.Bool(), false, true);
                     } else if (position == iosNavBarRow) {
                         cell.setText(getString(R.string.OEAppearanceIosNavigationBarStyle), "",
                                 AppearanceConfig.iosNavigationBarStyle.Bool(), true, true);
-                    } else if (position == iosFolderTapRow) {
-                        cell.setText(getString(R.string.OEAppearanceIosFirstFolderOnTabTap), "",
-                                AppearanceConfig.iosFirstFolderOnTabTap.Bool(), false, true);
+                    } else if (position == iosChatHeaderRow) {
+                        cell.setText(getString(R.string.OEAppearanceIosChatHeader), "",
+                                AppearanceConfig.iosChatHeader.Bool(), false, true);
                     } else if (position == hideAiEditorRow) {
                         cell.setText(getString(R.string.OEAppearanceHideAiEditor), "",
                                 AppearanceConfig.hideAiEditor.Bool(), true, true);
@@ -1157,9 +1187,9 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                 return TYPE_EXPANDABLE_SWITCH;
             } else if (position == md3LoadingRow || position == md3SliderRow
                     || position == md3SwitchRow || position == md3ChatHeaderRow
-                    || position == md3NavBarRow || position == hideAiEditorRow
+                    || position == md3NavBarRow || position == md3ListItemsRow || position == hideAiEditorRow
                     || position == hideAiSummaryRow || position == hideAiIvRow
-                    || position == iosNavBarRow || position == iosFolderTapRow
+                    || position == iosNavBarRow || position == iosChatHeaderRow
                     || position == hidePremiumSectionRow || position == hideHelpSectionRow) {
                 return TYPE_ROUND_CHECK;
             } else if (position == dividerStyleRow || position == glassOutlineRow
@@ -1267,8 +1297,8 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         showDialog(builder.create());
     }
 
-    /** Сколько стилей MD3 включено. Счётчик «N/5» рядом с шевроном. */
-    private static final int MD3_STYLE_COUNT = 5;
+    /** Сколько стилей MD3 включено. Счётчик «N/6» рядом с шевроном. */
+    private static final int MD3_STYLE_COUNT = 6;
     /** Значение селектора NagramX, соответствующее Material Design 3. */
     private static final int STYLE_MD3 = 2;
 
@@ -1283,7 +1313,19 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         if (isMd3(NaConfig.INSTANCE.getSwitchStyle().Int())) n++;
         if (AppearanceConfig.newChatHeaderStyle.Bool()) n++;
         if (AppearanceConfig.newNavigationBarStyle.Bool()) n++;
+        if (AppearanceConfig.m3ListItems.Bool()) n++;
         return n;
+    }
+
+    private void onM3ListItemsChanged() {
+        AppearanceConfig.invalidateDividerStyle();
+        Theme.applyCommonTheme();
+        if (listAdapter != null && separateHeadersRow >= 0) {
+            listAdapter.notifyItemChanged(separateHeadersRow);
+        }
+        if (listView != null) {
+            listView.invalidateItemDecorations();
+        }
     }
 
     /**
@@ -1305,14 +1347,14 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     private int iosSelectedCount() {
         int n = 0;
         if (AppearanceConfig.iosNavigationBarStyle.Bool()) n++;
-        if (AppearanceConfig.iosFirstFolderOnTabTap.Bool()) n++;
+        if (AppearanceConfig.iosChatHeader.Bool()) n++;
         return n;
     }
 
     private void toggleAllIosStyles() {
         boolean enable = iosSelectedCount() == 0;
         AppearanceConfig.iosNavigationBarStyle.setConfigBool(enable);
-        AppearanceConfig.iosFirstFolderOnTabTap.setConfigBool(enable);
+        AppearanceConfig.iosChatHeader.setConfigBool(enable);
         if (enable) {
             AppearanceConfig.newNavigationBarStyle.setConfigBool(false);
         }
@@ -1325,6 +1367,8 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         AppearanceConfig.newLoadingStyle.setConfigBool(enable);
         AppearanceConfig.newChatHeaderStyle.setConfigBool(enable);
         AppearanceConfig.newNavigationBarStyle.setConfigBool(enable);
+        AppearanceConfig.m3ListItems.setConfigBool(enable);
+        onM3ListItemsChanged();
         if (enable) {
             AppearanceConfig.iosNavigationBarStyle.setConfigBool(false);
             leaveFloatingBottomNavigation();
@@ -1334,7 +1378,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         if (avatarCornersPreviewCell != null) {
             avatarCornersPreviewCell.invalidate();
         }
-        // Перезапуск не нужен: все пять стилей читаются при отрисовке или при создании вьюх.
+        // Перезапуск не нужен: все шесть стилей читаются при отрисовке или при создании вьюх.
         rebuildAll();
         rebuildRowsAndNotify();
     }

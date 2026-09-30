@@ -133,7 +133,7 @@ import tw.nekomimi.nekogram.NekoConfig;
 import xyz.nextalone.nagram.NaConfig;
 
 @SuppressLint("ViewConstructor")
-public class InstantCameraView extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
+public class InstantCameraView extends InstantCameraViewBase implements NotificationCenter.NotificationCenterDelegate {
 
     public boolean WRITE_TO_FILE_IN_BACKGROUND;
 
@@ -200,6 +200,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     private final boolean useCameraX = cameraType == app.regram.chats.ChatsConfig.CAMERA_TYPE_CAMERA_X;
     private final boolean useCamera2 = !useCameraX
             && (cameraType == app.regram.chats.ChatsConfig.CAMERA_TYPE_CAMERA_2
+                || cameraType == app.regram.chats.ChatsConfig.CAMERA_TYPE_TELEGRAM
                 || SharedConfig.isUsingCamera2(currentAccount));
     /** Зум у Camera2 и CameraX — кратность (min..max), у Camera1 — доля 0..1. */
     private final boolean useRatioZoom = useCamera2 || useCameraX;
@@ -1002,6 +1003,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
     }
 
     public void startAnimation(boolean open, boolean fromPaused) {
+        dispatchAnimationState(open, fromPaused);
         if (animatorSet != null) {
             animatorSet.removeAllListeners();
             animatorSet.cancel();
@@ -1082,9 +1084,14 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
         zoomSlider.setBaseTranslationY(translationY);
     }
 
-    public RectOld getCameraRect() {
+    public RectF getCameraRect() {
         cameraContainer.getLocationOnScreen(position);
-        return new RectOld(position[0], position[1], cameraContainer.getWidth(), cameraContainer.getHeight());
+        return new RectF(
+                position[0],
+                position[1],
+                position[0] + cameraContainer.getWidth(),
+                position[1] + cameraContainer.getHeight()
+        );
     }
 
     public void changeVideoPreviewState(int state, float progress) {
@@ -2652,7 +2659,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             int resolution = com.exteragram.messenger.utils.system.SystemUtils.getRoundVideoResolution();
             int bitrate = com.exteragram.messenger.utils.system.SystemUtils.getRoundVideoBitrate() * 1024;
             AndroidUtilities.runOnUIThread(() -> {
-                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
             });
 
             videoFile = outputFile;
@@ -2698,7 +2705,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             if (handler == null) return;
             handler.sendMessage(handler.obtainMessage(MSG_STOP_RECORDING, send, 0, options));
             AndroidUtilities.runOnUIThread(() -> {
-                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 512);
             });
         }
 
@@ -4019,7 +4026,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
                 "}\n";
     }
 
-    public class InstantViewCameraContainer extends FrameLayout {
+    public class InstantViewCameraContainer extends InstantCameraViewBase.InstantViewCameraContainer {
 
         ImageReceiver imageReceiver;
         float imageProgress;
@@ -4029,6 +4036,7 @@ public class InstantCameraView extends FrameLayout implements NotificationCenter
             InstantCameraView.this.setWillNotDraw(false);
         }
 
+        @Override
         public void setImageReceiver(ImageReceiver imageReceiver) {
             if (this.imageReceiver == null) {
                 imageProgress = 0;

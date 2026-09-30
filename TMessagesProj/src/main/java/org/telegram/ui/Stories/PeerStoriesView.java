@@ -4820,6 +4820,15 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
     }
 
+    public void destroy() {
+        if (chatActivityEnterView != null) {
+            chatActivityEnterView.onDestroy();
+        }
+        if (mentionContainer != null && mentionContainer.getAdapter() != null) {
+            mentionContainer.getAdapter().onDestroy();
+        }
+    }
+
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();

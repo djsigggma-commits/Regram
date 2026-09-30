@@ -334,7 +334,8 @@ public final class EtgBackup {
         bool(list, "newChatHeaderStyle", AppearanceConfig.newChatHeaderStyle);
         bool(list, "newNavigationBarStyle", AppearanceConfig.newNavigationBarStyle);
         bool(list, "iosNavigationBarStyle", AppearanceConfig.iosNavigationBarStyle);
-        bool(list, "iosFirstFolderOnTabTap", AppearanceConfig.iosFirstFolderOnTabTap);
+        bool(list, "iosChatHeader", AppearanceConfig.iosChatHeader);
+        bool(list, "profileMusicCard", AppearanceConfig.profileMusicCard);
         bool(list, "useSystemFonts", NekoConfig.typeface);
         bool(list, "gooeyAvatarAnimation", AppearanceConfig.gooeyAvatarAnimation);
         bool(list, "customThemes", AppearanceConfig.customThemes);
@@ -352,6 +353,7 @@ public final class EtgBackup {
         bool(list, "disableGreetingSticker", NekoConfig.dontSendGreetingSticker);
         bool(list, "hideKeyboardOnScroll", NekoConfig.hideKeyboardOnChatScroll);
         bool(list, "addCommaAfterMention", OpenExteraConfig.addCommaAfterMention);
+        bool(list, "inlineMathResult", ChatsConfig.inlineMathResult);
         bool(list, "hideSendAsPeer", NekoConfig.hideSendAsChannel);
         bool(list, "removeMessageTail", ChatsConfig.removeMessageTail);
         bool(list, "replaceEditedWithIcon", NaConfig.INSTANCE.getUseEditedIcon());

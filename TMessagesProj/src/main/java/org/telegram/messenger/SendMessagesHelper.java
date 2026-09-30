@@ -2906,6 +2906,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
 
         TLRPC.Message newMsg = messageObject.messageOwner;
         messageObject.cancelEditing = false;
+        app.regram.chats.LinkedCustomEmoji.replaceForSend(currentAccount, messageObject.getDialogId(), messageObject.editingMessageEntities);
 
         int pollAddingIndex = -1;
 
@@ -3433,6 +3434,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (fragment == null || fragment.getParentActivity() == null) {
             return 0;
         }
+        app.regram.chats.LinkedCustomEmoji.replaceForSend(currentAccount, messageObject.getDialogId(), entities);
 
         final TLRPC.TL_messages_editMessage req;
         if (messageObject.isEphemeral()) {
@@ -4291,6 +4293,25 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         sendMessage(SendMessageParams.of(message, null, null, null, null, null, null, null, null, null, peer, null, replyToMsg, replyToTopMsg, webPage, searchLinks, null, entities, replyMarkup, params, notify, scheduleDate, scheduleRepeatPeriod, 0, null, sendAnimationData, updateStickersOrder, false));
     }
 
+    private boolean shouldSendAsGhostScheduled(SendMessageParams params, long peer, String quickReplyShortcut, int quickReplyShortcutId) {
+        if (!NaConfig.INSTANCE.getGhostScheduledSend().Bool() || NekoConfig.sendOnlinePackets.Bool()) {
+            return false;
+        }
+        if (params.retryMessageObject != null || params.sendingStory != null || params.invoice != null || params.game != null
+                || params.stars > 0 || quickReplyShortcut != null || quickReplyShortcutId != 0
+                || (params.sendMessageChatArguments != null && params.sendMessageChatArguments.welcomeMessageChatId != 0)) {
+            return false;
+        }
+        if (peer == 0 || DialogObject.isEncryptedDialog(peer) || peer == UserConfig.getInstance(currentAccount).getClientUserId()) {
+            return false;
+        }
+        if (peer > 0) {
+            TLRPC.User user = getMessagesController().getUser(peer);
+            return user != null && !user.bot;
+        }
+        return true;
+    }
+
     public void sendMessage(SendMessageParams originalParams) {
         app.regram.plugins.HookResult hookResult = app.regram.plugins.HookResult.DEFAULT;
         // re:gram plugins: исходящее сообщение через on_send_message_hook (CANCEL = не отправлять)
@@ -4304,6 +4325,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         SendMessageParams replacement = hookResult.replacement(SendMessageParams.class);
         final SendMessageParams sendMessageParams = replacement != null ? replacement : originalParams;
         app.regram.chats.DeletedReplyQuote.rewrite(currentAccount, sendMessageParams);
+        app.regram.chats.LinkedCustomEmoji.replaceForSend(currentAccount, sendMessageParams.peer, sendMessageParams.entities);
         final SendMessageChatArguments sendMessageChatArguments = sendMessageParams.sendMessageChatArguments != null ?
                 sendMessageParams.sendMessageChatArguments : SendMessageChatArguments.EMPTY;
         String message = sendMessageParams.message;
@@ -4347,6 +4369,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         final int quick_reply_shortcut_id = sendMessageParams.quick_reply_shortcut_id != 0 ?
             sendMessageParams.quick_reply_shortcut_id :
             sendMessageChatArguments.quickReplyShortcutId;
+
+        if (scheduleDate == 0 && shouldSendAsGhostScheduled(sendMessageParams, peer, quick_reply_shortcut, quick_reply_shortcut_id)) {
+            scheduleDate = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 12;
+        }
 
         long stars = sendMessageParams.stars;
         int pollIndex = sendMessageParams.pollIndex;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="OpenExteraInfo">移植自 exteraGram 的功能</string>
+    <string name="OpenExteraInfo">打造专属于你的客户端</string>
     <string name="OpenExteraChats">聊天</string>
     <string name="AddCommaAfterMention">提及后添加逗号</string>
     <string name="OpenExteraCategories">分类</string>

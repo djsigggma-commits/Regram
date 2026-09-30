@@ -93,8 +93,7 @@ public class ReplyMessageLine {
                         emoji.detach();
                     }
                     if (sticker != null) {
-                        // Inugram: this used to attach, keeping the sticker drawable alive forever.
-                        sticker.detach();
+                        // Inugram: this used to attach, keeping the sticker drawable alive forever.                        sticker.detach();
                     }
                 }
             });

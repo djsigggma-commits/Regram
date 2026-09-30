@@ -288,12 +288,7 @@ class IntentsManager:
         }
 
 
-def get_intents_manager() -> IntentsManager:
-    """The intent registry — SDK accessor (``IM.getInstance()`` is the same)."""
-    return IntentsManager.getInstance()
-
-
-# Called from BasePlugin._cleanup_resources() on plugin unload.
+# Called from BasePlugin._exteraless_cleanup_resources() on plugin unload.
 def _unhandle_all_for_plugin(plugin_id: str):
     if not plugin_id:
         return

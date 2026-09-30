@@ -23,6 +23,7 @@
     <string name="OEChatsCameraTypeCamera2">Camera2</string>
     <string name="OEChatsCameraStabilization">Stabilization</string>
     <string name="OEChatsCameraTypeCameraX">CameraX</string>
+    <string name="OEChatsCameraTypeTelegram">Telegram (new)</string>
     <string name="OEChatsCameraMirrorMode">Mirror Mode</string>
     <string name="OEChatsStartWithWideAngle">Start with Wide Angle</string>
     <string name="OEChatsExtendedFps">Extended FPS Range</string>
@@ -133,4 +134,16 @@
     <string name="OEChatsAskWhenBotCommands">Sending bot commands</string>
     <string name="OEChatsHdrPhotos">HDR photos</string>
     <string name="OEChatsHdrPhotosInfo">Show HDR photos at full brightness. Turn this off if photos look dark.</string>
+    <string name="SendLockedCustomEmojiAsSticker">Premium Emoji as Stickers</string>
+    <string name="SendLockedCustomEmojiAsStickerInfo">Without Premium, premium emoji are sent as regular stickers. Only WebP and WebM emoji are supported.</string>
+    <string name="PhotoEditorTypefaceOswald" translatable="false">Oswald</string>
+    <string name="OEChatsTranslateInSheet">Telegram Translation Window</string>
+    <string name="OEChatsTranslateInSheetInfo">Translate opens the sheet from the official app with a provider switch</string>
+    <string name="OEChatsInlineMath">Inline math results</string>
+    <string name="OEChatsInlineMathInfo">Type an expression and “=” to see the result, press Space to insert it.</string>
+    <string name="OEChatsInlineMathCurrency">Currencies via @calcmulabot</string>
+    <string name="OEChatsInlineMathCurrencyInfo">Expressions with currencies like “10 usd to rub =” are sent to @calcmulabot to get the rate.</string>
+    <string name="OEChatsInlineMathAnnouncement">Result: %1$s</string>
+    <string name="OELocalPremiumInfo">Premium emoji are sent as links that exteraless and other clients that support this show as the real emoji. Other Premium features work only on this device.</string>
+    <string name="OELocalPremiumEmojiHint">You don\'t have **Telegram Premium**, so this emoji is sent as a link: only users of **exteraless** and clients that support this will see it.</string>
 </resources>

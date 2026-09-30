@@ -108,9 +108,10 @@
     <string name="OEAppearanceNewLoadingStyle">Индикаторы загрузки</string>
     <string name="OEAppearanceNewChatHeaderStyle">Шапка чата</string>
     <string name="OEAppearanceNewNavigationBarStyle">Панель навигации</string>
+    <string name="OEAppearanceM3ListItems">Элементы списков</string>
     <string name="OEAppearanceIosDesign" translatable="false">iOS Design</string>
     <string name="OEAppearanceIosNavigationBarStyle">Панель навигации</string>
-    <string name="OEAppearanceIosFirstFolderOnTabTap">Тап по вкладке — первая папка</string>
+    <string name="OEAppearanceIosChatHeader">Шапка чата в стиле iOS</string>
     <string name="OEAppearanceHideActionBarStatus">Скрыть статус</string>
     <string name="OEAppearanceHideAi">Скрыть AI</string>
     <string name="OEAppearanceHideAiEditor">AI-редактор</string>
@@ -125,4 +126,9 @@
     <string name="OEAppearanceEmojiSetsInfo">Заменить эмодзи приложения на другой набор.</string>
     <string name="OEAppearanceHideSettingsSections">Скрыть разделы настроек</string>
     <string name="OEBottomNavigationBar">Нижняя панель</string>
+    <string name="OEProfileMusicDesign">Музыка в профиле</string>
+    <string name="OEProfileMusicUseOfficial">Как в Telegram</string>
+    <string name="OEProfileMusicUseOfficialInfo">Показывать трек под аватаркой, как в официальном клиенте?</string>
+    <string name="OEProfileMusicUseCard">Карточкой</string>
+    <string name="OEProfileMusicUseCardInfo">Показывать трек карточкой под шапкой профиля?</string>
 </resources>

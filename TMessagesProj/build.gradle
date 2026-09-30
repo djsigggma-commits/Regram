@@ -27,7 +27,7 @@ def buildTimestamp = System.getenv('BUILD_TIMESTAMP') ?: '0'
 def commitId = System.getenv('COMMIT_ID')
 def shortCommit = commitId?.take(7) ?: ''
 def verName = "${APP_VERSION_NAME}${shortCommit ? "-${shortCommit}" : ''}"
-def verCode = 1262
+def verCode = 1263
 
 def officialVer = APP_VERSION_NAME
 def officialCode = APP_VERSION_CODE

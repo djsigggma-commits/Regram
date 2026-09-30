@@ -18,6 +18,9 @@ object PillStackConfig {
     private val sync = Any()
     private val configs = ArrayList<ConfigItem>()
 
+    @JvmStatic
+    fun getConfigTypes(): Map<String, Int> = configs.associate { it.key to it.type }
+
     @Volatile
     private var configLoaded = false
 
@@ -154,8 +157,7 @@ object PillStackConfig {
 
     private val activePills = ArrayList<Int>()
     private val hiddenPills = ArrayList<Int>()
-    // Keep IDs from plugins which have not registered yet (e.g. immediately after restart).
-    private val dormantActive = LinkedHashMap<Int, Int>()
+    // Keep IDs from plugins which have not registered yet (e.g. immediately after restart).    private val dormantActive = LinkedHashMap<Int, Int>()
     private val dormantHidden = LinkedHashSet<Int>()
 
     /**

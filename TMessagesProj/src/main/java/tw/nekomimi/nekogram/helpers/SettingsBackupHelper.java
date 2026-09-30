@@ -130,6 +130,9 @@ public final class SettingsBackupHelper {
         spToJSON("mainconfig", configJson, mainconfig::contains);
         if (!isCloud) spToJSON("themeconfig", configJson, null);
         spToJSON("nkmrcfg", configJson, null, includeApiKeys);
+        if (includeApiKeys) {
+            spToJSON("aiConfig", configJson, key -> !"history".equals(key));
+        }
 
         return configJson.toString(indentSpaces);
     }
@@ -192,6 +195,17 @@ public final class SettingsBackupHelper {
         try {
             configTypes.putAll(NekoConfig.getConfigTypes());
             configTypes.putAll(NaConfig.INSTANCE.getConfigTypes());
+        } catch (Throwable ignore) {
+        }
+        try {
+            configTypes.putAll(app.regram.OpenExteraConfig.getConfigTypes());
+            configTypes.putAll(app.regram.chats.ChatsConfig.getConfigTypes());
+            configTypes.putAll(app.regram.icons.IconPacksConfig.getConfigTypes());
+            configTypes.putAll(app.regram.glyph.GlyphConfig.getConfigTypes());
+            configTypes.putAll(app.regram.pillstack.PillStackConfig.getConfigTypes());
+            configTypes.putAll(app.regram.utils.UtilsConfig.getConfigTypes());
+            configTypes.putAll(app.regram.appearance.AppearanceConfig.getConfigTypes());
+            configTypes.putAll(app.regram.general.GeneralConfig.getConfigTypes());
         } catch (Throwable ignore) {
         }
         String[] preservePrefixes = {

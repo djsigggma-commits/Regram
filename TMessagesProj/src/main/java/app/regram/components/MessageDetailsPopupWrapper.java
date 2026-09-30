@@ -18,8 +18,8 @@ import android.widget.ScrollView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import app.regram.chats.UserLookup;
 import app.regram.utils.MediaUtils;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ContactsController;
@@ -353,13 +353,16 @@ public abstract class MessageDetailsPopupWrapper {
             return;
         }
         if (item.id == ITEM_STICKER_OWNER) {
-            if (item.subtitle == null || !item.subtitle.startsWith("@")) {
-                copy(String.valueOf(ownerId));
-                return;
-            }
-            Bundle args = new Bundle();
-            args.putLong("user_id", ownerId);
-            fragment.presentFragment(new ProfileActivity(args));
+            long owner = ownerId;
+            UserLookup.show(activity, fragment.getCurrentAccount(), fragment.getResourceProvider(), owner, user -> {
+                if (user == null) {
+                    copy(String.valueOf(owner));
+                    return;
+                }
+                Bundle args = new Bundle();
+                args.putLong("user_id", user.id);
+                fragment.presentFragment(new ProfileActivity(args));
+            });
             return;
         }
         if (item.id == ITEM_LOCATION && geo != null) {

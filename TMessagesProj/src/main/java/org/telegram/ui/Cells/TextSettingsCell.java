@@ -79,6 +79,7 @@ public class TextSettingsCell extends FrameLayout {
         this.padding = padding;
 
         textView = new TextView(context);
+        textView.setTypeface(AndroidUtilities.regular());
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         textView.setLines(1);
         textView.setMaxLines(1);
@@ -122,7 +123,7 @@ public class TextSettingsCell extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        final int fixed = AndroidUtilities.dp(50);
+        final int fixed = AndroidUtilities.dp(app.regram.appearance.M3ListItems.rowHeight(50));
         measureContent(widthMeasureSpec, fixed);
         if (!wrapText) {
             return;

@@ -4,7 +4,6 @@
     <string name="OpenExtera" translatable="false">re:gram</string>
     <string name="OpenExteraInfo">Features ported from exteraGram</string>
 
-
     <string name="OpenExteraChats">Chats</string>
     <string name="AddCommaAfterMention">Add Comma after Mention</string>
 
@@ -31,8 +30,12 @@
     <string name="AppIconNya" translatable="false">Nya</string>
     <string name="AppIconAyu" translatable="false">Ayu</string>
     <string name="AppIconQuack" translatable="false">Quack</string>
-    <string name="OpenExteraPreferences">re:gram Preferences</string>
-    <string name="OpenExteraDesignSection">Design</string>
+    <string name="AppIconGo" translatable="false">Go</string>
+    <string name="AppIconHand" translatable="false">Hand</string>
+    <string name="AppIconMono" translatable="false">Mono</string>
+    <string name="AppIconNothing" translatable="false">Nothing</string>
+    <string name="AppIconPlus" translatable="false">Plus</string>
+    <string name="OpenExteraPreferences">re:gram Preferences</string>    <string name="OpenExteraDesignSection">Design</string>
     <string name="OpenExteraDesigner">Icons and design</string>
     <string name="OpenExteraDesignStudio">Design studio</string>
     <string name="OEDownloadEmojiPacks">Download emoji packs</string>

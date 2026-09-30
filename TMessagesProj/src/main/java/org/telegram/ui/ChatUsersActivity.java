@@ -1503,8 +1503,7 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
                 return -1;
             }
             if (lhs instanceof TLRPC.ChannelParticipant && rhs instanceof TLRPC.ChannelParticipant) {
-                // Inugram: peer ids exceed int range, so the subtraction overflows.
-                return Long.compare(MessageObject.getPeerId(((TLRPC.ChannelParticipant) lhs).peer), MessageObject.getPeerId(((TLRPC.ChannelParticipant) rhs).peer));
+                // Inugram: peer ids exceed int range, so the subtraction overflows.                return Long.compare(MessageObject.getPeerId(((TLRPC.ChannelParticipant) lhs).peer), MessageObject.getPeerId(((TLRPC.ChannelParticipant) rhs).peer));
             }
             return 0;
         });

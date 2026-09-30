@@ -100,8 +100,9 @@
     <string name="OEAppearanceNewLoadingStyle">Wskaźniki ładowania</string>
     <string name="OEAppearanceNewChatHeaderStyle">Nagłówek czatu</string>
     <string name="OEAppearanceNewNavigationBarStyle">Pasek nawigacji</string>
+    <string name="OEAppearanceM3ListItems">Elementy list</string>
     <string name="OEAppearanceIosNavigationBarStyle">Pasek nawigacji</string>
-    <string name="OEAppearanceIosFirstFolderOnTabTap">Dotknięcie karty otwiera pierwszy folder</string>
+    <string name="OEAppearanceIosChatHeader">Nagłówek czatu w stylu iOS</string>
     <string name="OEAppearanceHideAi">Ukryj AI</string>
     <string name="OEAppearanceHideAiEditor">Edytor AI</string>
     <string name="OEAppearanceHideAiSummary">Podsumowanie wiadomości</string>
@@ -115,4 +116,9 @@
     <string name="OEAppearanceEmojiSetsInfo">Zmień emoji w całej aplikacji</string>
     <string name="OEAppearanceHideSettingsSections">Ukryj sekcje ustawień</string>
     <string name="OEBottomNavigationBar">Dolny pasek</string>
+    <string name="OEProfileMusicDesign">Muzyka w profilu</string>
+    <string name="OEProfileMusicUseOfficial">Styl Telegram</string>
+    <string name="OEProfileMusicUseOfficialInfo">Pokazywać utwór pod awatarem, jak w oficjalnej aplikacji?</string>
+    <string name="OEProfileMusicUseCard">Karta</string>
+    <string name="OEProfileMusicUseCardInfo">Pokazywać utwór jako kartę pod nagłówkiem profilu?</string>
 </resources>

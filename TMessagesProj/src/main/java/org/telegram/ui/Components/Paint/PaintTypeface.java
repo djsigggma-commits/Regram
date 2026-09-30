@@ -39,8 +39,9 @@ public class PaintTypeface {
     public static final PaintTypeface ROBOTO_CONDENSED = new PaintTypeface("condensed", "PhotoEditorTypefaceCondensed", new LazyTypeface(() -> AndroidUtilities.getTypeface("fonts/rcondensedbold.ttf")));
     public static final PaintTypeface ROBOTO_MONO = new PaintTypeface ("mono", "PhotoEditorTypefaceMono", new LazyTypeface(() -> AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MONO)));
     public static final PaintTypeface MW_BOLD = new PaintTypeface("mw_bold", "PhotoEditorTypefaceMerriweather", new LazyTypeface(() -> AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_MERRIWEATHER_BOLD)));
+    public static final PaintTypeface OSWALD_BOLD = new PaintTypeface("oswald", "PhotoEditorTypefaceOswald", new LazyTypeface(() -> AndroidUtilities.getTypeface("fonts/oswald_bold.ttf")));
 
-    public final static List<PaintTypeface> BUILT_IN_FONTS = Arrays.asList(ROBOTO_MEDIUM, ROBOTO_ITALIC, ROBOTO_SERIF, ROBOTO_CONDENSED, ROBOTO_MONO, MW_BOLD);
+    public final static List<PaintTypeface> BUILT_IN_FONTS = Arrays.asList(ROBOTO_MEDIUM, ROBOTO_ITALIC, ROBOTO_SERIF, ROBOTO_CONDENSED, ROBOTO_MONO, OSWALD_BOLD, MW_BOLD);
 
     private static final List<String> preferable = Arrays.asList(
         "Google Sans",

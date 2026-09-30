@@ -5529,46 +5529,49 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
         currentSheetAnimation.setInterpolator(openInterpolator);
         AnimationNotificationsLocker locker = new AnimationNotificationsLocker();
         BottomSheetDelegateInterface delegate = super.delegate;
+        final boolean[] finished = { false };
+        final boolean[] wasCancelled = { false };
         final Runnable onAnimationEnd = () -> {
-            currentSheetAnimation = null;
-            appearSpringAnimation = null;
+            // idempotent: rapid dismiss cancels one animator mid-flight; original guards
+            // required both to end naturally, leaking the locker for ~5s. on cancel, leave
+            // currentSheetAnimation/appearSpringAnimation non-null so the outer
+            // cancelSheetAnimation() can still cancel the spring — otherwise it keeps
+            // pulling translation_Y to 0 and the dismiss animator can't visually close.
+            if (finished[0]) return;
+            finished[0] = true;
             locker.unlock();
-            currentSheetAnimationType = 0;
-            if (delegate != null) {
-                delegate.onOpenAnimationEnd();
-            }
             if (useHardwareLayer) {
                 container.setLayerType(View.LAYER_TYPE_NONE, null);
             }
-
             if (isFullscreen) {
                 WindowManager.LayoutParams params = getWindow().getAttributes();
                 params.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
                 getWindow().setAttributes(params);
             }
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 512);
+            if (!wasCancelled[0]) {
+                currentSheetAnimation = null;
+                appearSpringAnimation = null;
+                if (delegate != null) {
+                    delegate.onOpenAnimationEnd();
+                }
+            }
         };
         appearSpringAnimation.addEndListener((animation, cancelled, value, velocity) -> {
-            if (currentSheetAnimation != null && !currentSheetAnimation.isRunning()) {
-                onAnimationEnd.run();
-            }
+            if (cancelled) wasCancelled[0] = true;
+            currentSheetAnimationType = 0;
+            onAnimationEnd.run();
         });
         currentSheetAnimation.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                if (currentSheetAnimation != null && currentSheetAnimation.equals(animation)) {
-                    if (appearSpringAnimation != null && !appearSpringAnimation.isRunning()) {
-                        onAnimationEnd.run();
-                    }
-                }
+                onAnimationEnd.run();
             }
 
             @Override
             public void onAnimationCancel(Animator animation) {
-                if (currentSheetAnimation != null && currentSheetAnimation.equals(animation)) {
-                    currentSheetAnimation = null;
-                    currentSheetAnimationType = 0;
-                }
+                wasCancelled[0] = true;
+                onAnimationEnd.run();
             }
         });
         locker.lock();

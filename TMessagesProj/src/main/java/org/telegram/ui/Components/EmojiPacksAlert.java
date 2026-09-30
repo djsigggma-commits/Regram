@@ -88,6 +88,8 @@ import java.util.regex.Pattern;
 import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.utils.ProxyUtil;
 
+import app.regram.chats.UserLookup;
+
 public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.NotificationCenterDelegate {
 
     private LongSparseArray<AnimatedEmojiDrawable> animatedEmojiDrawables;
@@ -1101,6 +1103,11 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
     }
 
     boolean loaded = true;
+
+    private boolean shouldShowUnlockForPack(TLRPC.TL_messages_stickerSet stickerSet) {
+        return !UserConfig.getInstance(currentAccount).isPremium() && stickerSet != null && stickerSet.set != null && !stickerSet.set.emojis && MessageObject.isPremiumEmojiPack(stickerSet);
+    }
+
     private void updateButton() {
         if (buttonsView == null) {
             return;
@@ -1377,17 +1384,8 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
                         j += 1 + sz + 1;
                     }
                     TLRPC.TL_messages_stickerSet stickerSet = customEmojiPacks.stickerSets == null || i >= customEmojiPacks.stickerSets.size() ? null : customEmojiPacks.stickerSets.get(i);
-                    boolean premium = false;
-                    if (stickerSet != null && stickerSet.documents != null) {
-                        for (int j = 0; j < stickerSet.documents.size(); ++j) {
-                            if (!MessageObject.isFreeEmoji(stickerSet.documents.get(j))) {
-                                premium = true;
-                                break;
-                            }
-                        }
-                    }
                     if (i < customEmojiPacks.data.length) {
-                        ((EmojiPackHeader) holder.itemView).set(stickerSet, stickerSet == null || stickerSet.documents == null ? 0 : stickerSet.documents.size(), premium);
+                        ((EmojiPackHeader) holder.itemView).set(stickerSet, stickerSet == null || stickerSet.documents == null ? 0 : stickerSet.documents.size(), shouldShowUnlockForPack(stickerSet));
                     }
                     break;
             }
@@ -1461,7 +1459,7 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
 
         @Override
         public int getItemCount() {
-            hasDescription = !UserConfig.getInstance(currentAccount).isPremium() && customEmojiPacks.stickerSets != null && customEmojiPacks.stickerSets.size() == 1 && MessageObject.isPremiumEmojiPack(customEmojiPacks.stickerSets.get(0));
+            hasDescription = customEmojiPacks.stickerSets != null && customEmojiPacks.stickerSets.size() == 1 && shouldShowUnlockForPack(customEmojiPacks.stickerSets.get(0));
             return 1 + (hasDescription ? 1 : 0) + customEmojiPacks.getItemsCount() + Math.max(0, customEmojiPacks.data.length - 1);
         }
     }
@@ -1541,19 +1539,27 @@ public class EmojiPacksAlert extends BottomSheet implements NotificationCenter.N
             if ((stickerSet.set.id >> 24 & 0xff) != 0) {
                 userId += 0x100000000L;
             }
+            long ownerId = userId;
             if (fragment != null) {
-                TLRPC.User user = fragment.getMessagesController().getUser(userId);
-                if (user != null) {
-                    MessagesController.getInstance(currentAccount).openChatOrProfileWith(user, null, fragment, 0, false);
-                    return;
-                }
+                UserLookup.show(getContext(), currentAccount, resourcesProvider, ownerId, user -> {
+                    if (user != null) {
+                        MessagesController.getInstance(currentAccount).openChatOrProfileWith(user, null, fragment, 0, false);
+                    } else {
+                        copyOwnerId(ownerId);
+                    }
+                });
+                return;
             }
-            try {
-                AndroidUtilities.addToClipboard("" + userId);
-                BulletinFactory.of((FrameLayout) containerView, resourcesProvider).createCopyLinkBulletin().show();
-            } catch (Exception e) {
-                FileLog.e(e);
-            }
+            copyOwnerId(ownerId);
+        }
+    }
+
+    private void copyOwnerId(long ownerId) {
+        try {
+            AndroidUtilities.addToClipboard("" + ownerId);
+            BulletinFactory.of((FrameLayout) containerView, resourcesProvider).createCopyLinkBulletin().show();
+        } catch (Exception e) {
+            FileLog.e(e);
         }
     }
 

@@ -76,7 +76,7 @@ public class SettingsHelper {
 
     private static final Set<String> REGRAM_SCREENS = new HashSet<>(Arrays.asList(
             "settings", "general", "appearance", "chats", "plugins", "pillstack", "other",
-            "ayumoments"));
+            "ayumoments", "navigation"));
 
     public static boolean isDeepLink(String path) {
         if (path == null) {
@@ -110,6 +110,8 @@ public class SettingsHelper {
                 return HOST_REGRAM + "/ayumoments";
             case "pillstack":
                 return HOST_REGRAM + "/pillstack";
+            case "exteraless_navigation":
+                return HOST_REGRAM + "/navigation";
             default:
                 return HOST_NAGRAM + "/" + key;
         }
@@ -141,6 +143,7 @@ public class SettingsHelper {
         BaseFragment fragment;
         BaseNekoSettingsActivity neko_fragment = null;
         BaseNekoXSettingsActivity nekox_fragment = null;
+        OpenExteraAppNavigationActivity navigation_fragment = null;
         final String screen = regram ? segments.get(1) : nagramScreen(segments.size() == 1 ? null : segments.get(1), row);
         if (screen != null) {
             switch (screen) {
@@ -174,7 +177,7 @@ public class SettingsHelper {
                     fragment = new PluginsActivity();
                     break;
                 case "navigation":
-                    fragment = new OpenExteraAppNavigationActivity();
+                    fragment = navigation_fragment = new OpenExteraAppNavigationActivity();
                     break;
                 case "privacy":
                     fragment = new PrivacySettingsActivity();
@@ -245,6 +248,9 @@ public class SettingsHelper {
             if (neko_fragment != null) {
                 BaseNekoSettingsActivity finalNeko_fragment = neko_fragment;
                 AndroidUtilities.runOnUIThread(() -> finalNeko_fragment.scrollToRow(rowFinal, unknown));
+            } else if (navigation_fragment != null) {
+                OpenExteraAppNavigationActivity finalNavigation_fragment = navigation_fragment;
+                AndroidUtilities.runOnUIThread(() -> finalNavigation_fragment.scrollToRow(rowFinal, unknown));
             } else if (nekox_fragment != null) {
                 BaseNekoXSettingsActivity finalNekoX_fragment = nekox_fragment;
                 if (!TextUtils.isEmpty(value)) {
@@ -347,7 +353,7 @@ public class SettingsHelper {
             int uid = fragment.getSearchGuid();
             int drawable = fragment.getSearchIcon();
             String f_title = fragment.getSearchTitle();
-            for (Map.Entry<Integer, String> entry : fragment.getRowMapReverse().entrySet()) {
+            for (Map.Entry<Integer, String> entry : fragment.getSearchRows().entrySet()) {
                 String key = entry.getValue();
                 if (key == null || key.endsWith("Header") || key.equals(String.valueOf(entry.getKey()))) {
                     continue;

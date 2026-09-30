@@ -89,8 +89,7 @@ public class BotLocation {
     }
 
     private BotLocation(Context context, int currentAccount, long botId) {
-        // Inugram: this object outlives the activity, so it must not hold its Context.
-        this.context = context.getApplicationContext();
+        // Inugram: this object outlives the activity, so it must not hold its Context.        this.context = context.getApplicationContext();
         this.currentAccount = currentAccount;
         this.botId = botId;
         load();

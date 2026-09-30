@@ -16,6 +16,7 @@
     <string name="OEChatsCameraTypeCamera2">Camera2</string>
     <string name="OEChatsCameraStabilization">Estabilización</string>
     <string name="OEChatsCameraTypeCameraX">CameraX</string>
+    <string name="OEChatsCameraTypeTelegram">Telegram (nuevo)</string>
     <string name="OEChatsCameraMirrorMode">Modo espejo</string>
     <string name="OEChatsStartWithWideAngle">Empezar con gran angular</string>
     <string name="OEChatsExtendedFps">Rango de FPS ampliado</string>
@@ -121,4 +122,13 @@
     <string name="OEChatsAskWhenBotCommands">Enviar comandos de bots</string>
     <string name="OEChatsHdrPhotos">Fotos HDR</string>
     <string name="OEChatsHdrPhotosInfo">Muestra las fotos HDR con brillo completo. Desactívalo si las fotos se ven oscuras.</string>
+    <string name="OEChatsTranslateInSheet">Ventana de traducción de Telegram</string>
+    <string name="OEChatsTranslateInSheetInfo">Traducir abre la ventana de la app oficial con selector de proveedor</string>
+    <string name="OEChatsInlineMath">Resultados de cálculo en línea</string>
+    <string name="OEChatsInlineMathInfo">Escribe una expresión y «=» para ver el resultado; pulsa Espacio para insertarlo.</string>
+    <string name="OEChatsInlineMathCurrency">Divisas mediante @calcmulabot</string>
+    <string name="OEChatsInlineMathCurrencyInfo">Las expresiones con divisas, como «10 usd to rub =», se envían a @calcmulabot para obtener el tipo de cambio.</string>
+    <string name="OEChatsInlineMathAnnouncement">Resultado: %1$s</string>
+    <string name="OELocalPremiumInfo">Los emoji premium se envían como enlaces que exteraless y otros clientes compatibles muestran como emoji reales. Las demás funciones Premium solo funcionan en este dispositivo.</string>
+    <string name="OELocalPremiumEmojiHint">No tienes **Telegram Premium**, así que este emoji se envía como enlace: solo lo verán los usuarios de **exteraless** y clientes compatibles.</string>
 </resources>

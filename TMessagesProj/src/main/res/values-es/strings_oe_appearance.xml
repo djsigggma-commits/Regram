@@ -100,8 +100,9 @@
     <string name="OEAppearanceNewLoadingStyle">Indicadores de carga</string>
     <string name="OEAppearanceNewChatHeaderStyle">Encabezado del chat</string>
     <string name="OEAppearanceNewNavigationBarStyle">Barra de navegación</string>
+    <string name="OEAppearanceM3ListItems">Elementos de lista</string>
     <string name="OEAppearanceIosNavigationBarStyle">Barra de navegación</string>
-    <string name="OEAppearanceIosFirstFolderOnTabTap">Tocar la pestaña abre la primera carpeta</string>
+    <string name="OEAppearanceIosChatHeader">Cabecera de chat estilo iOS</string>
     <string name="OEAppearanceHideAi">Ocultar la IA</string>
     <string name="OEAppearanceHideAiEditor">Editor con IA</string>
     <string name="OEAppearanceHideAiSummary">Resumen del mensaje</string>
@@ -115,4 +116,9 @@
     <string name="OEAppearanceEmojiSetsInfo">Cambia los emojis de toda la app</string>
     <string name="OEAppearanceHideSettingsSections">Ocultar secciones de Ajustes</string>
     <string name="OEBottomNavigationBar">Barra inferior</string>
+    <string name="OEProfileMusicDesign">Música del perfil</string>
+    <string name="OEProfileMusicUseOfficial">Estilo Telegram</string>
+    <string name="OEProfileMusicUseOfficialInfo">¿Mostrar la pista debajo del avatar, como en la app oficial?</string>
+    <string name="OEProfileMusicUseCard">Tarjeta</string>
+    <string name="OEProfileMusicUseCardInfo">¿Mostrar la pista como una tarjeta debajo del encabezado del perfil?</string>
 </resources>
