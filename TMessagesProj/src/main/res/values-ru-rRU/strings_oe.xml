@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OpenExteraInfo">Фичи, перенесённые из exteraGram</string>
+
+
+    <string name="OpenExteraChats">Чаты</string>
+    <string name="AddCommaAfterMention">Запятая после упоминания</string>
+
+
+    <string name="OpenExteraCategories">Категории</string>
+    <string name="OpenExteraGeneral">Основные</string>
+    <string name="OpenExteraAppearance">Внешний вид</string>
+    <string name="OpenExteraOther">Ещё</string>
+
+    <string name="OpenExteraLinks">Ссылки</string>
+    <string name="OpenExteraSource">Исходный код</string>
+    <string name="QrTitleLink">Ссылка</string>
+    <string name="QrTitleWifi">Сеть Wi-Fi</string>
+    <string name="QrTitleLogin">Код входа в Telegram</string>
+    <string name="QrTitleText">Отсканированный текст</string>
+    <string name="QrWifiOpenSettings">Открыть настройки Wi-Fi</string>
+    <string name="QrWifiCopyPassword">Скопировать пароль</string>
+    <string name="QrWifiPasswordCopied">Пароль скопирован</string>
+    <string name="QrWifiUnknownNetwork">В коде нет имени сети</string>
+    <string name="QrLoginHint">Этот код входит в аккаунт. Используйте Настройки → Устройства → Подключить устройство: тот экран проверяет код и защищает аккаунт.</string>
+    <string name="AppIconRegram" translatable="false">re:gram</string>
+    <string name="AppIconBlueprint" translatable="false">Blueprint</string>
+    <string name="AppIconRed" translatable="false">Red</string>
+    <string name="AppIconNya" translatable="false">Nya</string>
+    <string name="AppIconAyu" translatable="false">Ayu</string>
+    <string name="AppIconQuack" translatable="false">Quack</string>
+    <string name="OpenExteraPreferences">Настройки re:gram</string>
+    <string name="OpenExteraDesignSection">Дизайн</string>
+    <string name="OpenExteraDesigner">Иконки и дизайн</string>
+    <string name="OpenExteraDesignStudio">Студия дизайна</string>
+    <string name="OEDownloadEmojiPacks">Загружать наборы эмодзи</string>
+    <string name="OEChooseSubtitles">Выбрать субтитры</string>
+    <string name="OEDisableSubtitles">Выключить субтитры</string>
+    <string name="OESubtitles">Субтитры</string>
+    <string name="OESubtitlesAdded">Субтитры включены.</string>
+    <string name="OESubtitlesLoadError">Не удалось загрузить субтитры.</string>
+    <string name="OESubtitlesRemoved">Субтитры выключены.</string>
+    <string name="OESubtitlesUnsupportedFormat">Неподдерживаемый формат субтитров.</string>
+    <string name="ProxyDisableOn">Отключать прокси</string>
+    <string name="ProxyDisableNever">Никогда</string>
+    <string name="ProxyDisableAlways">Всегда</string>
+    <string name="ProxyDisableOnMobileData">Мобильный интернет</string>
+    <string name="MainTabsHideCallsSettings">Скрыть вкладку «Звонки»</string>
+    <string name="MainTabsHideProfile">Скрыть вкладку профиля</string>
+    <string name="OENowPlayingScrobbling">Сейчас играет</string>
+    <string name="OEBotWebViewUpdate">Обновить WebView</string>
+</resources>

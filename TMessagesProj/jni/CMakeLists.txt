@@ -1,0 +1,270 @@
+cmake_minimum_required(VERSION 3.10.2)
+
+set(CMAKE_CXX_FLAGS "-std=c++14 -DANDROID -g")
+set(CMAKE_C_FLAGS "-w -std=c11 -DANDROID -D_LARGEFILE_SOURCE=1 -g -Wno-error=implicit-function-declaration")
+set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections -fvisibility=hidden -flto=full")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden -flto=full")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto=full -Wl,--gc-sections -Wl,--icf=safe -Wl,-Bsymbolic")
+
+if (${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${ANDROID_ABI} STREQUAL "arm64-v8a")
+    enable_language(ASM)
+else()
+    enable_language(ASM_NASM)
+endif()
+
+add_library(avutil STATIC IMPORTED)
+set_target_properties(avutil PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libavutil.a)
+
+add_library(avformat STATIC IMPORTED)
+set_target_properties(avformat PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libavformat.a)
+
+add_library(avcodec STATIC IMPORTED)
+set_target_properties(avcodec PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libavcodec.a)
+
+add_library(swresample STATIC IMPORTED)
+set_target_properties(swresample PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libswresample.a)
+
+add_library(swscale STATIC IMPORTED)
+set_target_properties(swscale PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libswscale.a)
+
+add_library(crypto STATIC IMPORTED)
+set_target_properties(crypto PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/boringssl/lib/${ANDROID_ABI}/libcrypto.a)
+
+add_library(ssl STATIC IMPORTED)
+set_target_properties(ssl PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/boringssl/lib/${ANDROID_ABI}/libssl.a)
+
+add_library(libvpx STATIC IMPORTED)
+set_target_properties(libvpx PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libvpx.a)
+
+add_library(libdav1d STATIC IMPORTED)
+set_target_properties(libdav1d PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libdav1d.a)
+
+add_library(libopus STATIC IMPORTED)
+set_target_properties(libopus PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/ffmpeg/${ANDROID_ABI}/libopus.a)
+
+add_library(tde2e STATIC IMPORTED)
+set_target_properties(tde2e PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/tde2e/${ANDROID_ABI}/libtde2e.a)
+
+add_library(tdutils STATIC IMPORTED)
+set_target_properties(tdutils PROPERTIES IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/tde2e/${ANDROID_ABI}/libtdutils.a)
+
+#tgnet
+add_library(tgnet STATIC
+        tgnet/ApiScheme.cpp
+        tgnet/BuffersStorage.cpp
+        tgnet/ByteArray.cpp
+        tgnet/ByteStream.cpp
+        tgnet/Connection.cpp
+        tgnet/ConnectionSession.cpp
+        tgnet/ConnectionsManager.cpp
+        tgnet/ConnectionSocket.cpp
+        tgnet/Datacenter.cpp
+        tgnet/EventObject.cpp
+        tgnet/FileLog.cpp
+        tgnet/MTProtoScheme.cpp
+        tgnet/NativeByteBuffer.cpp
+        tgnet/Request.cpp
+        tgnet/Timer.cpp
+        tgnet/TLObject.cpp
+        tgnet/ProxyCheckInfo.cpp
+        tgnet/Handshake.cpp
+        tgnet/Config.cpp)
+target_compile_options(tgnet PUBLIC
+        -Wall -frtti -finline-functions -ffast-math -Oz)
+set_target_properties(tgnet PROPERTIES
+        ANDROID_ARM_MODE arm)
+target_compile_definitions(tgnet PUBLIC
+        HAVE_PTHREAD)
+target_include_directories(tgnet PUBLIC
+        boringssl/include/)
+target_link_libraries(tgnet
+        crypto)
+
+# tlottie (prebuilt Rust static library)
+add_library(tlottie STATIC IMPORTED)
+set_target_properties(tlottie PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_HOME_DIRECTORY}/tlottie_lib/${ANDROID_ABI}/libtlottie.a)
+
+#sqlite
+add_library(sqlite STATIC
+        sqlite/sqlite3.c)
+target_compile_options(sqlite PUBLIC
+        -fno-strict-aliasing -Oz)
+set_target_properties(sqlite PROPERTIES
+        ANDROID_ARM_MODE arm)
+target_compile_definitions(sqlite PUBLIC
+        NULL=0 SOCKLEN_T=socklen_t LOCALE_NOT_USED ANDROID_NDK DISABLE_IMPORTGL AVOID_TABLES ANDROID_TILE_BASED_DECODE HAVE_STRCHRNUL=0 ANDROID_ARMV6_IDCT)
+
+
+#voip
+include(${CMAKE_HOME_DIRECTORY}/voip/CMakeLists.txt)
+
+# cpu features
+include_directories(${ANDROID_NDK}/sources/android/cpufeatures)
+add_library(cpufeatures ${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c)
+
+set(NATIVE_LIB "tmessages.49")
+
+#tmessages
+add_library(${NATIVE_LIB} SHARED
+        jni.c
+        audio.c
+        webm_encoder.c
+        image.cpp
+        intro/IntroRenderer.c
+        SqliteWrapper.cpp
+        utilities.cpp
+        gifvideo.cpp
+        lottie.cpp
+        TgNetWrapper.cpp
+        exoplayer/ffmpeg_jni.cc
+        fast-edge.cpp
+        genann.c
+        secureid_ocr.cpp
+        tde2e/bridge.cpp
+)
+
+target_compile_options(${NATIVE_LIB} PUBLIC
+        -ffast-math -Oz -funroll-loops -ffast-math -fno-strict-aliasing -fno-math-errno)
+
+target_compile_definitions(${NATIVE_LIB} PUBLIC
+        BSD=1 NULL=0 SOCKLEN_T=socklen_t ANDROID_NDK DISABLE_IMPORTGL AVOID_TABLES ANDROID_TILE_BASED_DECODE __STDC_CONSTANT_MACROS ANDROID_ARMV6_IDCT OPUS_BUILD FIXED_POINT USE_ALLOCA restrict= __EMX__ LOCALE_NOT_USED HAVE_LRINT HAVE_LRINTF)
+
+if (${ANDROID_ABI} STREQUAL "armeabi-v7a")
+    set_target_properties(${NATIVE_LIB} PROPERTIES
+            ANDROID_ARM_NEON FALSE
+            ANDROID_ARM_MODE arm)
+    target_compile_definitions(${NATIVE_LIB} PUBLIC
+            ANDROID_ARM_NEON=false)
+    target_sources(${NATIVE_LIB} PRIVATE
+        third_party/libyuv/source/compare_neon.cc
+        third_party/libyuv/source/rotate_neon.cc
+        third_party/libyuv/source/row_neon.cc
+        third_party/libyuv/source/scale_neon.cc)
+else()
+    set_target_properties(${NATIVE_LIB} PROPERTIES
+            ANDROID_ARM_NEON FALSE
+            ANDROID_ARM_MODE arm)
+endif()
+
+if (${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${ANDROID_ABI} STREQUAL "arm64-v8a")
+    target_compile_definitions(${NATIVE_LIB} PUBLIC
+            LIBYUV_NEON)
+
+elseif(${ANDROID_ABI} STREQUAL "x86")
+    target_compile_definitions(${NATIVE_LIB} PUBLIC
+            x86fix)
+endif()
+
+target_sources(${NATIVE_LIB} PRIVATE
+
+        third_party/xiph/opusfile/src/info.c
+        third_party/xiph/opusfile/src/internal.c
+        third_party/xiph/opusfile/src/opusfile.c
+        third_party/xiph/opusfile/src/stream.c
+        third_party/xiph/ogg/src/bitwise.c
+        third_party/xiph/ogg/src/framing.c
+        third_party/libyuv/source/compare_common.cc
+        third_party/libyuv/source/compare_gcc.cc
+        third_party/libyuv/source/compare_neon64.cc
+        third_party/libyuv/source/compare_win.cc
+        third_party/libyuv/source/compare.cc
+        third_party/libyuv/source/convert_argb.cc
+        third_party/libyuv/source/convert_from_argb.cc
+        third_party/libyuv/source/convert_from.cc
+        third_party/libyuv/source/convert_jpeg.cc
+        third_party/libyuv/source/convert_to_argb.cc
+        third_party/libyuv/source/convert_to_i420.cc
+        third_party/libyuv/source/convert.cc
+        third_party/libyuv/source/cpu_id.cc
+        third_party/libyuv/source/mjpeg_decoder.cc
+        third_party/libyuv/source/mjpeg_validate.cc
+        third_party/libyuv/source/planar_functions.cc
+        third_party/libyuv/source/rotate_any.cc
+        third_party/libyuv/source/rotate_argb.cc
+        third_party/libyuv/source/rotate_common.cc
+        third_party/libyuv/source/rotate_gcc.cc
+        third_party/libyuv/source/rotate_neon64.cc
+        third_party/libyuv/source/rotate_win.cc
+        third_party/libyuv/source/rotate.cc
+        third_party/libyuv/source/row_any.cc
+        third_party/libyuv/source/row_common.cc
+        third_party/libyuv/source/row_gcc.cc
+        third_party/libyuv/source/row_neon64.cc
+        third_party/libyuv/source/row_win.cc
+        third_party/libyuv/source/scale_any.cc
+        third_party/libyuv/source/scale_argb.cc
+        third_party/libyuv/source/scale_common.cc
+        third_party/libyuv/source/scale_gcc.cc
+        third_party/libyuv/source/scale_neon64.cc
+        third_party/libyuv/source/scale_win.cc
+        third_party/libyuv/source/scale.cc
+        third_party/libyuv/source/video_common.cc
+        third_party/libyuv/source/scale_uv.cc
+        third_party/libyuv/source/rotate_lsx.cc
+        third_party/libyuv/source/row_lasx.cc
+        third_party/libyuv/source/row_lsx.cc
+        third_party/libyuv/source/scale_lsx.cc
+        third_party/libyuv/source/scale_rgb.cc)
+
+target_include_directories(${NATIVE_LIB} PUBLIC
+        third_party/xiph/opus/include
+        third_party/xiph/opus/silk
+        third_party/xiph/opus/silk/fixed
+        third_party/xiph/opus/celt
+        third_party/xiph/opus
+        third_party/xiph/opusfile/include
+        third_party/xiph/ogg/include
+        third_party/libyuv/include
+        boringssl/include
+        ffmpeg/include
+        emoji
+        exoplayer/include
+        intro
+        tlottie/include
+        tgcalls/
+        webrtc/
+        tde2e/include
+)
+
+target_link_options(${NATIVE_LIB} PRIVATE "-Wl,-z,max-page-size=16384")
+target_link_options(${NATIVE_LIB} PRIVATE "-Wl,-z,common-page-size=16384")
+target_link_options(${NATIVE_LIB} PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports.map")
+target_link_libraries(${NATIVE_LIB}
+        -Wl,--whole-archive rnnoise openh264 voipandroid -Wl,--no-whole-archive
+        tgvoip
+        tgcalls
+        tgcalls_tp
+        tgnet
+        tlottie
+        sqlite
+        swscale
+        avformat
+        avcodec
+        swresample
+        libvpx
+        libdav1d
+        libopus
+        tde2e
+        tdutils
+        avutil
+        ssl
+        crypto
+        jnigraphics
+        log
+        z
+        GLESv2
+        EGL
+        android
+        OpenSLES
+        cpufeatures)
+
+#if (${ANDROID_ABI} STREQUAL "x86" OR ${ANDROID_ABI} STREQUAL "x86_64")
+#    target_link_libraries(${NATIVE_LIB}
+#            -Wl,--whole-archive vpxasm -Wl,--no-whole-archive
+#            c)
+#endif()
+
+#include(AndroidNdkModules)
+#android_ndk_import_module_cpufeatures()

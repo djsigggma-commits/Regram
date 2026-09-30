@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="AppName">re:gram</string>
+    <string name="AppNameBeta">re:gram Beta</string>
+    <string name="Nagram">re:gram</string>
+    <string name="NagramX">re:gram</string>
+    <string name="OEGeneralNagramSettings">re:gram settings</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="OpenExtera">re:gram</string>
+    <string name="OpenExteraInfo">re:gram settings and features</string>
+    <string name="XChannel">Source channel</string>
+</resources>

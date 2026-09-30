@@ -1,0 +1,11 @@
+{
+  "known": [
+    "android_utils:Callback",
+    "android_utils:jclass",
+    "android_utils:set_clipboard_text",
+    "client_utils:dynamic_proxy",
+    "hook_utils:jarray",
+    "hook_utils:log",
+    "ui.settings:Slider"
+  ]
+}

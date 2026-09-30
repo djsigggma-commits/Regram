@@ -1,0 +1,10 @@
+{
+  "known": [
+    "base_plugin:BasePlugin.add_menu_item:data",
+    "ui.bulletin:BulletinHelper.show_with_button:on_click",
+    "ui.settings:EditText.__init__:hint",
+    "ui.settings:Input.__init__:text",
+    "ui.settings:Switch.__init__:default",
+    "ui.settings:Switch.__init__:key"
+  ]
+}

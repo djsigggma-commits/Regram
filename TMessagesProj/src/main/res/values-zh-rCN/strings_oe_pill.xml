@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="PillStackTitle">胶囊栏</string>
+    <string name="PillStackPillsSettingsInfo">设置要显示哪些胶囊。点按可显示或隐藏，长按拖动可调整顺序。</string>
+    <string name="PillStackActivePills">已启用的胶囊</string>
+    <string name="PillStackHiddenPills">已隐藏的胶囊</string>
+    <string name="PillStackInfiniteScrolling">无限滚动</string>
+    <string name="PillStackListEmpty">空</string>
+    <string name="PillStackReset">恢复默认</string>
+    <string name="PillStackResetDone">胶囊排列已重置</string>
+    <string name="PillStackWeather">天气</string>
+    <string name="PillStackWeatherCurrentLocation">使用当前位置</string>
+    <string name="PillStackWeatherLocationNotSet">未选择</string>
+    <string name="PillStackCache">缓存</string>
+    <string name="PillStackProxy">代理</string>
+    <string name="PillStackProxyPing">%1$d 毫秒</string>
+    <string name="CryptoPillTargetCurrency">目标货币</string>
+    <string name="CryptoCurrencyAuto">自动</string>
+    <string name="CryptoCurrencyAed">阿联酋迪拉姆</string>
+    <string name="CryptoCurrencyByn">白俄罗斯卢布</string>
+    <string name="CryptoCurrencyCny">人民币</string>
+    <string name="CryptoCurrencyCzk">捷克克朗</string>
+    <string name="CryptoCurrencyEur">欧元</string>
+    <string name="CryptoCurrencyGbp">英镑</string>
+    <string name="CryptoCurrencyIls">以色列新谢克尔</string>
+    <string name="CryptoCurrencyInr">印度卢比</string>
+    <string name="CryptoCurrencyJpy">日元</string>
+    <string name="CryptoCurrencyKzt">哈萨克斯坦坚戈</string>
+    <string name="CryptoCurrencyPln">波兰兹罗提</string>
+    <string name="CryptoCurrencyRub">俄罗斯卢布</string>
+    <string name="CryptoCurrencyTry">土耳其里拉</string>
+    <string name="CryptoCurrencyUah">乌克兰格里夫纳</string>
+    <string name="CryptoCurrencyUsd">美元</string>
+    <string name="PillStackWeatherLocationHeader">天气位置</string>
+    <string name="PillStackWeatherSelectLocation">在地图上选择</string>
+    <string name="PillStackWeatherSettingsInfo">胶囊会显示所选地点的天气。数据最多每 15 分钟刷新一次。</string>
+    <string name="PillStackWeatherPermissionGrant">授予位置权限</string>
+    <string name="PillStackWeatherPermissionInfo">没有位置权限时，天气胶囊无法确定你的所在位置。你也可以直接在地图上选点。</string>
+    <string name="PillStackWeatherServicesEnable">开启定位服务</string>
+    <string name="PillStackRateFrom">从</string>
+    <string name="PillStackRateTo">到</string>
+    <string name="PillStackAddRate">添加汇率</string>
+    <string name="PillStackRemoveRate">删除此汇率药丸？</string>
+</resources>

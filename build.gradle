@@ -1,0 +1,55 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:9.3.1'
+    }
+}
+
+plugins {
+    id 'com.android.application' apply false
+    id 'com.google.gms.google-services' version '4.5.0' apply false
+    id 'com.google.firebase.crashlytics' version '3.0.8' apply false
+    id 'com.chaquo.python' version '17.0.0' apply false
+}
+
+subprojects {
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.application")) {
+            android {
+                compileSdk = 37
+                buildToolsVersion = "36.0.0"
+                ndkVersion = "27.2.12479018"
+
+                lint {
+                    checkReleaseBuilds = false
+                    disable 'MissingTranslation', 'ExtraTranslation', 'BlockedPrivateApi'
+                }
+
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_21
+                    targetCompatibility = JavaVersion.VERSION_21
+
+                    coreLibraryDesugaringEnabled = true
+                }
+
+                kotlin {
+                    compilerOptions {
+                        jvmTarget = JvmTarget.JVM_21
+                    }
+                }
+
+                defaultConfig {
+                    minSdk = 24
+                    targetSdk = 36
+                }
+
+                buildFeatures.buildConfig = true
+            }
+        }
+    }
+}

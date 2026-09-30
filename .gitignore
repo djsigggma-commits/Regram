@@ -1,0 +1,35 @@
+.gradle
+.idea
+.kotlin
+.vscode
+*.aar
+!TMessagesProj/libs/glyph-matrix-sdk-2.0.aar
+*.so
+*.iml
+**/.DS_Store
+build/
+obj/
+local.properties
+TMessagesProj/.cxx/
+TMessagesProj/jniLibs/
+TMessagesProj/jniRes/
+TMessagesProj/afat/
+TMessagesProj/jni/ffmpeg/build_android
+# Python-артефакты
+__pycache__/
+*.pyc
+
+# JVM crash dumps
+hs_err_pid*.log
+replay_pid*.log
+
+# Секреты сборки и конфигурация Firebase (включая настоящий project ID / API key)
+TMessagesProj/google-services.json
+TMessagesProj/release.keystore
+TMessagesProj/release/
+tests/local/
+
+# Заглушка Firebase только для проверок компиляции (см. tools/make_placeholder_google_services.py)
+TMessagesProj/src/debug/google-services.json
+
+.pytest_cache/

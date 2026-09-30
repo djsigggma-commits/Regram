@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">空白のままにすると、re:gram が使用されます</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">UnifiedPush で最後に受信した通知は %1$d 秒前です。\n\nre:gram の起動以降、 %2$d 件の通知を受信しました。</string>
+    <string name="UnifiedPushNeverReceivedNotifications">re:gram の起動以降、UnifiedPush 経由で通知を受信したことはありません。</string>
+    <string name="XChannel">Source channel</string>
+</resources>

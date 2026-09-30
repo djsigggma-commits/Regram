@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="PillStackTitle">Pigułki</string>
+    <string name="PillStackPillsSettingsInfo">Wybierz, które pigułki mają być widoczne. Dotknij, aby pokazać lub ukryć, przytrzymaj i przeciągnij, aby zmienić kolejność.</string>
+    <string name="PillStackActivePills">Aktywne pigułki</string>
+    <string name="PillStackHiddenPills">Ukryte pigułki</string>
+    <string name="PillStackInfiniteScrolling">Nieskończone przewijanie</string>
+    <string name="PillStackListEmpty">Pusto</string>
+    <string name="PillStackReset">Przywróć domyślne</string>
+    <string name="PillStackResetDone">Przywrócono domyślny układ pigułek</string>
+    <string name="PillStackWeather">Pogoda</string>
+    <string name="PillStackWeatherCurrentLocation">Użyj bieżącej lokalizacji</string>
+    <string name="PillStackWeatherLocationNotSet">Nie wybrano</string>
+    <string name="PillStackCache">Pamięć podręczna</string>
+    <string name="PillStackProxy">Proxy</string>
+    <string name="PillStackProxyPing">%1$d ms</string>
+    <string name="CryptoPillTargetCurrency">Waluta docelowa</string>
+    <string name="CryptoCurrencyAuto">Automatycznie</string>
+    <string name="CryptoCurrencyAed">Dirham ZEA</string>
+    <string name="CryptoCurrencyByn">Rubel białoruski</string>
+    <string name="CryptoCurrencyCny">Juan chiński</string>
+    <string name="CryptoCurrencyCzk">Korona czeska</string>
+    <string name="CryptoCurrencyEur">Euro</string>
+    <string name="CryptoCurrencyGbp">Funt szterling</string>
+    <string name="CryptoCurrencyIls">Nowy szekel izraelski</string>
+    <string name="CryptoCurrencyInr">Rupia indyjska</string>
+    <string name="CryptoCurrencyJpy">Jen japoński</string>
+    <string name="CryptoCurrencyKzt">Tenge kazachskie</string>
+    <string name="CryptoCurrencyPln">Złoty polski</string>
+    <string name="CryptoCurrencyRub">Rubel rosyjski</string>
+    <string name="CryptoCurrencyTry">Lira turecka</string>
+    <string name="CryptoCurrencyUah">Hrywna ukraińska</string>
+    <string name="CryptoCurrencyUsd">Dolar amerykański</string>
+    <string name="PillStackWeatherLocationHeader">Lokalizacja pogody</string>
+    <string name="PillStackWeatherSelectLocation">Wybierz na mapie</string>
+    <string name="PillStackWeatherSettingsInfo">Pigułka pokazuje pogodę w wybranym punkcie. Dane odświeżają się nie częściej niż co 15 minut.</string>
+    <string name="PillStackWeatherPermissionGrant">Przyznaj dostęp do lokalizacji</string>
+    <string name="PillStackWeatherPermissionInfo">Bez dostępu do lokalizacji pigułka pogody nie ustali, gdzie jesteś. Zamiast tego możesz wskazać punkt na mapie.</string>
+    <string name="PillStackWeatherServicesEnable">Włącz usługi lokalizacyjne</string>
+    <string name="PillStackRateFrom">Z</string>
+    <string name="PillStackRateTo">Na</string>
+    <string name="PillStackAddRate">Dodaj kurs</string>
+    <string name="PillStackRemoveRate">Usunąć tę pigułkę kursu?</string>
+</resources>

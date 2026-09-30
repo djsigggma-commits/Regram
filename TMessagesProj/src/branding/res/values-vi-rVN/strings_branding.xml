@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CloudConfigDesc">Lưu Cài đặt re:gram của bạn vào đám mây Telegram.</string>
+    <string name="CustomTitleHint">Để trống để sử dụng re:gram</string>
+    <string name="N_Config">Cấu hình re:gram</string>
+    <string name="NekoSettings">Cài đặt re:gram</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="PasscodeShowInSettings">Hiển thị trong cài đặt re:gram</string>
+    <string name="UnifiedPushLastReceivedNotification">Thông báo gần nhất nhận được qua UnifiedPush là từ %1$d giây trước.\n\nBạn đã nhận được %2$d thông báo kể từ khi re:gram khởi động.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">Bạn chưa từng nhận được thông báo nào từ UnifiedPush kể từ khi re:gram được khởi chạy.</string>
+    <string name="XChannel">Source channel</string>
+</resources>

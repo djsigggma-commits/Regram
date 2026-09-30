@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="PillStackTitle">Pill Stack</string>
+    <string name="PillStackPillsSettingsInfo">Настройте видимые виджеты. Нажмите, чтобы показать или скрыть, удерживайте и перетаскивайте для изменения порядка.</string>
+    <string name="PillStackActivePills">Активные виджеты</string>
+    <string name="PillStackHiddenPills">Скрытые виджеты</string>
+    <string name="PillStackInfiniteScrolling">Бесконечная прокрутка</string>
+    <string name="PillStackListEmpty">Пусто</string>
+    <string name="PillStackReset">Сбросить настройки</string>
+    <string name="PillStackResetDone">Раскладка виджетов сброшена</string>
+
+    <string name="PillStackWeather">Погода</string>
+    <string name="PillStackWeatherCurrentLocation">Текущее местоположение</string>
+    <string name="PillStackWeatherLocationNotSet">Не выбрана</string>
+
+    <string name="PillStackCache">Кэш</string>
+    <string name="PillStackProxy">Прокси</string>
+    <string name="PillStackProxyPing">%1$d мс</string>
+
+    <string name="PillStackRam">ОЗУ</string>
+    <string name="PillStackCpu">Процессор</string>
+    <string name="PillStackNetSpeed">Скорость сети</string>
+    <string name="PillStackDcPing">Пинг DC</string>
+    <string name="PillStackDcPingValue">%1$d мс</string>
+    <string name="PillStackGold">Золото</string>
+
+    <string name="CryptoPillTargetCurrency">Целевая валюта</string>
+    <string name="CryptoCurrencyAuto">Авто</string>
+    <string name="CryptoCurrencyAed">Дирхам ОАЭ</string>
+    <string name="CryptoCurrencyByn">Белорусский рубль</string>
+    <string name="CryptoCurrencyCny">Китайский юань</string>
+    <string name="CryptoCurrencyCzk">Чешская крона</string>
+    <string name="CryptoCurrencyEur">Евро</string>
+    <string name="CryptoCurrencyGbp">Британский фунт</string>
+    <string name="CryptoCurrencyIls">Израильский шекель</string>
+    <string name="CryptoCurrencyInr">Индийская рупия</string>
+    <string name="CryptoCurrencyJpy">Японская иена</string>
+    <string name="CryptoCurrencyKzt">Казахстанский тенге</string>
+    <string name="CryptoCurrencyPln">Польский злотый</string>
+    <string name="CryptoCurrencyRub">Российский рубль</string>
+    <string name="CryptoCurrencyTry">Турецкая лира</string>
+    <string name="CryptoCurrencyUah">Украинская гривна</string>
+    <string name="CryptoCurrencyUsd">Доллар США</string>
+    <string name="PillStackWeatherLocationHeader">Местоположение для погоды</string>
+    <string name="PillStackWeatherSelectLocation">Выбрать на карте</string>
+    <string name="PillStackWeatherSettingsInfo">Пилюля показывает погоду в выбранной точке. Данные обновляются не чаще раза в 15 минут.</string>
+    <string name="PillStackWeatherPermissionGrant">Разрешить доступ к геопозиции</string>
+    <string name="PillStackWeatherPermissionInfo">Без доступа к геопозиции пилюля погоды не сможет определить, где вы находитесь. Можно вместо этого выбрать точку на карте.</string>
+    <string name="PillStackWeatherServicesEnable">Включить службы геолокации</string>
+    <string name="PillStackRateFrom">Из</string>
+    <string name="PillStackRateTo">В</string>
+    <string name="PillStackAddRate">Добавить курс</string>
+    <string name="PillStackRemoveRate">Удалить эту пилюлю курса?</string>
+</resources>

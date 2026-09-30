@@ -1,0 +1,5 @@
+{
+  "known": [
+    "org.telegram.ui.DialogsActivity$DialogsActivityDelegate::didSelectDialogs takes 7-7, Java declares 8"
+  ]
+}

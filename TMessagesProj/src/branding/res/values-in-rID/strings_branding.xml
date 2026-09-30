@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">Biarkan kosong untuk menggunakan re:gram</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">Pemberitahuan terakhir yang diterima dengan UnifiedPush adalah %1$d detik yang lalu.\n\nAnda menerima %2$d pemberitahuan sejak re:gram dimulai.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">Anda tidak pernah menerima pemberitahuan dengan UnifiedPush sejak re:gram dimulai.</string>
+    <string name="XChannel">Source channel</string>
+</resources>

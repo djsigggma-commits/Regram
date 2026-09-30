@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Feed">Strumień</string>
+    <string name="FeedAllChannelsExcluded">Wszystkie kanały są wykluczone ze strumienia.</string>
+    <string name="FeedBottomTab">Pokaż w dolnych zakładkach</string>
+    <string name="FeedBottomTabInfo">Pokaż strumień jako zakładkę na dolnym pasku zamiast zakładki Kontakty.</string>
+    <string name="FeedChannelHidden">Ukryto **%1$s** w strumieniu</string>
+    <string name="FeedChannels">Kanały</string>
+    <string name="FeedChannelsInfo">Odznacz kanał, aby ukryć jego posty w strumieniu. Nowe kanały są pokazywane automatycznie.</string>
+    <string name="FeedHiddenChannels">Ukryte</string>
+    <string name="FeedHideChannel">Ukryj w strumieniu</string>
+    <string name="FeedUnreadCounter">Licznik nieprzeczytanych postów</string>
+    <string name="FeedIncludeArchived">Pokaż czaty z archiwum</string>
+    <string name="FeedIncludeArchivedInfo">Dołącz do strumienia także kanały z zarchiwizowanych czatów.</string>
+    <string name="FeedMarkAllRead">Oznacz wszystko jako przeczytane</string>
+    <string name="FeedMarkAllReadConfirm">Oznaczyć wszystkie posty z kanałów w strumieniu jako przeczytane? Zostaną one oznaczone jako przeczytane również w oryginalnych kanałach.</string>
+    <string name="FeedMarkAllReadDone">Wszystkie posty oznaczono jako przeczytane</string>
+    <string name="FeedNoPosts">Nie ma jeszcze żadnych postów.</string>
+    <string name="FeedSettings">Ustawienia strumienia</string>
+    <string name="FeedShownChannels">Pokazywane w strumieniu</string>
+    <string name="HideFeedTab">Ukryj zakładkę strumienia</string>
+</resources>

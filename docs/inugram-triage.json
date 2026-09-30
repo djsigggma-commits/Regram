@@ -1,0 +1,4885 @@
+[
+  {
+    "patch": "bugfix/photo-viewer-crop.patch",
+    "verdict": "anchors-match",
+    "hunks": 12,
+    "added_lines_already_present": 0.15,
+    "files": [
+      "org/telegram/ui/Components/Crop/CropView.java",
+      "org/telegram/ui/Components/PhotoCropView.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "misc/build-support.patch",
+    "verdict": "anchors-partial",
+    "hunks": 9,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/messenger/BuildVars.java",
+      "org/telegram/tgnet/ConnectionsManager.java",
+      "org/telegram/ui/PaymentFormActivity.java",
+      "org/telegram/ui/SettingsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "TelegramVersion"
+    ]
+  },
+  {
+    "patch": "misc/branding.patch",
+    "verdict": "anchors-partial",
+    "hunks": 32,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/messenger/AndroidUtilities.java",
+      "org/telegram/messenger/ContactsController.java",
+      "org/telegram/messenger/LocaleController.java",
+      "org/telegram/messenger/MediaController.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/LauncherIconController.java",
+      "org/telegram/ui/Stories/DialogStoriesCell.java",
+      "org/telegram/ui/ThemeActivity.java",
+      "org/telegram/ui/UpdateLayoutWrapper.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AppIconAqua",
+      "AppIconDefault",
+      "AppIconNox",
+      "AppIconPremium",
+      "AppIconTurbo",
+      "AppIconVintage",
+      "AppName",
+      "ChatListSwipeGestureInfo",
+      "LiteModeInfo",
+      "MyStory"
+    ]
+  },
+  {
+    "patch": "misc/remove-play.patch",
+    "verdict": "anchors-partial",
+    "hunks": 28,
+    "added_lines_already_present": 0.2,
+    "files": [
+      "org/telegram/messenger/CaptchaController.java",
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/tgnet/ConnectionsManager.java",
+      "org/telegram/ui/LoginActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "CheckYourEmailSubtitle",
+      "EmailNotAllowed",
+      "EmailTokenInvalid",
+      "OK",
+      "RestorePasswordNoEmailTitle",
+      "SafetyNetErrorOccurred",
+      "SignInWithGoogle"
+    ]
+  },
+  {
+    "patch": "misc/settings-ui.patch",
+    "verdict": "anchors-match",
+    "hunks": 6,
+    "added_lines_already_present": 0.06,
+    "files": [
+      "org/telegram/messenger/ApplicationLoader.java",
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/SettingsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AddAnotherAccount",
+      "AskAQuestion",
+      "ChangePhoneNumber",
+      "DebugSendLogs",
+      "EditName",
+      "PrivacyPolicy",
+      "PrivacyPolicyUrl",
+      "SettingsAccount",
+      "SettingsAccountInfo",
+      "SettingsChat",
+      "SettingsChatInfo",
+      "SettingsDebug",
+      "SettingsHelp",
+      "SettingsPrivacySecurity",
+      "SettingsPrivacySecurityInfo",
+      "TelegramFAQ",
+      "TelegramFaqUrl",
+      "TelegramFeatures"
+    ]
+  },
+  {
+    "patch": "misc/defaults.patch",
+    "verdict": "anchors-partial",
+    "hunks": 7,
+    "added_lines_already_present": 0.51,
+    "files": [
+      "org/telegram/messenger/LiteMode.java",
+      "org/telegram/messenger/SharedConfig.java",
+      "org/telegram/ui/LoginActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "DebugTestBackend"
+    ]
+  },
+  {
+    "patch": "debloat/hide-trending-stickers.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/show-seconds.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/LocaleController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [
+      "SHOW_SECONDS≈showSeconds"
+    ],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/disable-rounding.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/LocaleController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/all-recent-stickers.patch",
+    "verdict": "anchors-partial",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/bottom-tabs.patch",
+    "verdict": "anchors-partial",
+    "hunks": 48,
+    "added_lines_already_present": 0.16,
+    "files": [
+      "org/telegram/ui/CallLogActivity.java",
+      "org/telegram/ui/Components/BulletinFactory.java",
+      "org/telegram/ui/Components/glass/GlassTabView.java",
+      "org/telegram/ui/ContactsActivity.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/MainTabsActivity.java",
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/SettingsActivity.java",
+      "org/telegram/ui/TopicsFragment.java",
+      "org/telegram/ui/ViewPagerActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "GroupCallCreate2",
+      "GroupCallShowInMainTabs",
+      "HideCallTab",
+      "MainTabsChats"
+    ]
+  },
+  {
+    "patch": "feature/minimize-sticker-creator.patch",
+    "verdict": "anchors-partial",
+    "hunks": 5,
+    "added_lines_already_present": 0.47,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java",
+      "org/telegram/ui/Cells/StickerSetNameCell.java",
+      "org/telegram/ui/Components/EmojiView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "ClearRecentStickersAlertTitle",
+      "Create",
+      "FavoriteStickers",
+      "RecentStickers"
+    ]
+  },
+  {
+    "patch": "debloat/hide-ai-features.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ArticleViewer.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Components/CaptionPhotoViewer.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java",
+      "org/telegram/ui/Components/ChatAttachAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/stickers.patch",
+    "verdict": "anchors-match",
+    "hunks": 10,
+    "added_lines_already_present": 0.1,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [
+      "STICKER_SIZE≈stickerSize"
+    ],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/disable-sensitive.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/disable-swipe-to-unarchive.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/multi-account.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/UserConfig.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/autofill-hints.patch",
+    "verdict": "anchors-match",
+    "hunks": 6,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/EditTextBoldCursor.java",
+      "org/telegram/ui/LoginActivity.java",
+      "org/telegram/ui/TwoStepVerificationActivity.java",
+      "org/telegram/ui/TwoStepVerificationSetupActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "EnterPassword",
+      "LoginPassword",
+      "ReEnterPassword"
+    ]
+  },
+  {
+    "patch": "bugfix/keyboard-image-paste.patch",
+    "verdict": "anchors-partial",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/default-delete-for-both.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.22,
+    "files": [
+      "org/telegram/ui/Components/AlertsCreator.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hide-paid-reaction-upsell.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ReactionsLayoutInBubble.java",
+      "org/telegram/ui/Components/ReactionsContainerLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "misc/database.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hide-voice-hint.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/SharedConfig.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/recyclerlist-double-tap.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/Components/RecyclerListView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-keyboard-on-scroll.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 0.8,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/photo-viewer-menu.patch",
+    "verdict": "anchors-partial",
+    "hunks": 13,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AppName",
+      "Delete",
+      "HideTranslation",
+      "OK",
+      "OpenInExternalApp",
+      "PipMinimize",
+      "ShowAllMedia",
+      "StopDownload"
+    ]
+  },
+  {
+    "patch": "debloat/hide-bot-elements.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/DialogCell.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrBotCommands",
+      "AccDescrBotKeyboard"
+    ]
+  },
+  {
+    "patch": "feature/call-confirmation.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/Components/voip/VoIPHelper.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Cancel",
+      "OK"
+    ]
+  },
+  {
+    "patch": "feature/double-tap-delay.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/GestureDetector2.java",
+      "org/telegram/ui/Components/GestureDetectorFixDoubleTap.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/mutual-contact-icon.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.3,
+    "files": [
+      "org/telegram/ui/Adapters/ContactsAdapter.java",
+      "org/telegram/ui/Cells/UserCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/chat-activity.patch",
+    "verdict": "anchors-partial",
+    "hunks": 48,
+    "added_lines_already_present": 0.06,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/ui/ActionBar/ActionBarMenuItem.java",
+      "org/telegram/ui/AvatarPreviewer.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrMoreOptions",
+      "AvatarPreviewSearchMessages",
+      "BanUser",
+      "CloseTopic",
+      "Copy",
+      "Delete",
+      "Mention",
+      "OpenGroup2",
+      "OpenInSystemBrowser2",
+      "OpenProfile",
+      "Restrict",
+      "Retry",
+      "SendMessage"
+    ]
+  },
+  {
+    "patch": "feature/message-menu.patch",
+    "verdict": "anchors-partial",
+    "hunks": 39,
+    "added_lines_already_present": 0.13,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarPopupWindow.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatScrimPopupContainerLayout.java",
+      "org/telegram/ui/Components/Reactions/CustomEmojiReactionsWindow.java",
+      "org/telegram/ui/Components/ReactionsContainerLayout.java",
+      "org/telegram/ui/MessageSeenView.java",
+      "org/telegram/ui/SelectAnimatedEmojiDialog.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Back"
+    ]
+  },
+  {
+    "patch": "debloat/disable-pull-to-next.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/always-show-go-to-down.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.58,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/web-preview-refetch.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.35,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/web-preview.patch",
+    "verdict": "anchors-partial",
+    "hunks": 7,
+    "added_lines_already_present": 0.19,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/jump-to-discussion.patch",
+    "verdict": "anchors-partial",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/intro-sticker.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "GotAQuestion",
+      "NoMessages"
+    ]
+  },
+  {
+    "patch": "debloat/hide-fade-views.patch",
+    "verdict": "anchors-partial",
+    "hunks": 8,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlert.java",
+      "org/telegram/ui/Components/DialogsActivityTopBubblesFadeView.java",
+      "org/telegram/ui/Components/ShareAlert.java",
+      "org/telegram/ui/Components/chat/ChatInputViewsContainer.java",
+      "org/telegram/ui/Components/chat/layouts/ChatActivityFadeView.java",
+      "org/telegram/ui/MainTabsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hide-stories.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/LaunchActivity.java",
+      "org/telegram/ui/Stories/StoriesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [
+      "HIDE_STORIES~disableStories"
+    ],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/dialogs-list-scrolling.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.22,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/shared-media-player.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/SharedMediaLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hide-reactions-entry.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ReactionsLayoutInBubble.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/simple-attachalert-anim.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.22,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hide-suggestions.patch",
+    "verdict": "anchors-partial",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/BirthdayController.java",
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/double-tap-action.patch",
+    "verdict": "anchors-partial",
+    "hunks": 9,
+    "added_lines_already_present": 0.19,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ReactionsContainerLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "SavedTagReactionsHint2",
+      "SavedTagReactionsPremiumHint"
+    ]
+  },
+  {
+    "patch": "debloat/disable-chat-title-phone.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "SavedMessages"
+    ]
+  },
+  {
+    "patch": "feature/id-in-profile.patch",
+    "verdict": "anchors-partial",
+    "hunks": 11,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AnonymousNumber",
+      "PhoneMobile"
+    ]
+  },
+  {
+    "patch": "feature/hide-spoiler-pending.patch",
+    "verdict": "anchors-partial",
+    "hunks": 15,
+    "added_lines_already_present": 0.37,
+    "files": [
+      "org/telegram/messenger/SendMessagesHelper.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java",
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [
+      "SetReminder~showSetReminder"
+    ],
+    "new_strings_already_in_base": [
+      "DisablePhotoSpoiler",
+      "EnablePhotoSpoiler",
+      "ReplacePhoto",
+      "ScheduleMessage",
+      "SendAsFile",
+      "SendAsFiles",
+      "SendAsNewPhoto",
+      "SendWithoutSound",
+      "SetReminder"
+    ]
+  },
+  {
+    "patch": "bugfix/paid-reaction-animation.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/ReactionsContainerLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/folders-display-mode.patch",
+    "verdict": "anchors-partial",
+    "hunks": 44,
+    "added_lines_already_present": 0.08,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/MessagesStorage.java",
+      "org/telegram/ui/Components/FilterTabsView.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/FilterCreateActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "FilterAllChats",
+      "FilterAllChatsShort"
+    ]
+  },
+  {
+    "patch": "hooks/internal-web-app.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ActionBar/BottomSheetTabs.java",
+      "org/telegram/ui/bots/BotWebViewAttachedSheet.java",
+      "org/telegram/ui/bots/BotWebViewSheet.java",
+      "org/telegram/ui/bots/WebViewRequestProps.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AddShortcut",
+      "BotWebViewDeleteBot",
+      "BotWebViewOpenBot",
+      "BotWebViewReportBot",
+      "BotWebViewToS",
+      "BotWebViewToSLink"
+    ]
+  },
+  {
+    "patch": "hooks/profile-menu.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/disable-chat-themes.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/ChatThemeController.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/attach-panel-perf.patch",
+    "verdict": "looks-applied",
+    "hunks": 4,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Stories/recorder/AlbumButton.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/remember-all-replies.patch",
+    "verdict": "anchors-partial",
+    "hunks": 7,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/attach-panel-close.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.4,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/max-chat-input-lines.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/launch-activity.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/monet-theme.patch",
+    "verdict": "anchors-partial",
+    "hunks": 27,
+    "added_lines_already_present": 0.09,
+    "files": [
+      "org/telegram/messenger/CodeHighlighting.java",
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/RichMessageLayout.java",
+      "org/telegram/ui/ActionBar/Theme.java",
+      "org/telegram/ui/ActionBar/ThemeColors.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Components/AvatarDrawable.java",
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/ios-menu-gesture.patch",
+    "verdict": "anchors-partial",
+    "hunks": 6,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ItemOptions.java",
+      "org/telegram/ui/MainTabsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/old-mention-indicator.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.32,
+    "files": [
+      "org/telegram/ui/Cells/DialogCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/dialogs-fab.patch",
+    "verdict": "anchors-partial",
+    "hunks": 8,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Done",
+      "NewGroup",
+      "NewMessageTitle",
+      "SavedMessages",
+      "StoryPrivacyButtonPost"
+    ]
+  },
+  {
+    "patch": "feature/non-island-ui.patch",
+    "verdict": "anchors-partial",
+    "hunks": 240,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBar.java",
+      "org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "org/telegram/ui/ChannelAdminLogActivity.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java",
+      "org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java",
+      "org/telegram/ui/Components/ChatActivityTopPanelLayout.java",
+      "org/telegram/ui/Components/ChatAttachAlert.java",
+      "org/telegram/ui/Components/ChatAvatarContainer.java",
+      "org/telegram/ui/Components/ChatSearchTabs.java",
+      "org/telegram/ui/Components/DialogsActivityTopPanelLayout.java",
+      "org/telegram/ui/Components/FilterTabsView.java",
+      "org/telegram/ui/Components/FragmentContextView.java",
+      "org/telegram/ui/Components/FragmentContextViewWavesDrawable.java",
+      "org/telegram/ui/Components/FragmentSearchField.java",
+      "org/telegram/ui/Components/MediaActivity.java",
+      "org/telegram/ui/Components/MentionsContainerView.java",
+      "org/telegram/ui/Components/RecyclerListView.java",
+      "org/telegram/ui/Components/ScrollSlidingTextTabStrip.java",
+      "org/telegram/ui/Components/SearchTagsList.java",
+      "org/telegram/ui/Components/SharedMediaLayout.java",
+      "org/telegram/ui/Components/TopicsTabsView.java",
+      "org/telegram/ui/Components/TranslateButton.java",
+      "org/telegram/ui/Components/ViewPagerFixed.java",
+      "org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java",
+      "org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java",
+      "org/telegram/ui/Components/chat/ChatInputViewsContainer.java",
+      "org/telegram/ui/Components/chat/buttons/ChatActivityBlurredRoundButton.java",
+      "org/telegram/ui/Components/chat/layouts/ChatActivityChannelButtonsLayout.java",
+      "org/telegram/ui/Components/glass/GlassTabView.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/SearchTabsAndFiltersLayout.java",
+      "org/telegram/ui/bots/BotAdView.java",
+      "org/telegram/ui/bots/BotCommandsMenuContainer.java",
+      "org/telegram/ui/bots/ChatAttachAlertBotWebViewLayout.java",
+      "org/telegram/ui/iv/RichEditor.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrEmojiButton",
+      "ArticleDeleteDraft",
+      "RestartTopic",
+      "SETTINGS"
+    ]
+  },
+  {
+    "patch": "bugfix/reaction-counter-jump.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ReactionsLayoutInBubble.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/customize-text-classifier.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/EditTextBoldCursor.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/message-send-ime-jump.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/TextMessageEnterTransition.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/popup-swipeback.patch",
+    "verdict": "anchors-match",
+    "hunks": 11,
+    "added_lines_already_present": 0.02,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarPopupWindow.java",
+      "org/telegram/ui/Components/ChatScrimPopupContainerLayout.java",
+      "org/telegram/ui/Components/PopupSwipeBackLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/formatting-regular.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.31,
+    "files": [
+      "org/telegram/ui/Components/EditTextCaption.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/custom-formatting-ui.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.31,
+    "files": [
+      "org/telegram/ui/Components/EditTextBoldCursor.java",
+      "org/telegram/ui/Components/EditTextCaption.java",
+      "org/telegram/ui/Components/EditTextEffects.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/photo-viewer-blur.patch",
+    "verdict": "anchors-match",
+    "hunks": 10,
+    "added_lines_already_present": 0.05,
+    "files": [
+      "org/telegram/messenger/SharedConfig.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/lazy-photoviewer-init.patch",
+    "verdict": "anchors-match",
+    "hunks": 11,
+    "added_lines_already_present": 0.22,
+    "files": [
+      "org/telegram/ui/Components/PhotoFilterView.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrPhotoAdjust",
+      "VideoPlayerChromecast"
+    ]
+  },
+  {
+    "patch": "debloat/recyclerview-instant-tap.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/RecyclerListView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/motion-photos.patch",
+    "verdict": "anchors-partial",
+    "hunks": 4,
+    "added_lines_already_present": 0.25,
+    "files": [
+      "org/telegram/messenger/MediaController.java",
+      "org/telegram/messenger/MessageObject.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/long-press-reply-in-replies.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/animation-multiplier.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "org/telegram/ui/Components/AnimatedFloat.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/predictive-back.patch",
+    "verdict": "anchors-partial",
+    "hunks": 12,
+    "added_lines_already_present": 0.13,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/search-media-type-filter.patch",
+    "verdict": "anchors-partial",
+    "hunks": 24,
+    "added_lines_already_present": 0.06,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "JumpToDate"
+    ]
+  },
+  {
+    "patch": "debloat/disable-bg-parallax.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/SizeNotifierFrameLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/no-join-discuss.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/voice-recorder.patch",
+    "verdict": "anchors-partial",
+    "hunks": 22,
+    "added_lines_already_present": 0.18,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java",
+      "org/telegram/ui/Components/ChatAttachAlert.java",
+      "org/telegram/ui/Components/InstantCameraView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AttachMediaRestricted",
+      "AttachMediaRestrictedForever",
+      "GlobalAttachMediaRestricted",
+      "VideoMessagesRestrictedByPrivacy",
+      "VoiceMessagesRestrictedByPrivacy"
+    ]
+  },
+  {
+    "patch": "hooks/admin-logs.patch",
+    "verdict": "anchors-match",
+    "hunks": 10,
+    "added_lines_already_present": 0.08,
+    "files": [
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/ui/ChannelAdminLogActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Search"
+    ]
+  },
+  {
+    "patch": "bugfix/admin-logs-scroll.patch",
+    "verdict": "looks-applied",
+    "hunks": 4,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ChannelAdminLogActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-pinned-panel.patch",
+    "verdict": "anchors-partial",
+    "hunks": 6,
+    "added_lines_already_present": 0.17,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/missing-replace-emoji.patch",
+    "verdict": "anchors-partial",
+    "hunks": 73,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarMenuItem.java",
+      "org/telegram/ui/Cells/AudioPlayerCell.java",
+      "org/telegram/ui/Cells/ChatActionCell.java",
+      "org/telegram/ui/Cells/DialogCell.java",
+      "org/telegram/ui/Cells/GroupCallInvitedCell.java",
+      "org/telegram/ui/Cells/GroupCallUserCell.java",
+      "org/telegram/ui/Cells/ManageChatUserCell.java",
+      "org/telegram/ui/Cells/MemberRequestCell.java",
+      "org/telegram/ui/Cells/MentionCell.java",
+      "org/telegram/ui/Cells/SharedLinkCell.java",
+      "org/telegram/ui/Cells/SharingLiveLocationCell.java",
+      "org/telegram/ui/ChannelAdminLogActivity.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/AudioPlayerAlert.java",
+      "org/telegram/ui/Components/EditTextEmoji.java",
+      "org/telegram/ui/Components/ItemOptions.java",
+      "org/telegram/ui/Components/MessagePreviewView.java",
+      "org/telegram/ui/Components/SenderSelectPopup.java",
+      "org/telegram/ui/LocationActivity.java",
+      "org/telegram/ui/MainTabsActivity.java",
+      "org/telegram/ui/MessageAuthorView.java",
+      "org/telegram/ui/MessageSeenView.java",
+      "org/telegram/ui/PhotoViewer.java",
+      "org/telegram/ui/SettingsActivity.java",
+      "org/telegram/ui/Stories/recorder/CaptionContainerView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrGroup",
+      "AddedBy",
+      "DiscussChannel",
+      "ForwardingFromNames",
+      "JoinedViaFolder",
+      "LinkPreview",
+      "MessageAuthorSentBy",
+      "NobodyViewed",
+      "ProximityTooltioGroup",
+      "ProximityTooltioUser",
+      "SearchFrom",
+      "TapForForwardingOptions",
+      "VoipGroupPersonalAccount"
+    ]
+  },
+  {
+    "patch": "debloat/cloud-drafts.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/media-loading-perf.patch",
+    "verdict": "anchors-match",
+    "hunks": 12,
+    "added_lines_already_present": 0.92,
+    "files": [
+      "org/telegram/DispatchQueuePriority.java",
+      "org/telegram/messenger/FileLoadOperation.java",
+      "org/telegram/messenger/ImageLoader.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-my-phone.patch",
+    "verdict": "anchors-partial",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/SettingsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "MobileHidden"
+    ]
+  },
+  {
+    "patch": "feature/interactive-chat-preview.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "SavedOpenChatNoCaps"
+    ]
+  },
+  {
+    "patch": "bugfix/photo-spoiler-power-saving.patch",
+    "verdict": "looks-applied",
+    "hunks": 9,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Cells/GroupMedia.java",
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayoutPreview.java",
+      "org/telegram/ui/Components/spoilers/SpoilerEffect2.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/shared-media-spoiler.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Cells/SharedPhotoVideoCell2.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/notification-bubbles.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/NotificationsController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/app-loader.patch",
+    "verdict": "file-missing",
+    "hunks": 0,
+    "added_lines_already_present": null,
+    "files": [],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/nav-stack-lockup.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.26,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/static-pinned-reactions.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/Components/ReactionsContainerLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/icon-replacement.patch",
+    "verdict": "anchors-partial",
+    "hunks": 2,
+    "added_lines_already_present": 0.62,
+    "files": [
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/chat-hide-bottom-bar.patch",
+    "verdict": "anchors-partial",
+    "hunks": 15,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/chat/ChatInputViewsContainer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Call",
+      "ChannelOpenDirect",
+      "Edit",
+      "HidePinnedMessagesNoCaps",
+      "UnpinAllMessagesNoCaps"
+    ]
+  },
+  {
+    "patch": "feature/jump-to-beginning.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/AlertsCreator.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/chat-editor.patch",
+    "verdict": "anchors-match",
+    "hunks": 36,
+    "added_lines_already_present": 0.29,
+    "files": [
+      "org/telegram/ui/ChatEditActivity.java",
+      "org/telegram/ui/ChatRightsEditActivity.java",
+      "org/telegram/ui/ChatUsersActivity.java",
+      "org/telegram/ui/Components/SlideChooseView.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [
+      "ChangePermissions~showChangePermissions"
+    ],
+    "new_strings_already_in_base": [
+      "ChangePermissions",
+      "ChannelAdministrators",
+      "ChannelSubscribers",
+      "EditAdminRights",
+      "GroupName",
+      "MemberRequests",
+      "SendMediaPermissionMusic",
+      "SendMediaPermissionStickersGifs",
+      "SendMediaPermissionVideos",
+      "SetAsAdmin",
+      "SlowmodeHours",
+      "SlowmodeMinutes",
+      "UnknownError",
+      "UserRestrictionsSendMedia"
+    ]
+  },
+  {
+    "patch": "bugfix/web-preview-all-lines.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/chats-long-tap-folders.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.16,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/MainTabsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "MainTabsCalls",
+      "MainTabsProfile",
+      "Settings"
+    ]
+  },
+  {
+    "patch": "debloat/disable-scrim-blur.patch",
+    "verdict": "anchors-match",
+    "hunks": 12,
+    "added_lines_already_present": 0.24,
+    "files": [
+      "org/telegram/messenger/AndroidUtilities.java",
+      "org/telegram/ui/Components/BlurBehindDrawable.java",
+      "org/telegram/ui/Components/ScrimOptions.java",
+      "org/telegram/ui/ContentPreviewViewer.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/MessageSendPreview.java",
+      "org/telegram/ui/TopicsFragment.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/profile-scroll-snap.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/deeplink-in-search.patch",
+    "verdict": "anchors-match",
+    "hunks": 10,
+    "added_lines_already_present": 0.02,
+    "files": [
+      "org/telegram/ui/Adapters/DialogsSearchAdapter.java",
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "ClearButton",
+      "Hashtags"
+    ]
+  },
+  {
+    "patch": "feature/main-tabs-double-tap.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/MainTabsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/reorder-accounts.patch",
+    "verdict": "anchors-match",
+    "hunks": 6,
+    "added_lines_already_present": 0.11,
+    "files": [
+      "org/telegram/ui/Components/AlertsCreator.java",
+      "org/telegram/ui/MainTabsActivity.java",
+      "org/telegram/ui/SettingsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrMoreOptions",
+      "LogOut"
+    ]
+  },
+  {
+    "patch": "feature/create-as-supergroup.patch",
+    "verdict": "anchors-partial",
+    "hunks": 11,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/GroupCreateFinalActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "ForumToggleDescription",
+      "GroupCreateAutodeleteDescription"
+    ]
+  },
+  {
+    "patch": "bugfix/profile-scroll-jump.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.21,
+    "files": [
+      "org/telegram/ui/Components/ProfileGalleryBlurView.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/loginactivity.patch",
+    "verdict": "anchors-partial",
+    "hunks": 7,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/ui/LoginActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/login-options.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.48,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/PasskeysController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/dialogs-pull-down.patch",
+    "verdict": "anchors-match",
+    "hunks": 9,
+    "added_lines_already_present": 0.23,
+    "files": [
+      "org/telegram/ui/Adapters/DialogsAdapter.java",
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccReleaseForArchive",
+      "AccSwipeForArchive",
+      "ArchivedChats"
+    ]
+  },
+  {
+    "patch": "hooks/messagescontroller.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/maps.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/LocationActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrMoreOptions",
+      "Hybrid",
+      "Map",
+      "Satellite"
+    ]
+  },
+  {
+    "patch": "feature/translator.patch",
+    "verdict": "anchors-partial",
+    "hunks": 40,
+    "added_lines_already_present": 0.02,
+    "files": [
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/messenger/TranslateController.java",
+      "org/telegram/ui/ArticleViewer.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Cells/TextSelectionHelper.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/web/WebActionBar.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "EditedMessage",
+      "MessageScheduledRepeatSeconds",
+      "OpenInExternalApp",
+      "Search",
+      "Settings",
+      "ShareFile",
+      "TranslateMessage"
+    ]
+  },
+  {
+    "patch": "feature/global-from-user-search.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Adapters/MentionsAdapter.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/forwarded-time.patch",
+    "verdict": "anchors-partial",
+    "hunks": 12,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/SendMessagesHelper.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Components/ForwardBackground.java",
+      "org/telegram/ui/Components/HintView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/profile-photo-blur.patch",
+    "verdict": "anchors-match",
+    "hunks": 15,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ProfileActionsView.java",
+      "org/telegram/ui/Components/ProfileGalleryBlurView.java",
+      "org/telegram/ui/Components/ProfileGalleryView.java",
+      "org/telegram/ui/Components/ProfileMusicView.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reaction-sending-race.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.83,
+    "files": [
+      "org/telegram/messenger/ChatMessagesMetadataController.java",
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/messenger/SendMessagesHelper.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/custom-emoji-after-regular.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/custom-font.patch",
+    "verdict": "anchors-partial",
+    "hunks": 25,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/messenger/AndroidUtilities.java",
+      "org/telegram/messenger/Emoji.java",
+      "org/telegram/messenger/RichMessageLayout.java",
+      "org/telegram/ui/ActionBar/SimpleTextView.java",
+      "org/telegram/ui/ActionBar/Theme.java",
+      "org/telegram/ui/Cells/ProfileSearchCell.java",
+      "org/telegram/ui/Components/AnimatedEmojiSpan.java",
+      "org/telegram/ui/Components/AnimatedTextView.java",
+      "org/telegram/ui/Components/Paint/PaintTypeface.java",
+      "org/telegram/ui/Components/Paint/Views/PaintTextOptionsView.java",
+      "org/telegram/ui/Components/Paint/Views/TextPaintView.java",
+      "org/telegram/ui/iv/RichAudioCell.java",
+      "org/telegram/ui/iv/RichBlockChrome.java",
+      "org/telegram/ui/iv/RichDocumentCell.java",
+      "org/telegram/ui/iv/RichMapCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/profile-reduce-motion.patch",
+    "verdict": "anchors-partial",
+    "hunks": 20,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/ui/Components/ProfileActionsView.java",
+      "org/telegram/ui/Components/SharedMediaLayout.java",
+      "org/telegram/ui/Gifts/GiftSheet.java",
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/Stars/ProfileGiftsView.java",
+      "org/telegram/ui/Stories/ProfileStoriesView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/profile-black-bar.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/prefer-media-tab.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.27,
+    "files": [
+      "org/telegram/ui/Components/SharedMediaLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-send-as.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.17,
+    "files": [
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-call-action.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Call"
+    ]
+  },
+  {
+    "patch": "bugfix/top-peers-unread-counter.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.67,
+    "files": [
+      "org/telegram/ui/Cells/HintDialogCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/stale-unread-mention.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.48,
+    "files": [
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/forward-options.patch",
+    "verdict": "anchors-partial",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hashtag-suggestions.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Adapters/MentionsAdapter.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/faster-file-load.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/messenger/FileLoadOperation.java",
+      "org/telegram/messenger/FileUploadOperation.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/faster-gallery.patch",
+    "verdict": "anchors-partial",
+    "hunks": 11,
+    "added_lines_already_present": 0.09,
+    "files": [
+      "org/telegram/messenger/MediaController.java",
+      "org/telegram/ui/Cells/PhotoAttachPhotoCell.java",
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/sticker-over-side-controls.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/cycle-forward-mode.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "HiddenSendersNameDescription"
+    ]
+  },
+  {
+    "patch": "feature/long-tap-mention-name.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.83,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/search-emoji-size.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/HashtagSearchController.java",
+      "org/telegram/messenger/MediaDataController.java",
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/motion-photo-with-caption.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MediaController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/strip-tracking.patch",
+    "verdict": "anchors-match",
+    "hunks": 9,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/messenger/browser/Browser.java",
+      "org/telegram/ui/Components/EditTextCaption.java",
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/two-finger-select.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/reduce-menu-motion.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarPopupWindow.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ReactionsContainerLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/md3-components.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/AvailableReactionCell.java",
+      "org/telegram/ui/Cells/CheckBoxUserCell.java",
+      "org/telegram/ui/Cells/TextCell.java",
+      "org/telegram/ui/Components/FragmentFloatingButton.java",
+      "org/telegram/ui/Components/Switch.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/universal-fragment-theme-change.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.02,
+    "files": [
+      "org/telegram/ui/Components/UniversalFragment.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/clickable-web-preview-photos.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.89,
+    "files": [
+      "org/telegram/messenger/FileLoader.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/volume-keys-videos.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-preview-reactions-read.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/better-spoilers.patch",
+    "verdict": "anchors-match",
+    "hunks": 12,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Cells/DialogCell.java",
+      "org/telegram/ui/Components/spoilers/SpoilerEffect.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/old-layout-nav.patch",
+    "verdict": "anchors-partial",
+    "hunks": 39,
+    "added_lines_already_present": 0.13,
+    "files": [
+      "org/telegram/ui/ActionBar/DrawerLayoutContainer.java",
+      "org/telegram/ui/Components/ProfileActionsView.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/LaunchActivity.java",
+      "org/telegram/ui/LoginActivity.java",
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/SettingsActivity.java",
+      "org/telegram/ui/TwoStepVerificationActivity.java",
+      "org/telegram/ui/TwoStepVerificationSetupActivity.java",
+      "org/telegram/ui/ViewPagerActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrMoreOptions",
+      "ArchivedChats",
+      "ProfileActionsEditInfo",
+      "ProfileActionsEditPhoto2",
+      "ProfileActionsEditUsername",
+      "QrCode",
+      "Settings",
+      "SettingsAccounts"
+    ]
+  },
+  {
+    "patch": "bugfix/camera2-av-sync.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/messenger/camera/Camera2Session.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/round-recorder.patch",
+    "verdict": "anchors-partial",
+    "hunks": 20,
+    "added_lines_already_present": 0.01,
+    "files": [
+      "org/telegram/messenger/camera/Camera2Session.java",
+      "org/telegram/messenger/camera/CameraSession.java",
+      "org/telegram/ui/Components/InstantCameraView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrSwitchCamera"
+    ]
+  },
+  {
+    "patch": "bugfix/cross-peer-reply-stale-quote.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/phantom-photo-seekbar.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.15,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/phantom-peek-dialogs.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "hooks/notifications-controller.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/NotificationsController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/passcode.patch",
+    "verdict": "anchors-partial",
+    "hunks": 16,
+    "added_lines_already_present": 0.01,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/ui/Components/AlertsCreator.java",
+      "org/telegram/ui/Components/PasscodeView.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/LaunchActivity.java",
+      "org/telegram/ui/LoginActivity.java",
+      "org/telegram/ui/MainTabsActivity.java",
+      "org/telegram/ui/PasscodeActivity.java",
+      "org/telegram/ui/SettingsActivity.java",
+      "org/telegram/ui/UserInfoActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Cancel",
+      "DisablePasscodeConfirmMessage",
+      "DisablePasscodeTurnOff"
+    ]
+  },
+  {
+    "patch": "feature/paranoia.patch",
+    "verdict": "anchors-partial",
+    "hunks": 66,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/messenger/ContactsController.java",
+      "org/telegram/messenger/MediaDataController.java",
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/MessagesStorage.java",
+      "org/telegram/messenger/NotificationsController.java",
+      "org/telegram/ui/Adapters/DialogsSearchAdapter.java",
+      "org/telegram/ui/Adapters/SearchAdapterHelper.java",
+      "org/telegram/ui/CallLogActivity.java",
+      "org/telegram/ui/Cells/AppIconsSelectorCell.java",
+      "org/telegram/ui/Cells/SessionCell.java",
+      "org/telegram/ui/Components/SharedMediaLayout.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/GroupCreateActivity.java",
+      "org/telegram/ui/PrivacyControlActivity.java",
+      "org/telegram/ui/ProfileActivity.java",
+      "org/telegram/ui/SessionBottomSheet.java",
+      "org/telegram/ui/Stories/StoriesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "ProfileArchivedStories",
+      "ProfileBotPreviewTab"
+    ]
+  },
+  {
+    "patch": "bugfix/expand-emoji-tabs.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.11,
+    "files": [
+      "org/telegram/ui/Components/EmojiTabsStrip.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/spoiler-reveal-keep.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java",
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/reaction-confirm-non-member.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/confirm-internal-links.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/AndroidUtilities.java",
+      "org/telegram/ui/Components/AlertsCreator.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/no-selection-cap.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/seekable-gifs.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/disable-browser-collapse.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/ArticleViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/pause-on-media-transient.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MediaController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/md3-sections.patch",
+    "verdict": "anchors-partial",
+    "hunks": 50,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/ui/ActionBar/ThemeDescription.java",
+      "org/telegram/ui/BoostsActivity.java",
+      "org/telegram/ui/Cells/TextCell.java",
+      "org/telegram/ui/Cells/TextCheckCell.java",
+      "org/telegram/ui/Cells/TextDetailSettingsCell.java",
+      "org/telegram/ui/Cells/TextSettingsCell.java",
+      "org/telegram/ui/ChannelBoostLayout.java",
+      "org/telegram/ui/ChatRightsEditActivity.java",
+      "org/telegram/ui/ChatUsersActivity.java",
+      "org/telegram/ui/Components/ItemOptions.java",
+      "org/telegram/ui/Components/RecyclerListView.java",
+      "org/telegram/ui/Components/UniversalAdapter.java",
+      "org/telegram/ui/LiteModeSettingsActivity.java",
+      "org/telegram/ui/MessageStatisticActivity.java",
+      "org/telegram/ui/PeerColorActivity.java",
+      "org/telegram/ui/ProxyListActivity.java",
+      "org/telegram/ui/SettingsActivity.java",
+      "org/telegram/ui/StatisticActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "PublicShares",
+      "StatisticOverview"
+    ]
+  },
+  {
+    "patch": "debloat/quick-share.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/apply-style-overlapping-spans.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.01,
+    "files": [
+      "org/telegram/ui/Components/EditTextCaption.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/painter-pan-bounds.patch",
+    "verdict": "anchors-partial",
+    "hunks": 2,
+    "added_lines_already_present": 0.11,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/linked-channel-in-profile.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.15,
+    "files": [
+      "org/telegram/ui/Cells/ProfileChannelCell.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "LinkedChannel",
+      "ProfileChannel"
+    ]
+  },
+  {
+    "patch": "bugfix/statistics-shared-message-text.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/MessageStatisticActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/keep-search-peer-select.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/GroupCreateActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/sheet-bg-bottom-gap.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/FiltersListBottomSheet.java",
+      "org/telegram/ui/Components/PhonebookShareAlert.java",
+      "org/telegram/ui/Components/ThemeEditorView.java",
+      "org/telegram/ui/Components/UsersAlertBase.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/theme-tint.patch",
+    "verdict": "anchors-match",
+    "hunks": 18,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/ui/Cells/PhotoAttachPhotoCell.java",
+      "org/telegram/ui/Cells/ProfileSearchCell.java",
+      "org/telegram/ui/Cells/SharedPhotoVideoCell.java",
+      "org/telegram/ui/Cells/SharedPhotoVideoCell2.java",
+      "org/telegram/ui/Components/Premium/LimitPreviewView.java",
+      "org/telegram/ui/Components/RLottieDrawable.java",
+      "org/telegram/ui/ManageLinksActivity.java",
+      "org/telegram/ui/SettingsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/message-persist-transient.patch",
+    "verdict": "anchors-partial",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessageObject.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/audio-alert-search.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/Components/AudioPlayerAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/photo-viewer-apply-caption.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-blocked-messages.patch",
+    "verdict": "anchors-partial",
+    "hunks": 17,
+    "added_lines_already_present": 0.06,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java",
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/NotificationsController.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Cells/DialogCell.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/show-deleted-replies.patch",
+    "verdict": "anchors-match",
+    "hunks": 11,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/messenger/MessageObject.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Loading"
+    ]
+  },
+  {
+    "patch": "bugfix/reply-name-end-padding.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/image-loader-leak.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.06,
+    "files": [
+      "org/telegram/messenger/ImageLoader.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/video-ads-leak.patch",
+    "verdict": "looks-applied",
+    "hunks": 5,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/video/VideoAds.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-avatar-leak.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.67,
+    "files": [
+      "org/telegram/ui/Components/ChatAvatarContainer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/launch-activity-leaks.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-attach-alert-adapter-leak.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/sponsored-data-saver.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/DownloadController.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/original-video-quality.patch",
+    "verdict": "anchors-match",
+    "hunks": 39,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/messenger/MediaController.java",
+      "org/telegram/messenger/SendMessagesHelper.java",
+      "org/telegram/messenger/VideoEditedInfo.java",
+      "org/telegram/messenger/video/MediaCodecVideoConvertor.java",
+      "org/telegram/ui/Components/VideoCompressButton.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrVideoQuality",
+      "SoundMuted"
+    ]
+  },
+  {
+    "patch": "bugfix/correct-folder-pin-count.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "PinFolderLimitReached"
+    ]
+  },
+  {
+    "patch": "bugfix/photo-crop-not-applied-on-send.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.45,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/media-cancel-race.patch",
+    "verdict": "looks-applied",
+    "hunks": 8,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/SendMessagesHelper.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/keep-bot-drafts-at-bottom.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.05,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/channel-history-stuck-forward.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/instant-camera-cancel-race.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/InstantCameraView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/zoom-reset-on-edit.patch",
+    "verdict": "anchors-partial",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/pip-empty-snapshot.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.14,
+    "files": [
+      "org/telegram/messenger/AndroidUtilities.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/search-list-background-blur.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/photo-viewer-keyboard-dismiss.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/SharedMediaLayout.java",
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/owner-admin-check-npe.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/restore-comments-thread.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/spoiler-tile-blink.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.64,
+    "files": [
+      "org/telegram/ui/Components/spoilers/SpoilerEffectBitmapFactory.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/deeplink-album-member-anchor.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.2,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/biometric-confirmation.patch",
+    "verdict": "anchors-match",
+    "hunks": 14,
+    "added_lines_already_present": 0.36,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/AlertsCreator.java",
+      "org/telegram/ui/DialogsActivity.java",
+      "org/telegram/ui/LogoutActivity.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AreYouSureLogout",
+      "Cancel",
+      "LogOut",
+      "ReportChat"
+    ]
+  },
+  {
+    "patch": "feature/painter-text.patch",
+    "verdict": "anchors-match",
+    "hunks": 23,
+    "added_lines_already_present": 0.17,
+    "files": [
+      "org/telegram/messenger/video/TextureRenderer.java",
+      "org/telegram/messenger/video/WebmEncoder.java",
+      "org/telegram/ui/Components/Paint/Views/EditTextOutline.java",
+      "org/telegram/ui/Components/Paint/Views/LPhotoPaintView.java",
+      "org/telegram/ui/Components/Paint/Views/PaintTextOptionsView.java",
+      "org/telegram/ui/Components/Paint/Views/TextPaintView.java",
+      "org/telegram/ui/Components/PaintingOverlay.java",
+      "org/telegram/ui/Stories/recorder/PaintView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-background-leak.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ChatBackgroundDrawable.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reaction-overlay-fragment-leak.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.05,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/photo-viewer-leaks.patch",
+    "verdict": "looks-applied",
+    "hunks": 4,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/notification-center-leaks.patch",
+    "verdict": "anchors-partial",
+    "hunks": 22,
+    "added_lines_already_present": 0.25,
+    "files": [
+      "org/telegram/messenger/FeedWidgetService.java",
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/ui/Cells/DialogsRequestedEmptyCell.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/Bulletin.java",
+      "org/telegram/ui/Components/EmojiView.java",
+      "org/telegram/ui/Components/Reactions/ChatCustomReactionsEditActivity.java",
+      "org/telegram/ui/IntroActivity.java",
+      "org/telegram/ui/SelectAnimatedEmojiDialog.java",
+      "org/telegram/ui/SelectChatUserSheet.java",
+      "org/telegram/ui/bots/BotShareSheet.java",
+      "org/telegram/ui/web/BotWebViewContainer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/high-quality-crop.patch",
+    "verdict": "anchors-partial",
+    "hunks": 15,
+    "added_lines_already_present": 0.13,
+    "files": [
+      "org/telegram/messenger/MediaController.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/notification-channel-id.patch",
+    "verdict": "anchors-partial",
+    "hunks": 9,
+    "added_lines_already_present": 0.11,
+    "files": [
+      "org/telegram/messenger/NotificationsController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reply-longpress-cancel.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/open-in-preview.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatAttachAlert.java",
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/topic-separator-avatar-hitbox.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/expandable-switch-badge-overlap.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/TextCheckCell2.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/image-filter-downsample.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/ImageLoader.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hq-sticker-previews.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/StickerEmojiCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/lingering-media-session.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MusicBrowserService.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/catch-shared-media-swipe.patch",
+    "verdict": "anchors-match",
+    "hunks": 6,
+    "added_lines_already_present": 0.1,
+    "files": [
+      "org/telegram/ui/Components/SharedMediaLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/recyclerlist-ripple.patch",
+    "verdict": "anchors-partial",
+    "hunks": 13,
+    "added_lines_already_present": 0.11,
+    "files": [
+      "org/telegram/ui/Components/RecyclerListView.java",
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/popup-drag-select-high-ids.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarMenuItem.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/web-preview-spoiler.patch",
+    "verdict": "anchors-partial",
+    "hunks": 24,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Cells/DialogCell.java",
+      "org/telegram/ui/Components/spoilers/SpoilerEffect2.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/edit-cover-null-frame.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/EditCoverButton.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/profile-note-npe.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "Copy",
+      "Delete",
+      "ProfileNotesRemoveText",
+      "ProfileNotesRemoveTitle"
+    ]
+  },
+  {
+    "patch": "bugfix/webm-sticker-precache-centering.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/messenger/utils/BitmapsCache.java",
+      "org/telegram/ui/Components/AnimatedFileDrawable.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/stale-notifications.patch",
+    "verdict": "anchors-partial",
+    "hunks": 18,
+    "added_lines_already_present": 0.17,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/MessagesStorage.java",
+      "org/telegram/messenger/NotificationsController.java",
+      "org/telegram/messenger/PushListenerController.java",
+      "org/telegram/ui/Stories/StoriesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/profile-photo-location-dc-id.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/ImageLocation.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-activity-scroll.patch",
+    "verdict": "anchors-match",
+    "hunks": 15,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/chat/ChatListViewPaddingsAnimator.java",
+      "org/telegram/ui/Components/inset/WindowInsetsStateHolder.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/universal-adapter-reorder-npe.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/Components/UniversalAdapter.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/sticker-maker-recycled-bitmap.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/Paint/Views/StickerMakerView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/community-dialogs.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.08,
+    "files": [
+      "org/telegram/ui/Cells/DialogCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/profile-copy-name.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "TextCopied"
+    ]
+  },
+  {
+    "patch": "feature/join-request-member-count.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/JoinGroupAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "ChannelPrivate",
+      "ChannelPublic"
+    ]
+  },
+  {
+    "patch": "bugfix/folder-pins-missing-dialogs.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.39,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/select-all-dialogs.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.1,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "BlockUser",
+      "ClearHistory",
+      "MarkAsRead",
+      "SelectAll"
+    ]
+  },
+  {
+    "patch": "bugfix/forward-bar-stale-count.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.2,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/video-audio-focus.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "com/google/android/exoplayer2/AudioFocusManager.java",
+      "com/google/android/exoplayer2/ExoPlayerImpl.java",
+      "org/telegram/ui/Components/VideoPlayer.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [
+      "com/google/android/exoplayer2/AudioFocusManager.java",
+      "com/google/android/exoplayer2/ExoPlayerImpl.java"
+    ],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reorder-sync-dispatch.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/Adapters/DialogsAdapter.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/optimistic-hidden-forwards.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/messenger/SendMessagesHelper.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/file-load-cancel-stuck.patch",
+    "verdict": "looks-applied",
+    "hunks": 3,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/FileLoadOperation.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hide-bubble-tails.patch",
+    "verdict": "anchors-match",
+    "hunks": 12,
+    "added_lines_already_present": 0.16,
+    "files": [
+      "org/telegram/ui/ActionBar/MessageDrawable.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/ime-insets-animation-desync.patch",
+    "verdict": "anchors-partial",
+    "hunks": 4,
+    "added_lines_already_present": 0.02,
+    "files": [
+      "org/telegram/ui/Components/inset/WindowAnimatedInsetsProvider.java",
+      "org/telegram/ui/Components/inset/WindowInsetsStateHolder.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/disable-swipe-to-hide-general-topic.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/ui/TopicsFragment.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/list-row-dead-zones.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Cells/UserCell.java",
+      "org/telegram/ui/Components/RecyclerListView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/storage-usage-nested-scroll.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.06,
+    "files": [
+      "org/telegram/ui/CachedMediaLayout.java",
+      "org/telegram/ui/Components/NestedSizeNotifierLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/preserve-download-filename.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MediaController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/send-mp4-as-video.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/SendMessagesHelper.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/admin-sort-overflow.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ChatUsersActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reaction-animation-alignment.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/dialog-preview-code-color.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Cells/DialogCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/recyclerview-null-holder.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "androidx/recyclerview/widget/RecyclerView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/sticky-date-jump.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatActionCell.java",
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/attach-preview-caption-reorder.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.36,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/md3-profile-actions.patch",
+    "verdict": "anchors-partial",
+    "hunks": 24,
+    "added_lines_already_present": 0.02,
+    "files": [
+      "org/telegram/ui/Components/ProfileActionsView.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/message-cache-fallback.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/sections-adapter-first-diff.patch",
+    "verdict": "looks-applied",
+    "hunks": 3,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/RecyclerListView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/refresh-sticker-set.patch",
+    "verdict": "anchors-partial",
+    "hunks": 4,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/EmojiPacksAlert.java",
+      "org/telegram/ui/Components/StickersAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [
+      "CopyLink~showCopyLink"
+    ],
+    "new_strings_already_in_base": [
+      "AccDescrMoreOptions",
+      "CopyLink",
+      "StickersShare"
+    ]
+  },
+  {
+    "patch": "bugfix/profile-menu-duplicate-actions.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AddPhoto",
+      "EditInfo"
+    ]
+  },
+  {
+    "patch": "bugfix/album-caption-link-ripple.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.44,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/recyclerview-prelayout-space-change.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.17,
+    "files": [
+      "androidx/recyclerview/widget/LinearLayoutManager.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/save-uncached-documents-to-downloads.patch",
+    "verdict": "anchors-match",
+    "hunks": 6,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/messenger/MediaController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/album-caption-spoiler-reset.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/story-privacy-hint-npe.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Stories/PeerStoriesView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/preview-rotation-black-screen.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.1,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/dead-animated-drawable.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.67,
+    "files": [
+      "org/telegram/messenger/ImageLoader.java",
+      "org/telegram/ui/Components/AnimatedFileDrawable.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/community-admin-list-spam.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessagesController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/unified-video-rewind.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/user-deeplink.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.3,
+    "files": [
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/community-picker-avatar-npe.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/DialogsActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/markdown-inside-links.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MediaDataController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/remember-poll-settings.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.1,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlertPollLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reply-bar-revealed-spoiler.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/profile-music-autoplay.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/messenger/MediaController.java",
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/override-forum-mode.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/ChatObject.java",
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/profile-music-sheet-layout.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.15,
+    "files": [
+      "org/telegram/ui/Components/AudioPlayerAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/edge-to-edge-iv.patch",
+    "verdict": "anchors-match",
+    "hunks": 9,
+    "added_lines_already_present": 0.16,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "org/telegram/ui/ActionBar/BaseFragment.java",
+      "org/telegram/ui/ArticleViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/webm-sticker-speed.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/AnimatedFileDrawable.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/call-end-lockscreen-flash.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/voip/VoIPWindowView.java",
+      "org/telegram/ui/LaunchActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reply-preview-shared-emoji-spans.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/Components/AnimatedEmojiSpan.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/video-stream-cancel-restart.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/messenger/FileLoadOperation.java",
+      "org/telegram/messenger/FileStreamLoadOperation.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hd-bluetooth-call-audio.patch",
+    "verdict": "anchors-match",
+    "hunks": 16,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/messenger/voip/VoIPService.java",
+      "org/telegram/ui/VoIPFragment.java",
+      "org/webrtc/voiceengine/WebRtcAudioTrack.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/video-bubble-progress.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Cells/ChatMessageCell.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/glass-panel-keyboard-tint.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/bot-stop-without-delete.patch",
+    "verdict": "anchors-partial",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/long-tap-chip-profile.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/GroupCreateActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/custom-emoji-reaction-litemode.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/qr-scanner-corner-points.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/CameraScanActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/music-session-album.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/MediaController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/stale-emoji-suggestions.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Adapters/MentionsAdapter.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/recycler-stale-longpress-position.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.39,
+    "files": [
+      "org/telegram/ui/Components/RecyclerListView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/message-drawable-oom-cache.patch",
+    "verdict": "anchors-match",
+    "hunks": 4,
+    "added_lines_already_present": 0.56,
+    "files": [
+      "org/telegram/ui/ActionBar/MessageDrawable.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/switch-account-shortcut.patch",
+    "verdict": "file-missing",
+    "hunks": 0,
+    "added_lines_already_present": null,
+    "files": [],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/md3-navbar.patch",
+    "verdict": "anchors-partial",
+    "hunks": 23,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/ui/Components/glass/GlassTabView.java",
+      "org/telegram/ui/MainTabsActivity.java",
+      "org/telegram/ui/MainTabsLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "MainTabsChats"
+    ]
+  },
+  {
+    "patch": "bugfix/stale-unread-reaction.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.2,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/MessagesStorage.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/native-byte-buffer-pool.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/tgnet/NativeByteBuffer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-reply-line-leak.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/ReplyMessageLine.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/bot-location-context.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/bots/BotLocation.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/story-viewer-leaks.patch",
+    "verdict": "anchors-match",
+    "hunks": 5,
+    "added_lines_already_present": 0.37,
+    "files": [
+      "org/telegram/ui/Stories/PeerStoriesView.java",
+      "org/telegram/ui/Stories/StoriesViewPager.java",
+      "org/telegram/ui/Stories/StoryViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/video-speed-artifacts.patch",
+    "verdict": "anchors-partial",
+    "hunks": 5,
+    "added_lines_already_present": 0.04,
+    "files": [
+      "org/telegram/ui/Components/VideoPlayer.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hashtag-default-tab.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/forward-hide-caption-strips-text.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/messenger/SendMessagesHelper.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "debloat/hide-rich-editor-button.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ChatActivityEnterView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/playback-progress-on-message-replace.patch",
+    "verdict": "anchors-partial",
+    "hunks": 1,
+    "added_lines_already_present": 0.33,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/action-bar-overlay-animation.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.14,
+    "files": [
+      "org/telegram/ui/ActionBar/ActionBar.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/hdr-images.patch",
+    "verdict": "anchors-partial",
+    "hunks": 8,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/sort-albums-by-size.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "misc/debug-stale-reactions.patch",
+    "verdict": "anchors-partial",
+    "hunks": 22,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/MessagesController.java",
+      "org/telegram/messenger/MessagesStorage.java",
+      "org/telegram/ui/Cells/ChatMessageCell.java",
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/Reactions/ReactionsLayoutInBubble.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "misc/debug-notifications.patch",
+    "verdict": "anchors-match",
+    "hunks": 7,
+    "added_lines_already_present": 0.07,
+    "files": [
+      "org/telegram/messenger/NotificationsController.java",
+      "org/telegram/messenger/PushListenerController.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/share-alert-search-dead-zone.patch",
+    "verdict": "looks-applied",
+    "hunks": 2,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/ShareAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "misc/debug-media-upload.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/AutoDeleteMediaTask.java",
+      "org/telegram/messenger/FileLoader.java",
+      "org/telegram/messenger/FileUploadOperation.java",
+      "org/telegram/messenger/SendMessagesHelper.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/sections-scroll-view-alpha.patch",
+    "verdict": "anchors-partial",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/SectionsScrollView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/channel-reactions-toggle.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ChatCustomReactionsEditActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/group-call-record-timer.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/GroupCallActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/download-stickers.patch",
+    "verdict": "anchors-partial",
+    "hunks": 4,
+    "added_lines_already_present": 0.25,
+    "files": [
+      "org/telegram/ui/ContentPreviewViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/chat-preview-scroll-persist.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/nomedia-media-cache.patch",
+    "verdict": "anchors-match",
+    "hunks": 2,
+    "added_lines_already_present": 0.5,
+    "files": [
+      "org/telegram/messenger/ImageLoader.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/profile-transition-from-topics.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.44,
+    "files": [
+      "org/telegram/ui/ProfileActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/reaction-tag-text-baseline.patch",
+    "verdict": "looks-applied",
+    "hunks": 1,
+    "added_lines_already_present": 1.0,
+    "files": [
+      "org/telegram/ui/Components/Reactions/ReactionsLayoutInBubble.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/image-cache-large-heap.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/messenger/ImageLoader.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/shared-media-photo-transition-offset.patch",
+    "verdict": "anchors-match",
+    "hunks": 1,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/SharedMediaLayout.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/shared-media-blank-cells.patch",
+    "verdict": "anchors-match",
+    "hunks": 9,
+    "added_lines_already_present": 0.03,
+    "files": [
+      "org/telegram/ui/Cells/SharedPhotoVideoCell2.java",
+      "org/telegram/ui/PhotoViewer.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/stale-cross-chat-reply-quote.patch",
+    "verdict": "anchors-partial",
+    "hunks": 4,
+    "added_lines_already_present": 0.12,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/instant-camera-mode.patch",
+    "verdict": "anchors-partial",
+    "hunks": 34,
+    "added_lines_already_present": 0.01,
+    "files": [
+      "org/telegram/ui/Components/ChatAttachAlert.java",
+      "org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java",
+      "org/telegram/ui/Components/glass/GlassTabView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "AccDescrInstantCamera",
+      "ChatDocument",
+      "ChatGallery"
+    ]
+  },
+  {
+    "patch": "feature/minimize-attach-panel.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.18,
+    "files": [
+      "org/telegram/ui/ChatActivity.java",
+      "org/telegram/ui/Components/ChatActivityEnterView.java",
+      "org/telegram/ui/Components/ChatAttachAlert.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": [
+      "DiscardSelectionAlertMessage",
+      "DiscardSelectionAlertTitle"
+    ]
+  },
+  {
+    "patch": "bugfix/link-scrim-offset.patch",
+    "verdict": "anchors-match",
+    "hunks": 3,
+    "added_lines_already_present": 0.0,
+    "files": [
+      "org/telegram/ui/Components/ScrimOptions.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "bugfix/scrim-touch-lock.patch",
+    "verdict": "anchors-match",
+    "hunks": 10,
+    "added_lines_already_present": 0.13,
+    "files": [
+      "org/telegram/ui/ChatActivity.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  },
+  {
+    "patch": "feature/md3-sliders.patch",
+    "verdict": "anchors-match",
+    "hunks": 8,
+    "added_lines_already_present": 0.62,
+    "files": [
+      "org/telegram/ui/Components/SeekBarView.java",
+      "org/telegram/ui/Components/SlideChooseView.java"
+    ],
+    "missing_files": [],
+    "same_setting_in_base": [],
+    "same_subject_inverted_polarity": [],
+    "new_strings_already_in_base": []
+  }
+]

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">留空則使用 re:gram</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="PushServiceTypeInApp">re:gram</string>
+    <string name="UnifiedPushLastReceivedNotification">最後一次透過 UnifiedPush 接收到的通知是 %1$d 秒前。\n\n自 re:gram 啟動以來，您已收到 %2$d 條通知。</string>
+    <string name="UnifiedPushNeverReceivedNotifications">自 re:gram 啟動後，您從未收到 UnifiedPush 的通知。</string>
+    <string name="XChannel">Source channel</string>
+</resources>

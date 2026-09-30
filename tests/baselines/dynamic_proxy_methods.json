@@ -1,0 +1,25 @@
+{
+  "known": [
+    "app.regram.plugins.ui.components.templates.UniversalFragment$UniversalFragmentDelegate::plugin",
+    "app.regram.plugins.ui.components.templates.UniversalFragment$UniversalFragmentDelegate::populate",
+    "app.regram.plugins.ui.components.templates.UniversalFragment$UniversalFragmentDelegate::setTabIndex",
+    "app.regram.plugins.ui.components.templates.UniversalView$UniversalViewDelegate::setTarget",
+    "org.telegram.messenger.NotificationCenter$NotificationCenterDelegate::cleanup",
+    "org.telegram.messenger.NotificationCenter$NotificationCenterDelegate::disable",
+    "org.telegram.messenger.Utilities$Callback::activity",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getBottomPinnedMessageId",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getChatActivity",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getChatMode",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getDialogId",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getResourcesProvider",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getSelectedMessages",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getSharedResources",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getTopPinnedMessageId",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::getTopicId",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::isChannel",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::isGroup",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::isPinnedMessage",
+    "org.telegram.ui.Cells.ChatMessageCell$ChatMessageCellDelegate::isSupergroup",
+    "org.telegram.ui.Components.LayoutHelper::onItemClick"
+  ]
+}

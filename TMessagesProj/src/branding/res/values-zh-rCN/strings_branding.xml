@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">留空则使用 re:gram</string>
+    <string name="OEGeneralNagramSettings">re:gram 设置</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">最后一次通过 UnifiedPush 接收到的通知是 %1$d 秒前。\n\n自 re:gram 启动以来，您已收到 %2$d 条通知。</string>
+    <string name="UnifiedPushNeverReceivedNotifications">自 re:gram 启动后，您从未收到 UnifiedPush 的通知。</string>
+    <string name="XChannel">Source channel</string>
+</resources>

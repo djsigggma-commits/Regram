@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">Залиште порожнім, щоб використовувати re:gram</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">Останнє сповіщення через UnifiedPush надійшло %1$d сек. тому.\n\nВи отримали %2$d сповіщень з моменту запуску re:gram.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">З моменту запуску re:gram сповіщень через UnifiedPush не надходило.</string>
+    <string name="XChannel">Source channel</string>
+</resources>

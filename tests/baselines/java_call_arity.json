@@ -1,0 +1,23 @@
+{
+  "known": [
+    "org.telegram.messenger.MessageObject#<init>(3)",
+    "org.telegram.messenger.SendMessagesHelper#getInstance(0)",
+    "org.telegram.messenger.SendMessagesHelper$SendMessageParams#of(11)",
+    "org.telegram.messenger.SendMessagesHelper$SendMessageParams#of(12)",
+    "org.telegram.messenger.SendMessagesHelper$SendMessageParams#of(13)",
+    "org.telegram.messenger.SharedConfig#addProxy(5)",
+    "org.telegram.messenger.video.MediaCodecVideoConvertor$ConvertVideoParams#of(18)",
+    "org.telegram.tgnet.tl.TL_stars$StarsAmount#<init>(1)",
+    "org.telegram.ui.ActionBar.AlertDialog#setButton(2)",
+    "org.telegram.ui.ActionBar.Theme#createBackgroundDrawable(1)",
+    "org.telegram.ui.Cells.TextCheckCell#setChecked(2)",
+    "org.telegram.ui.Components.EditTextBoldCursor#setText(1)",
+    "org.telegram.ui.Components.EditTextBoldCursor#setTextSize(1)",
+    "org.telegram.ui.Components.EditTextCaption#setText(1)",
+    "org.telegram.ui.Components.Paint.ColorPickerBottomSheet#<init>(3)",
+    "org.telegram.ui.Components.ShareAlert#<init>(14)",
+    "org.telegram.ui.Components.UItem#asButtonCheck(4)",
+    "org.telegram.ui.Components.spoilers.SpoilersTextView#setText(1)",
+    "org.telegram.ui.MainTabsActivity#<init>(1)"
+  ]
+}

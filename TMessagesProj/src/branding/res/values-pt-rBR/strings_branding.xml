@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="AppName">re:gram</string>
+    <string name="AppNameBeta">re:gram Beta</string>
+    <string name="CustomTitleHint">Deixe em branco para usar o re:gram</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">A última notificação recebida via UnifiedPush foi há %1$d segundos.\n\nVocê recebeu %2$d notificações desde que o re:gram foi iniciado.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">Você não recebeu notificações via UnifiedPush desde que o re:gram foi iniciado.</string>
+    <string name="XChannel">Source channel</string>
+</resources>

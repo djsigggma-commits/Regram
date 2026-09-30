@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEGeneralTitle">General</string>
+    <string name="OEGeneralOtherTitle">Other</string>
+
+    <!-- Translate Messages -->
+    <string name="OEGeneralTranslateHeader">Translate Messages</string>
+    <string name="OEGeneralTranslateButton">Translate Button</string>
+    <string name="OEGeneralTranslateWholeChat">Translate Whole Chat</string>
+    <string name="OEGeneralTranslationProvider">Translation Provider</string>
+    <string name="OEGeneralTranslationTarget">Target Language</string>
+    <string name="OEGeneralTranslationTargetDefault">App Language</string>
+    <string name="OEGeneralDoNotTranslate">Do Not Translate</string>
+    <string name="OEGeneralTranslateInfo">The \'Translate\' button will appear in the message context menu.</string>
+
+    <!-- App Navigation -->
+    <string name="OEBottomNavigationModeFloating">Floating</string>
+
+    <!-- General -->
+    <string name="OEGeneralSectionHeader">General</string>
+    <string name="OEGeneralDisableNumberRounding">Disable Number Rounding</string>
+    <string name="OEGeneralDisableNumberRoundingValue">1.23K → 1,234</string>
+    <string name="OEGeneralFormatTimeWithSeconds">Format Time with Seconds</string>
+    <string name="OEGeneralFormatTimeWithSecondsValue">12:34 → 12:34:56</string>
+    <string name="OEGeneralRelativeLastSeen">Relative Last Seen</string>
+    <string name="OEGeneralInAppVibration">In-App Vibration</string>
+    <string name="OEGeneralDisableNotificationDelay">Disable Notification Delay</string>
+    <string name="OEGeneralFilterZalgo">Filter \"Zalgo\"</string>
+    <string name="OEGeneralFilterZalgoInfo">Removes stacked combining marks that break text layout. Example: %1$s</string>
+
+
+    <!-- Download Speed Boost -->
+    <string name="OEGeneralSpeedHeader">Download Speed Boost</string>
+    <string name="OEGeneralSpeedOff">Off</string>
+    <string name="OEGeneralSpeedFast">Fast</string>
+    <string name="OEGeneralSpeedUltra">Ultra</string>
+    <string name="OEGeneralUploadBoost">Upload Speed Boost</string>
+    <string name="OEGeneralSpeedBoostInfo">Ultra Boost can cause problems with your network or battery. Upload Speed Boost uploads files in bigger chunks and increases traffic usage.</string>
+
+    <!-- Storage -->
+    <string name="OEGeneralStorageHeader">Storage</string>
+    <string name="OEGeneralSavePath">Save Path</string>
+    <string name="OEGeneralSavePathDefault">Default</string>
+    <string name="OEGeneralSavePathHint">Folder name</string>
+    <string name="OEGeneralSavePathInfo">Name of the folder inside Downloads where saved files are placed. Letters, digits, spaces, dot, dash and underscore only.</string>
+    <string name="OEGeneralSavePathInfoFolder">Saved files are placed in Downloads/%1$s. Letters, digits, spaces, dot, dash and underscore only.</string>
+
+    <!-- Profile -->
+    <string name="OEGeneralProfileHeader">Profile</string>
+    <string name="OEGeneralHidePhone">Hide Phone Number</string>
+    <string name="OEGeneralShowIdAndDc">Show ID and DC</string>
+    <string name="OEGeneralShowIdAndDcInfo">Shows the user or chat ID and the data center number on the profile page.</string>
+
+    <!-- Archive -->
+    <string name="OEGeneralArchiveHeader">Chat List and Archive</string>
+    <string name="OEGeneralHideArchive">Hide Archive Folder</string>
+    <string name="OEGeneralArchiveOnPull">Open Archive on Pull-down</string>
+    <string name="OEGeneralDisableUnarchiveSwipe">Disable \"Unarchive\" Swipe</string>
+    <string name="OEGeneralDisableUnarchiveSwipeInfo">Swiping left will not remove a chat from the archive.</string>
+
+    <!-- Google -->
+
+    <!-- Settings Management -->
+    <string name="OEGeneralExportEtgSettings">Export settings</string>
+    <string name="OEGeneralImportEtgSettings">Import settings</string>
+    <string name="OEGeneralExportFormatFull">All settings (.json)</string>
+    <string name="OEGeneralExportFormatExtera">exteraGram format (.extera)</string>
+    <string name="OEGeneralImportEtgConfirm">%1$d settings from this file will replace the current ones.</string>
+    <string name="OEGeneralImportEtgEmpty">No exteraGram settings found in this file.</string>
+    <string name="OEGeneralImportEtgDone">Settings imported: %1$d</string>
+    <string name="OEGeneralResetSettings">Reset Settings</string>
+    <string name="OEGeneralResetSettingsInfo">All settings will be reset to their default values, and the app will restart.</string>
+    <string name="OEGeneralResetSettingsDone">re:gram preferences have been reset.</string>
+    <string name="OEGeneralDeleteAccount">Delete Account</string>
+    <string name="DeepLFormalityDefault">Tone: as it comes</string>
+    <string name="DeepLFormalityInformal">Tone: informal</string>
+    <string name="DeepLFormalityFormal">Tone: formal</string>
+    <string name="OEGeneralNagramHeader">Extras</string>
+    <string name="OEGeneralNagramSettings">NagramX settings</string>
+    <string name="OEGeneralAyuMoments">AyuMoments</string>
+    <string name="OEGeneralAyuMomentsInfo">Saving deleted and edited messages, ghost mode and regex filters. The features keep working while they are on, whether or not you open this screen.</string>
+    <string name="OEGeneralAyuMomentsDisableAll">Turn off all AyuMoments features</string>
+    <string name="OELastActivityFormatted">last activity %1$s</string>
+    <string name="OELastActivityDateFormatted">last activity %1$s</string>
+    <string name="OEGeneralLastFm">Last.fm</string>
+    <string name="OEGeneralLastFmHint">username</string>
+    <string name="OEGeneralLastFmNotSet">Not set</string>
+    <string name="OEGeneralLastFmApplied">Profile music updated</string>
+    <string name="OEGeneralLastFmNoMusic">Set profile music first</string>
+    <string name="OEGeneralLastFmFailed">Could not update profile music</string>
+    <string name="OEGeneralLastFmNoFile">Could not download the track</string>
+    <string name="OEGeneralLastFmNoUpload">Upload timed out</string>
+    <string name="OEGeneralLastFmAbout">This feature is built on top of profile music: it writes hidden bytes with your Last.fm username into your latest profile track. Once you set a username, that track is re-uploaded with the change.\n\nWhen you turn the feature off, the track is restored to its original state.</string>
+    <string name="OEGeneralNotificationsHeader">Notifications</string>
+    <string name="OEGeneralPushStatus">Push status</string>
+    <string name="OEGeneralPushStatusBlocked">blocked by system</string>
+    <string name="OEGeneralPushStatusNoToken">no token</string>
+    <string name="OEGeneralPushStatusNotRegistered">not registered</string>
+    <string name="OEGeneralPushStatusNothing">nothing received</string>
+    <string name="OEGeneralBatteryOptimization">Battery optimization</string>
+    <string name="OEGeneralBatteryOptimizationOn">Enabled — pushes may be delayed</string>
+    <string name="OEGeneralBatteryOptimizationOff">Disabled</string>
+    <string name="OEGeneralBatteryOptimizationUnavailable">Battery settings are unavailable on this device</string>
+    <string name="OEGeneralNotificationsInfo">Tap the push status to copy diagnostics to the clipboard — attach it when reporting a notification problem. If battery optimization is enabled, Android may delay or drop pushes while the app is in the background.</string>
+    <string name="OEGeneralGoogleHeader">Google</string>
+    <string name="OEGeneralCrashReports">Crash reports</string>
+    <string name="OEGeneralCrashReportsInfo">Sends crash stack traces to Firebase Crashlytics so failures can be fixed without a manual report. Off by default; nothing leaves the device while it is off.</string>
+    <string name="OEGeneralMapsHeader">Maps</string>
+    <string name="OEGeneralUseOsmMapInfo">Draws the location picker and live locations with OpenStreetMap tiles instead of Google Maps. Location previews inside messages still come from Telegram servers.</string>
+    <string name="OEGeneralMapProvider">Map provider</string>
+    <string name="OEGeneralMapPreview">Location previews</string>
+    <string name="OEGeneralMapDriftingFix">Fix map drifting</string>
+    <string name="OECrashTitle">re:gram crashed</string>
+    <string name="OEGeneralNetworkHeader">Network</string>
+    <string name="OEGeneralDnsOverHttps" translatable="false">DNS over HTTPS</string>
+    <string name="OEPrivacyFalseBottom">False Bottom</string>
+    <string name="OEPrivacyFalseBottomShowIn">Show in %1$s</string>
+</resources>

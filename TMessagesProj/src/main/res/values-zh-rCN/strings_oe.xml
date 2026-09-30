@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OpenExteraInfo">移植自 exteraGram 的功能</string>
+    <string name="OpenExteraChats">聊天</string>
+    <string name="AddCommaAfterMention">提及后添加逗号</string>
+    <string name="OpenExteraCategories">分类</string>
+    <string name="OpenExteraGeneral">通用</string>
+    <string name="OpenExteraAppearance">外观</string>
+    <string name="OpenExteraOther">其他</string>
+    <string name="OpenExteraLinks">链接</string>
+    <string name="OpenExteraSource">源代码</string>
+    <string name="QrTitleLink">链接</string>
+    <string name="QrTitleWifi">Wi-Fi 网络</string>
+    <string name="QrTitleLogin">Telegram 登录码</string>
+    <string name="QrTitleText">扫描到的文本</string>
+    <string name="QrWifiOpenSettings">打开 Wi-Fi 设置</string>
+    <string name="QrWifiCopyPassword">复制密码</string>
+    <string name="QrWifiPasswordCopied">密码已复制</string>
+    <string name="QrWifiUnknownNetwork">二维码中没有网络名称</string>
+    <string name="QrLoginHint">此二维码用于登录账号。请改用「设置 → 设备 → 关联桌面设备」，该界面会校验二维码并保护你的账号。</string>
+    <string name="OpenExteraPreferences">re:gram 设置</string>
+    <string name="OpenExteraDesignSection">设计</string>
+    <string name="OpenExteraDesigner">图标与设计</string>
+    <string name="OpenExteraDesignStudio">设计工作室</string>
+    <string name="OEDownloadEmojiPacks">下载表情包</string>
+    <string name="OESubtitles">字幕</string>
+    <string name="OEChooseSubtitles">选择字幕</string>
+    <string name="OEDisableSubtitles">关闭字幕</string>
+    <string name="OESubtitlesAdded">字幕已开启。</string>
+    <string name="OESubtitlesRemoved">字幕已关闭。</string>
+    <string name="OESubtitlesLoadError">无法加载字幕。</string>
+    <string name="OESubtitlesUnsupportedFormat">不支持的字幕格式。</string>
+    <string name="ProxyDisableOn">禁用代理</string>
+    <string name="ProxyDisableNever">从不</string>
+    <string name="ProxyDisableAlways">始终</string>
+    <string name="ProxyDisableOnMobileData">移动数据</string>
+    <string name="OENowPlayingScrobbling">正在记录播放</string>
+    <string name="MainTabsHideCallsSettings">隐藏“通话”标签页</string>
+    <string name="MainTabsHideProfile">隐藏个人资料标签页</string>
+    <string name="OEBotWebViewUpdate">更新 WebView</string>
+</resources>

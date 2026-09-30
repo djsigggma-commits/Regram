@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="AppName">re:gram</string>
+    <string name="AppNameBeta">re:gram Beta</string>
+    <string name="OEGeneralNagramSettings">Ajustes de re:gram</string>
+</resources>

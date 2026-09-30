@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="PillStackTitle">Píldoras</string>
+    <string name="PillStackPillsSettingsInfo">Configura qué píldoras se ven. Toca para mostrarlas u ocultarlas; mantén pulsado y arrastra para cambiar el orden.</string>
+    <string name="PillStackActivePills">Píldoras activas</string>
+    <string name="PillStackHiddenPills">Píldoras ocultas</string>
+    <string name="PillStackInfiniteScrolling">Desplazamiento infinito</string>
+    <string name="PillStackListEmpty">Vacío</string>
+    <string name="PillStackReset">Restablecer valores</string>
+    <string name="PillStackResetDone">Se restableció la disposición de las píldoras</string>
+    <string name="PillStackWeather">Clima</string>
+    <string name="PillStackWeatherCurrentLocation">Usar ubicación actual</string>
+    <string name="PillStackWeatherLocationNotSet">Sin seleccionar</string>
+    <string name="PillStackCache">Caché</string>
+    <string name="PillStackProxy">Proxy</string>
+    <string name="PillStackProxyPing">%1$d ms</string>
+    <string name="CryptoPillTargetCurrency">Moneda de destino</string>
+    <string name="CryptoCurrencyAuto">Automática</string>
+    <string name="CryptoCurrencyAed">Dírham de los EAU</string>
+    <string name="CryptoCurrencyByn">Rublo bielorruso</string>
+    <string name="CryptoCurrencyCny">Yuan chino</string>
+    <string name="CryptoCurrencyCzk">Corona checa</string>
+    <string name="CryptoCurrencyEur">Euro</string>
+    <string name="CryptoCurrencyGbp">Libra esterlina</string>
+    <string name="CryptoCurrencyIls">Nuevo séquel israelí</string>
+    <string name="CryptoCurrencyInr">Rupia india</string>
+    <string name="CryptoCurrencyJpy">Yen japonés</string>
+    <string name="CryptoCurrencyKzt">Tenge kazajo</string>
+    <string name="CryptoCurrencyPln">Zloty polaco</string>
+    <string name="CryptoCurrencyRub">Rublo ruso</string>
+    <string name="CryptoCurrencyTry">Lira turca</string>
+    <string name="CryptoCurrencyUah">Grivna ucraniana</string>
+    <string name="CryptoCurrencyUsd">Dólar estadounidense</string>
+    <string name="PillStackWeatherLocationHeader">Ubicación del clima</string>
+    <string name="PillStackWeatherSelectLocation">Elegir en el mapa</string>
+    <string name="PillStackWeatherSettingsInfo">La píldora muestra el clima del punto seleccionado. Los datos se actualizan como máximo cada 15 minutos.</string>
+    <string name="PillStackWeatherPermissionGrant">Conceder permiso de ubicación</string>
+    <string name="PillStackWeatherPermissionInfo">Sin acceso a tu ubicación, la píldora del clima no puede saber dónde estás. En su lugar, puedes elegir un punto en el mapa.</string>
+    <string name="PillStackWeatherServicesEnable">Activar los servicios de ubicación</string>
+    <string name="PillStackRateFrom">De</string>
+    <string name="PillStackRateTo">A</string>
+    <string name="PillStackAddRate">Añadir una tasa</string>
+    <string name="PillStackRemoveRate">¿Eliminar esta píldora de tasa?</string>
+</resources>

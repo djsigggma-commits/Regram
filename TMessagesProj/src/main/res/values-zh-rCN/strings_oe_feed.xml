@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Feed">信息流</string>
+    <string name="FeedAllChannelsExcluded">所有频道都已从信息流中排除。</string>
+    <string name="FeedBottomTab">显示在底部标签栏</string>
+    <string name="FeedBottomTabInfo">在底部导航栏中用信息流替换「联系人」标签。</string>
+    <string name="FeedChannelHidden">已将 **%1$s** 从信息流中隐藏</string>
+    <string name="FeedChannels">频道</string>
+    <string name="FeedChannelsInfo">取消勾选某个频道，即可在信息流中隐藏它的帖子。新频道会自动显示。</string>
+    <string name="FeedHiddenChannels">已隐藏</string>
+    <string name="FeedHideChannel">从信息流中隐藏</string>
+    <string name="FeedUnreadCounter">未读帖子计数</string>
+    <string name="FeedIncludeArchived">显示归档中的对话</string>
+    <string name="FeedIncludeArchivedInfo">也将归档对话中的频道加入信息流。</string>
+    <string name="FeedMarkAllRead">全部标为已读</string>
+    <string name="FeedMarkAllReadConfirm">要将信息流中所有频道的帖子标为已读吗？它们在原频道中也会被标为已读。</string>
+    <string name="FeedMarkAllReadDone">所有帖子已标为已读</string>
+    <string name="FeedNoPosts">暂无频道帖子。</string>
+    <string name="FeedSettings">信息流设置</string>
+    <string name="FeedShownChannels">显示在信息流中</string>
+    <string name="HideFeedTab">隐藏信息流标签</string>
+</resources>

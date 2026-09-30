@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEGeneralNagramSettings">Настройки re:gram</string>
+    <string name="OfficialChannel">Канал источника</string>
+    <string name="OpenExteraInfo">Настройки и возможности re:gram</string>
+    <string name="XChannel">Канал источника</string>
+</resources>

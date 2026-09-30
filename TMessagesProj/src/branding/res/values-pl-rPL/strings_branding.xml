@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">Pozostaw puste, aby użyć re:gram</string>
+    <string name="OEGeneralNagramSettings">Ustawienia re:gram</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">Ostatnie powiadomienie przez UnifiedPush otrzymano %1$d s temu.\n\nOd uruchomienia re:gram otrzymano %2$d powiadomień.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">Od uruchomienia re:gram nie otrzymano powiadomień przez UnifiedPush.</string>
+    <string name="XChannel">Source channel</string>
+</resources>

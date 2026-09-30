@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEGeneralTitle">Основные</string>
+    <string name="OEGeneralOtherTitle">Прочее</string>
+
+    <!-- Translate Messages -->
+    <string name="OEGeneralTranslateHeader">Перевод сообщений</string>
+    <string name="OEGeneralTranslateButton">Кнопка перевода</string>
+    <string name="OEGeneralTranslateWholeChat">Перевод всего чата</string>
+    <string name="OEGeneralTranslationProvider">Сервис перевода</string>
+    <string name="OEGeneralTranslationTarget">Язык перевода</string>
+    <string name="OEGeneralTranslationTargetDefault">Язык приложения</string>
+    <string name="OEGeneralDoNotTranslate">Не переводить</string>
+    <string name="OEGeneralTranslateInfo">Кнопка «Перевести» появится в контекстном меню сообщения.</string>
+
+    <!-- General -->
+    <string name="OEGeneralSectionHeader">Основные</string>
+    <string name="OEGeneralDisableNumberRounding">Не округлять числа</string>
+    <string name="OEGeneralDisableNumberRoundingValue">1,23 тыс. → 1 234</string>
+    <string name="OEGeneralFormatTimeWithSeconds">Показывать секунды</string>
+    <string name="OEGeneralFormatTimeWithSecondsValue">12:34 → 12:34:56</string>
+    <string name="OEGeneralRelativeLastSeen">Относительное время в сети</string>
+    <string name="OEGeneralInAppVibration">Вибрация в приложении</string>
+    <string name="OEGeneralDisableNotificationDelay">Отключить задержку уведомлений</string>
+    <string name="OEGeneralFilterZalgo">Фильтровать «Zalgo»</string>
+    <string name="OEGeneralFilterZalgoInfo">Убирает комбинируемые символы, ломающие вёрстку текста: Z̷͍͌ā̸̜l̸̞̂g̷͍̝o̶̩̓ превращается в Zalgo.</string>
+
+
+    <!-- Download Speed Boost -->
+    <string name="OEGeneralSpeedHeader">Ускорение загрузки</string>
+    <string name="OEGeneralSpeedOff">Выкл.</string>
+    <string name="OEGeneralSpeedFast">Быстро</string>
+    <string name="OEGeneralSpeedUltra">Ультра</string>
+    <string name="OEGeneralUploadBoost">Ускорение выгрузки</string>
+    <string name="OEGeneralSpeedBoostInfo">Режим «Ультра» может вызвать проблемы с сетью или аккумулятором. Ускорение выгрузки отправляет файлы более крупными частями и увеличивает расход трафика.</string>
+
+    <!-- Storage -->
+    <string name="OEGeneralStorageHeader">Хранилище</string>
+    <string name="OEGeneralSavePath">Папка сохранения</string>
+    <string name="OEGeneralSavePathDefault">По умолчанию</string>
+    <string name="OEGeneralSavePathHint">Имя папки</string>
+    <string name="OEGeneralSavePathInfo">Имя папки внутри Downloads, куда сохраняются файлы. Допустимы буквы, цифры, пробел, точка, дефис и подчёркивание.</string>
+
+    <!-- Profile -->
+    <string name="OEGeneralProfileHeader">Профиль</string>
+    <string name="OEGeneralHidePhone">Скрыть номер телефона</string>
+    <string name="OEGeneralShowIdAndDc">Показывать ID и DC</string>
+    <string name="OEGeneralShowIdAndDcInfo">Показывает ID пользователя или чата и номер дата-центра в профиле.</string>
+
+    <!-- Archive -->
+    <string name="OEGeneralArchiveHeader">Список чатов и архив</string>
+    <string name="OEGeneralHideArchive">Скрыть папку «Архив»</string>
+    <string name="OEGeneralArchiveOnPull">Открывать архив потягиванием</string>
+    <string name="OEGeneralDisableUnarchiveSwipe">Отключить свайп «Из архива»</string>
+    <string name="OEGeneralDisableUnarchiveSwipeInfo">Свайп влево не будет убирать чат из архива.</string>
+
+    <!-- Google -->
+
+    <!-- Settings Management -->
+    <string name="OEGeneralExportEtgSettings">Экспорт настроек</string>
+    <string name="OEGeneralImportEtgSettings">Импорт настроек</string>
+    <string name="OEGeneralExportFormatFull">Все настройки (.json)</string>
+    <string name="OEGeneralExportFormatExtera">Формат exteraGram (.extera)</string>
+    <string name="OEGeneralImportEtgConfirm">Настроек в файле: %1$d. Текущие значения будут заменены.</string>
+    <string name="OEGeneralImportEtgEmpty">В файле нет настроек exteraGram.</string>
+    <string name="OEGeneralImportEtgDone">Импортировано настроек: %1$d</string>
+    <string name="OEGeneralResetSettings">Сброс настроек</string>
+    <string name="OEGeneralResetSettingsInfo">Все настройки вернутся к значениям по умолчанию, приложение перезапустится.</string>
+    <string name="OEGeneralResetSettingsDone">Настройки re:gram сброшены.</string>
+    <string name="OEGeneralDeleteAccount">Удалить аккаунт</string>
+    <string name="DeepLFormalityDefault">Тон: как есть</string>
+    <string name="DeepLFormalityInformal">Тон: неформальный</string>
+    <string name="DeepLFormalityFormal">Тон: формальный</string>
+    <string name="OEGeneralSavePathInfoFolder">Файлы сохраняются в Downloads/%1$s. Только буквы, цифры, пробел, точка, дефис и подчёркивание.</string>
+    <string name="OEGeneralNagramHeader">Дополнительно</string>
+    <string name="OEGeneralNagramSettings">Настройки NagramX</string>
+    <string name="OEGeneralAyuMoments">AyuMoments</string>
+    <string name="OEGeneralAyuMomentsInfo">Сохранение удалённых и изменённых сообщений, режим призрака и regex-фильтры. Функции работают, пока включены, — даже если не открывать этот экран.</string>
+    <string name="OEGeneralAyuMomentsDisableAll">Отключить все функции AyuMoments</string>
+    <string name="OELastActivityFormatted">последняя активность %1$s</string>
+    <string name="OELastActivityDateFormatted">последняя активность %1$s</string>
+    <string name="OEBottomNavigationModeFloating">Плавающая</string>
+    <string name="OEGeneralLastFm">Last.fm</string>
+    <string name="OEGeneralLastFmHint">имя пользователя</string>
+    <string name="OEGeneralLastFmNotSet">Не задано</string>
+    <string name="OEGeneralLastFmApplied">Музыка профиля обновлена</string>
+    <string name="OEGeneralLastFmNoMusic">Сначала выберите музыку профиля</string>
+    <string name="OEGeneralLastFmFailed">Не удалось обновить музыку профиля</string>
+    <string name="OEGeneralLastFmNoFile">Не удалось скачать трек</string>
+    <string name="OEGeneralLastFmNoUpload">Не дождались загрузки</string>
+    <string name="OEGeneralLastFmAbout">Эта функция работает на основе треков в профиле, добавляя в последний трек скрытые байты содержащие ваш ник на Last.fm. После добавления юзернейма последний трек в профиле будет перезалит с этим изменением.\n\nПосле отключения этой функции трек будет возвращен до изначального состояния.</string>
+    <string name="OEGeneralNotificationsHeader">Уведомления</string>
+    <string name="OEGeneralPushStatus">Состояние пушей</string>
+    <string name="OEGeneralPushStatusBlocked">заблокированы системой</string>
+    <string name="OEGeneralPushStatusNoToken">нет токена</string>
+    <string name="OEGeneralPushStatusNotRegistered">не зарегистрирован</string>
+    <string name="OEGeneralPushStatusNothing">ничего не приходило</string>
+    <string name="OEGeneralBatteryOptimization">Оптимизация батареи</string>
+    <string name="OEGeneralBatteryOptimizationOn">Включена — пуши могут опаздывать</string>
+    <string name="OEGeneralBatteryOptimizationOff">Отключена</string>
+    <string name="OEGeneralBatteryOptimizationUnavailable">Настройки батареи недоступны на этом устройстве</string>
+    <string name="OEGeneralNotificationsInfo">Нажмите на состояние пушей, чтобы скопировать диагностику в буфер — прикладывайте её к сообщению о проблеме с уведомлениями. Если оптимизация батареи включена, Android может задерживать или терять пуши, пока приложение в фоне.</string>
+    <string name="OEGeneralGoogleHeader">Google</string>
+    <string name="OEGeneralCrashReports">Отчёты о сбоях</string>
+    <string name="OEGeneralCrashReportsInfo">Отправляет стек падений в Firebase Crashlytics, чтобы их чинили без ручных баг-репортов. По умолчанию выключено, и пока выключено, с устройства ничего не уходит.</string>
+    <string name="OEGeneralMapsHeader">Карты</string>
+    <string name="OEGeneralUseOsmMapInfo">Выбор места и трансляции геопозиции рисуются тайлами OpenStreetMap вместо Google Maps. Превью локаций в сообщениях по-прежнему приходят с серверов Telegram.</string>
+    <string name="OEGeneralMapProvider">Провайдер карт</string>
+    <string name="OEGeneralMapPreview">Превью локаций</string>
+    <string name="OEGeneralMapDriftingFix">Исправлять смещение карты</string>
+    <string name="OECrashTitle">re:gram аварийно завершился</string>
+    <string name="OEGeneralNetworkHeader">Сеть</string>
+    <string name="OEPrivacyFalseBottom">Двойное дно</string>
+    <string name="OEPrivacyFalseBottomShowIn">Показывать в разделе «%1$s»</string>
+</resources>

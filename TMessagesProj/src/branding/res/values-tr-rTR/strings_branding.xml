@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CustomTitleHint">re:gram kullanmak için boş bırakın</string>
+    <string name="OfficialChannel">Source channel</string>
+    <string name="UnifiedPushLastReceivedNotification">UnifiedPush ile en son alınan bildirim %1$d saniye önceydi.\n\nre:gram başlatıldığından beri %2$d bildirim aldınız.</string>
+    <string name="UnifiedPushNeverReceivedNotifications">re:gram başlatıldığından beri UnifiedPush ile hiç bildirim almadınız.</string>
+    <string name="XChannel">Source channel</string>
+</resources>

@@ -1,0 +1,7 @@
+{
+  "known": [
+    "base_plugin:BaseHook.__init__:1",
+    "ui.alert:AlertDialogBuilder.__init__:3",
+    "ui.bulletin:BulletinHelper.show_file_saved_to_gallery:2"
+  ]
+}

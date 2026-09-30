@@ -1,0 +1,14 @@
+# Copy to local.properties. Never commit credentials or signing keys.
+sdk.dir=/absolute/path/to/Android/Sdk
+TELEGRAM_APP_ID=
+TELEGRAM_APP_HASH=
+
+# Optional: your Google Maps key, restricted to your package and signing certificate.
+MAPS_API_KEY=
+# Optional: path to Python 3.11 for Chaquopy.
+# CHAQUOPY_BUILD_PYTHON=/usr/bin/python3.11
+
+# Public releases require your own TMessagesProj/release.keystore.
+# KEYSTORE_PASS=
+# ALIAS_NAME=
+# ALIAS_PASS=
