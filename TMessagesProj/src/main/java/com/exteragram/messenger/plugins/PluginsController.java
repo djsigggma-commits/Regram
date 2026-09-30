@@ -127,4 +127,16 @@ public abstract class PluginsController {
                                           org.telegram.messenger.Utilities.Callback<String> callback);
 
     public abstract java.util.Map<String, ? extends Plugin> getPlugins();
+
+    /**
+     * Учёт Xposed-хука, который dex-модуль поставил сам.
+     * Вызов идёт по этому типу, поэтому метод нельзя оставлять только у наследника.
+     */
+    public void addXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook) {
+        app.regram.plugins.xposed.XposedHooks.addPluginUnhook(pluginId, unhook);
+    }
+
+    public void removeXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook) {
+        app.regram.plugins.xposed.XposedHooks.removePluginUnhook(pluginId, unhook);
+    }
 }

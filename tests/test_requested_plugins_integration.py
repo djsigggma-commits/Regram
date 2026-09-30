@@ -29,13 +29,3 @@ def test_auto_read_opt_in_and_preserves_other_unread_messages():
     assert 'ChannelPostAutoRead.filterNotifications(currentAccount, messageObjects)' in source(
         'org/telegram/messenger/NotificationsController.java')
 
-
-def test_mention_port_keeps_text_offsets_and_no_external_dex():
-    mention = source('app/regram/ui/MentionAvatars.java')
-    assert 'text.setSpan(avatar, start, start + 1' in mention
-    assert 'text.insert(' not in mention
-    assert 'text.delete(' not in mention
-    assert 'getUserOrChat(' in mention
-    assert 'AvatarSpan.checkSpansParent(messageObject.messageText, this)' in source(
-        'org/telegram/ui/Cells/ChatMessageCell.java')
-    assert 'InMemoryDexClassLoader' not in mention

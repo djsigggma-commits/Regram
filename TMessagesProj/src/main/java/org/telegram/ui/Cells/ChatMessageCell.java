@@ -6883,9 +6883,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     public MultiLayoutTypingAnimator botDraftTypingAnimator;
 
     private void setMessageContent(MessageObject messageObject, MessageObject.GroupedMessages groupedMessages, boolean bottomNear, boolean topNear, boolean firstInChat, boolean lastInChatList) {
-        if (currentMessageObject != null && currentMessageObject != messageObject) {
-            AvatarSpan.checkSpansParent(currentMessageObject.messageText, null);
-        }
         if (groupedMessages != null) {
             int groupedMediaViewportWidth = WideChannelPostLayout.groupedMediaViewportWidth(
                     getGroupPhotosBaseWidth(messageObject), getWideChannelPostLeadingInset(messageObject));
@@ -6894,9 +6891,6 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         if (messageObject.checkLayout() || currentPosition != null && lastHeight != AndroidUtilities.displaySize.y) {
             currentMessageObject = null;
         }
-        AvatarSpan.checkSpansParent(messageObject.messageText, this);
-        app.regram.ui.MentionAvatars.resolveDeferred(messageObject.messageText, this,
-                messageObject.currentAccount);
         messageObject.isOutOwnerCached = null;
         boolean widthChanged = lastWidth != getParentWidth();
         lastHeight = AndroidUtilities.displaySize.y;

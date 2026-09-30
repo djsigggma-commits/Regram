@@ -8927,9 +8927,6 @@ public class MessageObject {
         hasSingleQuote = false;
         hasSingleCode = false;
         messageText = FormattedDateSpan.applyFormatedDateEntities(messageText);
-        if (messageText instanceof Spannable && !isRepostPreview) {
-            app.regram.ui.MentionAvatars.decorate((Spannable) messageText, getEntities(), currentAccount);
-        }
 
         if (messageText instanceof Spanned) {
             Spanned spanned = (Spanned) messageText;

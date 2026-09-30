@@ -6,6 +6,7 @@ import static org.telegram.messenger.LocaleController.getString;
 import static org.telegram.ui.Components.Premium.LimitReachedBottomSheet.TYPE_ACCOUNTS;
 
 import android.animation.Animator;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -338,6 +339,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         checkUnreadCount(true);
 
         showAccountChangeHint();
+        Activity activity = getParentActivity();
+        if (activity != null) {
+            app.regram.plugins.ui.RecommendedPluginsPrompt.onMainScreen(activity, currentAccount);
+        }
     }
 
     private void checkContactsTabBadge() {

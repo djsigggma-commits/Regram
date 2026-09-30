@@ -13,8 +13,10 @@ public final class PluginsConstants {
     /** Свой SharedPreferences-файл движка (как у exteraGram — ApplicationLoader читает свой prefs). */
     public static final String PREFS_NAME = "exteraless_plugins";
 
-    /** Мастер-тумблер движка. */
+    /** Мастер-тумблер движка. Отсутствие ключа значит «включён». */
     public static final String KEY_ENGINE_ENABLED = "pluginsEnabled";
+    /** Одноразовый вопрос про рекомендованный пакет на первом открытии. */
+    public static final String KEY_RECOMMENDED_PROMPT = "recommendedPluginsPromptShown";
     /** Safe mode: движок стартует, но плагины не грузятся. */
     public static final String KEY_SAFE_MODE = "pluginsSafeMode";
     /** Developer mode: перезагрузка плагинов из UI, подробные ошибки. */

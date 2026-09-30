@@ -156,7 +156,7 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
     }
 
     public boolean isEngineEnabled() {
-        return preferences != null && preferences.getBoolean(PluginsConstants.KEY_ENGINE_ENABLED, false);
+        return preferences != null && preferences.getBoolean(PluginsConstants.KEY_ENGINE_ENABLED, true);
     }
 
     public void setEngineEnabled(boolean enabled) {
@@ -380,7 +380,7 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
             seen.add(fresh.id);
             boolean enabled = preferences.getBoolean(
                     PluginsConstants.KEY_PLUGIN_ENABLED_PREFIX + fresh.id, true);
-            Plugin existing = plugins.get(fresh.id);
+            existing = plugins.get(fresh.id);
             String freshPath = f.getAbsolutePath();
             if (existing != null && existing.loaded && !freshPath.equals(existing.path)
                     && existing.path != null && new File(existing.path).exists()) {
@@ -1069,14 +1069,6 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
         } catch (Exception e) {
             FileLog.e("PluginsController: replaceSettings failed for " + pluginId, e);
         }
-    }
-
-    public void addXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook) {
-        app.regram.plugins.xposed.XposedHooks.addPluginUnhook(pluginId, unhook);
-    }
-
-    public void removeXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook) {
-        app.regram.plugins.xposed.XposedHooks.removePluginUnhook(pluginId, unhook);
     }
 
     /** Имя из SDK exteraGram; у нас перерисовка экрана и есть перезагрузка настроек. */

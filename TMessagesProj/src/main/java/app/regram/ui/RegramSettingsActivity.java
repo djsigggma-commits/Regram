@@ -27,8 +27,7 @@ public class RegramSettingsActivity extends BaseNekoSettingsActivity {
             NekoConfig.regramLiveProxyPing,
             NekoConfig.regramDisableSensitiveContent,
             NekoConfig.regramHideHashtagSuggestions,
-            NekoConfig.regramDisableGeneralTopicSwipe,
-            NekoConfig.regramMentionAvatars
+            NekoConfig.regramDisableGeneralTopicSwipe
     };
     private final int[] titles = {
             R.string.RegramM3Sliders,
@@ -40,8 +39,7 @@ public class RegramSettingsActivity extends BaseNekoSettingsActivity {
             R.string.RegramLiveProxyPing,
             R.string.RegramDisableSensitiveContent,
             R.string.RegramHideHashtagSuggestions,
-            R.string.RegramDisableGeneralTopicSwipe,
-            R.string.RegramMentionAvatars
+            R.string.RegramDisableGeneralTopicSwipe
     };
     private final int[] descriptions = {
             R.string.RegramM3SlidersInfo,
@@ -53,8 +51,7 @@ public class RegramSettingsActivity extends BaseNekoSettingsActivity {
             R.string.RegramLiveProxyPingInfo,
             R.string.RegramDisableSensitiveContentInfo,
             R.string.RegramHideHashtagSuggestionsInfo,
-            R.string.RegramDisableGeneralTopicSwipeInfo,
-            R.string.RegramMentionAvatarsInfo
+            R.string.RegramDisableGeneralTopicSwipeInfo
     };
 
     @Override

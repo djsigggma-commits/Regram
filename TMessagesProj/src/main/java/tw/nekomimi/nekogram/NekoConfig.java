@@ -143,7 +143,6 @@ public class NekoConfig {
     public static ConfigItem regramDisableSensitiveContent = addConfig("RegramDisableSensitiveContent", configTypeBool, false);
     public static ConfigItem regramHideHashtagSuggestions = addConfig("RegramHideHashtagSuggestions", configTypeBool, false);
     public static ConfigItem regramDisableGeneralTopicSwipe = addConfig("RegramDisableGeneralTopicSwipe", configTypeBool, false);
-    public static ConfigItem regramMentionAvatars = addConfig("RegramMentionAvatars", configTypeBool, true);
 
     public static ConfigItem translationProvider = addConfig("translationProvider", configTypeInt, 1);
     public static ConfigItem translateToLang = addConfig("TransToLang", configTypeString, ""); // "" -> translate to current language (MessageTrans.kt & Translator.kt)

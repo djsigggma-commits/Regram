@@ -5,6 +5,9 @@
     <string name="RegramSupporterInfo">This user supported the development of re:gram and received an exclusive badge. To get one too, support the client financially using the payment details in re:gram settings → Creators and sources.</string>
     <string name="RegramRecommendedHeader">Recommended plugins</string>
     <string name="RegramRecommendedDownload">Download recommended plugin pack</string>
+    <string name="RegramRecommendedPrompt">Install the recommended plugin pack from @regram_backdoor_plugins? Plugins run third-party code and can access your account. You can do this later in Settings → Plugins.</string>
+    <string name="RegramRecommendedInstall">Install</string>
+    <string name="RegramRecommendedLater">Not now</string>
     <string name="RegramRecommendedHint">Find plugin files in recent posts of @regram_backdoor_plugins. Download and enable only on request.</string>
     <string name="RegramRecommendedWarning">Download and enable %1$d plugin files from @regram_backdoor_plugins? Plugins are executable third-party code and may access your account. This also enables the plugin engine and any previously enabled plugins. Only continue if you trust this channel.</string>
     <string name="RegramRecommendedNetworkError">Could not read the plugin channel. Check your connection and try again.</string>
@@ -17,8 +20,6 @@
     <string name="RegramChannelPostAutoReadDisable">Stop auto-reading channel posts</string>
     <string name="RegramChannelPostAutoReadOn">Auto-read enabled for this discussion</string>
     <string name="RegramChannelPostAutoReadOff">Auto-read disabled for this discussion</string>
-    <string name="RegramMentionAvatars">Show avatars at mentions</string>
-    <string name="RegramMentionAvatarsInfo">Show locally cached avatars in place of the @ symbol in text messages. Reopen the chat to refresh existing messages.</string>
     <string name="RegramM3Sliders">Material 3 sliders</string>
     <string name="RegramM3SlidersInfo">Thick tracks, animated handles and spaced ticks. Overrides the general slider style; preserves previews, custom controls and chapter tracks.</string>
     <string name="RegramDisableBrowserCollapse">Keep browser expanded</string>

@@ -5,6 +5,9 @@
     <string name="RegramSupporterInfo">Этот пользователь поддержал разработку re:gram и получил эксклюзивный значок. Если хотите так же — денежно поддержите разработку клиента по реквизитам, указанным в настройках re:gram → Создатели и источники.</string>
     <string name="RegramRecommendedHeader">Рекомендуемые плагины</string>
     <string name="RegramRecommendedDownload">Загрузить рекомендованный пакет дополнений</string>
+    <string name="RegramRecommendedPrompt">Установить рекомендованный пакет плагинов из @regram_backdoor_plugins? Плагины выполняют сторонний код и могут получить доступ к аккаунту. Позже это можно сделать в Настройки → Плагины.</string>
+    <string name="RegramRecommendedInstall">Установить</string>
+    <string name="RegramRecommendedLater">Не сейчас</string>
     <string name="RegramRecommendedHint">Ищет файлы плагинов в последних публикациях @regram_backdoor_plugins. Загрузка и включение — только по запросу.</string>
     <string name="RegramRecommendedWarning">Скачать и включить %1$d плагинов из @regram_backdoor_plugins? Плагины выполняют сторонний код и могут получить доступ к аккаунту. Также включится движок и ранее включённые плагины. Продолжайте, только если доверяете каналу.</string>
     <string name="RegramRecommendedNetworkError">Не удалось прочитать канал плагинов. Проверьте подключение и повторите попытку.</string>
@@ -17,8 +20,6 @@
     <string name="RegramChannelPostAutoReadDisable">Отключить авто-чтение постов канала</string>
     <string name="RegramChannelPostAutoReadOn">Авто-чтение включено для обсуждения</string>
     <string name="RegramChannelPostAutoReadOff">Авто-чтение отключено для обсуждения</string>
-    <string name="RegramMentionAvatars">Аватары в упоминаниях</string>
-    <string name="RegramMentionAvatarsInfo">Показывать доступный клиенту аватар вместо символа @ в текстовом сообщении. Для обновления открытых сообщений переоткройте чат.</string>
     <string name="RegramM3Sliders">Ползунки Material 3</string>
     <string name="RegramM3SlidersInfo">Объёмная дорожка, анимированный бегунок и редкие деления. Приоритет над общим стилем ползунков; предпросмотры, специальные шкалы и дорожки с главами сохраняют свой вид.</string>
     <string name="RegramDisableBrowserCollapse">Не сворачивать браузер свайпом</string>

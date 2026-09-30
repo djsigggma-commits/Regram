@@ -741,7 +741,6 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     /** openExtera: спан мини-аватарки отправителя, см. {@link #addSenderAvatar}. */
     private final AvatarSpan messageAvatarSpan;
-    private CharSequence mentionAvatarPreviewText;
 
     /**
      * openExtera: подставляет перед именем отправителя его мини-аватарку.
@@ -6030,10 +6029,6 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
     }
 
     public SpannableStringBuilder getMessageStringFormatted(int messageFormatType, String restrictionReason, CharSequence messageNameString, boolean applyThumbs) {
-        if (mentionAvatarPreviewText != null) {
-            AvatarSpan.checkSpansParent(mentionAvatarPreviewText, null);
-            mentionAvatarPreviewText = null;
-        }
         SpannableStringBuilder stringBuilder;
         MessageObject captionMessage = getCaptionMessage();
         CharSequence msgText = message != null ? message.messageText : null;
@@ -6222,15 +6217,6 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 MediaDataController.addTextStyleRuns(message, (Spannable) mess, TextStyleSpan.FLAG_STYLE_SPOILER | TextStyleSpan.FLAG_STYLE_STRIKE);
             if (message != null && message.messageOwner != null) {
                 MediaDataController.addAnimatedEmojiSpans(message.messageOwner.entities, mess, currentMessagePaint == null ? null : currentMessagePaint.getFontMetricsInt());
-                // The dialog preview does not call MessageObject.generateLayout().
-                // Decorate its own copy before the sender prefix is inserted, while
-                // entity offsets still match the source. Never rewrite the message.
-                String raw = message.messageOwner.message;
-                if (!message.hasHighlightedWords() && raw != null && raw.length() <= 150 &&
-                        raw.indexOf('\n') < 0 && raw.contentEquals(mess)) {
-                    app.regram.ui.MentionAvatars.decorate((Spannable) mess, message.getEntities(), currentAccount, this);
-                    mentionAvatarPreviewText = mess;
-                }
             }
             if (applyThumbs) {
                 mess = applyThumbs(mess);
