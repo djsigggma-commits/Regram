@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="RegramFeatures">re:gram · Additional features</string>
     <string name="RegramSupporterTitle">re:gram supporter</string>
     <string name="RegramSupporterInfo">This user supported the development of re:gram and received an exclusive badge. To get one too, support the client financially using the payment details in re:gram settings → Creators and sources.</string>
     <string name="RegramRecommendedHeader">Recommended plugins</string>
@@ -60,7 +59,6 @@
     <string name="RegramExitFyLiteRefresh">Import Telegram proxies</string>
     <string name="RegramExitFyLiteOptimize">Check and enable fastest proxy</string>
     <string name="RegramExitFyLiteInfo">The full exitFy runtime above includes third-party DEX/native code and requires explicit consent. The independent Lite functions below import Telegram proxy links and select the fastest one without running that runtime.</string>
-    <string name="RegramPortsInfo">Additional features are optional and disabled by default. Other features are in the existing settings categories. Integration is still in progress.</string>
     <string name="RegramCreatorsAndSources">Creators and sources</string>
     <string name="RegramCreditsArtDescription">Illustration of Eevee</string>
     <string name="RegramCreators">Creators</string>
@@ -69,11 +67,9 @@
     <string name="RegramDonationMir">Mir</string>
     <string name="RegramDonationVisa">Visa (USD only)</string>
     <string name="RegramDonationCopyHint">Tap a card to copy its number. Visa accepts USD only.</string>
-    <string name="RegramOwner">Owner</string>
     <string name="RegramDesigner">Designer</string>
     <string name="RegramCoder1">Coder 1</string>
     <string name="RegramCoder2">Coder 2</string>
-    <string name="RegramCoder3">Coder 3</string>
     <string name="RegramUpstreamChannel">Base project channel</string>
     <string name="RegramUpstreamSource">Base project source</string>
 </resources>

@@ -25,18 +25,32 @@ def test_adaptive_icons_use_supplied_artwork():
                 assert (RES / f"mipmap{suffix}-{density}" / f"{name}.png").is_file()
 
 
+def test_other_launcher_variants_reference_existing_monochrome_art():
+    icons = ROOT / 'TMessagesProj/src/main/res/mipmap-anydpi-v26'
+    assert (ROOT / 'TMessagesProj/src/main/res/drawable/regram_icon_monochrome.xml').is_file()
+    for name in ('go', 'hand', 'mono', 'nothing', 'plus'):
+        for suffix in ('', '_round'):
+            xml = (icons / f'ic_launcher_{name}{suffix}.xml').read_text()
+            assert '@drawable/regram_icon_monochrome' in xml
+            assert 'exteraless_icon_monochrome' not in xml
+
+
 def test_light_and_dark_icons_are_exactly_the_supplied_artwork():
     image = pytest.importorskip("PIL.Image")
     for theme, qualifier in (("light", ""), ("dark", "-night")):
         with image.open(ROOT / f"logo/icon_{theme}.png") as original:
             artwork = original.convert("RGBA")
             expected = artwork.resize((432, 432), image.Resampling.LANCZOS)
-            for name in ("background", "art"):
-                with image.open(RES / f"drawable{qualifier}-nodpi" / f"regram_launcher_{name}.png") as icon:
-                    assert icon.convert("RGBA").tobytes() == expected.tobytes()
+            with image.open(RES / f"drawable{qualifier}-nodpi" / "regram_launcher_art.png") as icon:
+                assert icon.convert("RGBA").tobytes() == expected.tobytes()
+            with image.open(RES / f"drawable{qualifier}-nodpi" / "regram_launcher_background.png") as background:
+                assert background.size == (432, 432)
+                assert background.getpixel((0, 0)) == background.getpixel((216, 216)) == artwork.getpixel((0, 0))
             with image.open(RES / f"drawable{qualifier}-nodpi" / "regram_launcher_foreground.png") as layer:
                 assert layer.size == (432, 432)
-                assert layer.getchannel("A").getbbox() is None  # no doubled logo
+                assert layer.getchannel("A").getbbox() == (84, 84, 348, 348)
+                assert layer.crop((84, 84, 348, 348)).tobytes() == artwork.resize(
+                    (264, 264), image.Resampling.LANCZOS).tobytes()
             for density, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96),
                                   ("xxhdpi", 144), ("xxxhdpi", 192)):
                 with image.open(RES / f"mipmap{qualifier}-{density}" / "ic_launcher_regram.png") as icon:

@@ -100,7 +100,8 @@ public class EditCoverButton extends View {
                 return;
             }
             // The view uses the decoded frame directly; allocating and drawing a second
-            // thumbnail here wasted memory without ever displaying the thumbnail.            AndroidUtilities.runOnUIThread(() -> setImage(frame));
+            // thumbnail here wasted memory without ever displaying the thumbnail.
+            AndroidUtilities.runOnUIThread(() -> setImage(frame));
         });
     }
 

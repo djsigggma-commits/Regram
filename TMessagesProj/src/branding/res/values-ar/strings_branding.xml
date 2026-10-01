@@ -2,4 +2,9 @@
 <resources>
     <string name="AppName">re:gram</string>
     <string name="AppNameBeta">re:gram Beta</string>
+    <string name="OECrashTitle">تعطّل re:gram</string>
+    <string name="OEGeneralNagramSettings">إعدادات re:gram</string>
+    <string name="OEGeneralResetSettingsDone">تمت إعادة تعيين تفضيلات re:gram.</string>
+    <string name="OEGlyphInfo">تُضيء واجهة Glyph على ظهر هاتف Nothing: وميض للرسائل الواردة، وشعار re:gram على Glyph Matrix في Phone (3)، وتوهج متنفّس أثناء تسجيل الرسائل الصوتية أو استقبال مكالمة. المحادثات المكتومة لا تُطلق الوميض أبدًا.</string>
+    <string name="OpenExteraPreferences">تفضيلات re:gram</string>
 </resources>

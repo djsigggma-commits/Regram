@@ -1088,7 +1088,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
 
     }
 
-    private int getClickChildPosition(View child) {
+    private int getCurrentChildPosition(View child) {
         return useLayoutPositionOnClick ? getChildLayoutPosition(child) : getChildAdapterPosition(child);
     }
 
@@ -1191,7 +1191,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
                     if (currentChildView == null || currentChildPosition == -1 || onItemLongClickListener == null && onItemLongClickListenerExtended == null) {
                         return;
                     }
-                    int position = getClickChildPosition(currentChildView);
+                    int position = getCurrentChildPosition(currentChildView);
                     if (position == NO_POSITION) {
                         return;
                     }
@@ -1266,7 +1266,7 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
                 }
                 currentChildPosition = -1;
                 if (currentChildView != null) {
-                    currentChildPosition = getClickChildPosition(currentChildView);
+                    currentChildPosition = getCurrentChildPosition(currentChildView);
                     MotionEvent childEvent = MotionEvent.obtain(0, 0, event.getActionMasked(), event.getX() - currentChildView.getLeft(), event.getY() - currentChildView.getTop(), 0);
                     if (currentChildView.onTouchEvent(childEvent)) {
                         interceptedByChild = true;

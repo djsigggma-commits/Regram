@@ -31,6 +31,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.PushListenerController;
+import org.telegram.messenger.ProxyPingController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UnifiedPushService;
 import org.telegram.messenger.UserConfig;
@@ -55,7 +56,8 @@ import app.regram.general.GeneralConfig;
 import app.regram.general.GeneralHelper;
 import app.regram.nowplaying.LastFmNowPlaying;
 import app.regram.nowplaying.LastFmWebFetcher;
-import app.regram.nowplaying.ProfileMusicStamp;import tw.nekomimi.nekogram.NekoConfig;
+import app.regram.nowplaying.ProfileMusicStamp;
+import tw.nekomimi.nekogram.NekoConfig;
 import tw.nekomimi.nekogram.config.ConfigItem;
 import tw.nekomimi.nekogram.helpers.AppRestartHelper;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
@@ -94,6 +96,7 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
     private int generalHeaderRow;
     private int disableNumberRoundingRow;
     private int formatTimeWithSecondsRow;
+    private int disableBrowserCollapseRow;
     private int inAppVibrationRow;
     private int disableNotificationDelayRow;
     private int filterZalgoRow;
@@ -102,12 +105,14 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
     private int speedHeaderRow;
     private int downloadSpeedRow;
     private int uploadBoostRow;
+    private int noPreloadRepeatOneRow;
     private int speedDividerRow;
 
     private int networkHeaderRow;
     private int useIPv6Row;
     private int dnsTypeRow;
     private int customDoHRow;
+    private int liveProxyPingRow;
     private int networkDividerRow;
 
     private int storageHeaderRow;
@@ -164,6 +169,7 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
         generalHeaderRow = addRow("generalHeader");
         disableNumberRoundingRow = addRow("disableNumberRounding");
         formatTimeWithSecondsRow = addRow("formatTimeWithSeconds");
+        disableBrowserCollapseRow = addRow(NekoConfig.regramDisableBrowserCollapse.key);
         inAppVibrationRow = addRow("inAppVibration");
         disableNotificationDelayRow = addRow("disableNotificationDelay");
         filterZalgoRow = addRow("filterZalgo");
@@ -172,12 +178,14 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
         speedHeaderRow = addRow("speedHeader");
         downloadSpeedRow = addRow("downloadSpeed");
         uploadBoostRow = addRow("uploadBoost");
+        noPreloadRepeatOneRow = addRow(NekoConfig.regramNoPreloadRepeatOne.key);
         speedDividerRow = addRow();
 
         networkHeaderRow = addRow("networkHeader");
         useIPv6Row = addRow("IPv6");
         dnsTypeRow = addRow("dnsType", "DnsType");
         customDoHRow = NekoConfig.dnsType.Int() == NekoConfig.DNS_TYPE_CUSTOM_DOH ? addRow("customDoH", "CustomDoH") : -1;
+        liveProxyPingRow = addRow(NekoConfig.regramLiveProxyPing.key);
         networkDividerRow = addRow();
 
         storageHeaderRow = addRow("storageHeader");
@@ -334,6 +342,12 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
             item = NekoConfig.disableNumberRounding;
         } else if (position == formatTimeWithSecondsRow) {
             item = NekoConfig.showSeconds;
+        } else if (position == disableBrowserCollapseRow) {
+            item = NekoConfig.regramDisableBrowserCollapse;
+        } else if (position == noPreloadRepeatOneRow) {
+            item = NekoConfig.regramNoPreloadRepeatOne;
+        } else if (position == liveProxyPingRow) {
+            item = NekoConfig.regramLiveProxyPing;
         } else if (position == relativeLastSeenRow) {
             item = OpenExteraConfig.relativeLastSeen;
         } else if (position == inAppVibrationRow) {
@@ -385,6 +399,9 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
         if (position == formatTimeWithSecondsRow) {
             LocaleController.getInstance().recreateFormatters();
             rebuildAll();
+        }
+        if (position == liveProxyPingRow) {
+            ProxyPingController.onSettingChanged();
         }
         if (position == filterZalgoRow) {
             // Подпись секции показывает результат работы фильтра, значит меняется вместе с ним.
@@ -1132,6 +1149,10 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
                         cell.setTextAndValueAndCheck(getString(R.string.OEGeneralFormatTimeWithSeconds),
                                 getString(R.string.OEGeneralFormatTimeWithSecondsValue),
                                 NekoConfig.showSeconds.Bool(), true, true);
+                    } else if (position == disableBrowserCollapseRow) {
+                        cell.setTextAndValueAndCheck(getString(R.string.RegramDisableBrowserCollapse),
+                                getString(R.string.RegramDisableBrowserCollapseInfo),
+                                NekoConfig.regramDisableBrowserCollapse.Bool(), true, true);
                     } else if (position == inAppVibrationRow) {
                         cell.setTextAndCheck(getString(R.string.OEGeneralInAppVibration),
                                 !NekoConfig.disableVibration.Bool(), true);
@@ -1143,7 +1164,11 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
                                 NaConfig.INSTANCE.getZalgoFilter().Bool(), false);
                     } else if (position == uploadBoostRow) {
                         cell.setTextAndCheck(getString(R.string.OEGeneralUploadBoost),
-                                NekoConfig.uploadBoost.Bool(), false);
+                                NekoConfig.uploadBoost.Bool(), true);
+                    } else if (position == noPreloadRepeatOneRow) {
+                        cell.setTextAndValueAndCheck(getString(R.string.RegramNoPreloadRepeatOne),
+                                getString(R.string.RegramNoPreloadRepeatOneInfo),
+                                NekoConfig.regramNoPreloadRepeatOne.Bool(), false, true);
                     } else if (position == relativeLastSeenRow) {
                         // Значение строки — живой пример «был(а) 5 минут назад».
                         cell.setTextAndValueAndCheck(getString(R.string.OEGeneralRelativeLastSeen),
@@ -1164,6 +1189,10 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
                     } else if (position == useIPv6Row) {
                         cell.setTextAndCheck(getString(R.string.IPv6),
                                 NekoConfig.useIPv6.Bool(), true);
+                    } else if (position == liveProxyPingRow) {
+                        cell.setTextAndValueAndCheck(getString(R.string.RegramLiveProxyPing),
+                                getString(R.string.RegramLiveProxyPingInfo),
+                                NekoConfig.regramLiveProxyPing.Bool(), false, true);
                     } else if (position == saveToChatSubfolderRow) {
                         cell.setTextAndCheck(getString(R.string.SaveToChatSubfolder),
                                 NaConfig.INSTANCE.getSaveToChatSubfolder().Bool(), true);
@@ -1215,9 +1244,9 @@ public class OpenExteraGeneralActivity extends BaseNekoSettingsActivity {
                         CharSequence[] options = dnsTypeOptions();
                         int type = NekoConfig.dnsType.Int();
                         cell.setTextAndValue(getString(R.string.DnsType),
-                                options[type < 0 || type >= options.length ? 0 : type], customDoHRow != -1);
+                                options[type < 0 || type >= options.length ? 0 : type], true);
                     } else if (position == customDoHRow) {
-                        cell.setTextAndValue(getString(R.string.CustomDoH), NekoConfig.customDoH.String(), false);
+                        cell.setTextAndValue(getString(R.string.CustomDoH), NekoConfig.customDoH.String(), true);
                     } else if (position == pushServiceTypeRow) {
                         CharSequence[] options = pushServiceTypeOptions();
                         int type = NaConfig.INSTANCE.getPushServiceType().Int();

@@ -33,15 +33,35 @@ def test_badge_is_only_attached_to_user_names_and_has_localized_explanation():
         assert xml.find(".//string[@name='RegramSupporterInfo']") is not None
 
 
-def test_id_line_format_allows_optional_emoji_but_not_malformed_ids():
+def test_id_line_format_allows_optional_emoji_and_message_but_not_malformed_ids():
     code = (SRC / 'java/app/regram/badges/SupporterBadges.java').read_text()
     expression = re.search(r'private static final Pattern LINE = Pattern.compile\(\s*"(.*?)"\);', code).group(1)
     # Decode the Java string escapes used by the Pattern constructor.
     expression = expression.replace('\\\\', '\\')
     pattern = re.compile(expression)
-    assert pattern.fullmatch('748121342').groups() == ('748121342', None)
+    assert pattern.fullmatch('748121342').groups() == ('748121342', None, None)
     assert pattern.fullmatch('7902274224 - tg://emoji?id=5391150165207852041').groups() == (
-        '7902274224', '5391150165207852041')
+        '7902274224', '5391150165207852041', None)
+    for line, groups in (
+        ('748121342 - tg://emoji?id=5296437331648096571 - разраб1',
+         ('748121342', '5296437331648096571', 'разраб1')),
+        ('7902274224 - tg://emoji?id=5391150165207852041 - разраб2',
+         ('7902274224', '5391150165207852041', 'разраб2')),
+        ('1235025966 - tg://emoji?id=5296437331648096571 - дезигнер',
+         ('1235025966', '5296437331648096571', 'дезигнер')),
+    ):
+        assert pattern.fullmatch(line).groups() == groups
     for bad in ('0', '-1', '7902274224 - tg://emoji?id=0', '7902274224 - https://evil.test',
-                '7902274224 - tg://emoji?id=abc', '123 junk'):
+                '7902274224 - tg://emoji?id=abc', '123 junk',
+                '123 - tg://emoji?id=456 - ', '123 - кастомный текст'):
         assert not pattern.fullmatch(bad)
+
+
+def test_message_change_updates_existing_badge_and_old_entries_keep_fallback():
+    code = (SRC / 'java/app/regram/badges/SupporterBadges.java').read_text()
+    assert 'MAX_MESSAGE_LENGTH = 200' in code
+    assert 'message.length() > MAX_MESSAGE_LENGTH' in code
+    assert 'return emojiId == info.emojiId && TextUtils.equals(message, info.message);' in code
+    assert 'TextUtils.equals(previous.message, configured.message)' in code
+    assert 'badge.message != null ? badge.message' in code
+    assert 'name.getContext().getString(R.string.RegramSupporterInfo)' in code

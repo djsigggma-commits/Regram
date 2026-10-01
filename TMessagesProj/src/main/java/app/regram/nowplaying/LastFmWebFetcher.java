@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 
 public final class LastFmWebFetcher {
 
@@ -40,7 +40,7 @@ public final class LastFmWebFetcher {
     private static boolean passed;
     private static Pending current;
     private static long startedAt;
-    private static final ArrayList<Pending> queue = new ArrayList<>();
+    private static final ArrayDeque<Pending> queue = new ArrayDeque<>();
     private static final Runnable timeout = LastFmWebFetcher::onTimeout;
     private static final Runnable release = LastFmWebFetcher::release;
 
@@ -140,7 +140,7 @@ public final class LastFmWebFetcher {
         if (current != null || queue.isEmpty()) {
             return;
         }
-        current = queue.remove(0);
+        current = queue.removeFirst();
         startedAt = SystemClock.elapsedRealtime();
         WebView view = ensureWebView();
         LastFmNowPlaying.debug("web: open " + current.path + ", cookies: " + cookieSummary());
@@ -157,6 +157,8 @@ public final class LastFmWebFetcher {
             done.result.onResult(html, error);
         }
         next();
+        // The previous release timer may have fired during a long queue of requests.
+        scheduleRelease();
     }
 
     @SuppressLint("SetJavaScriptEnabled")

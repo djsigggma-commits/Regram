@@ -2699,10 +2699,8 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
                                 }
                                 waitingForKeyboardCloseRunnable = null;
                                 if (noDelay) {
-                                    if (currentFragment != null) {
-                                        currentFragment.onTransitionAnimationStart(false, false);
-                                    }
-                                    fragment.onTransitionAnimationStart(true, false);
+                                    // Transition start was already delivered above; invoking it
+                                    // again after the keyboard closes restarts screen animations.
                                     startLayoutAnimation(true, true, preview);
                                 } else if (delayedOpenAnimationRunnable != null) {
                                     AndroidUtilities.cancelRunOnUIThread(delayedOpenAnimationRunnable);

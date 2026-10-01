@@ -81,6 +81,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     private int useSystemEmojiRow;
     private int gooeyAvatarRow;
     private int customThemesRow;
+    private int disableWallpaperParallaxRow;
     private int appearanceDividerRow;
 
     // Sections (UI only)
@@ -111,6 +112,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     private int centerTitleRow;
     // Material Design 3: сворачиваемая группа и пять вложенных стилей.
     private int md3GroupRow;
+    private int regramM3SlidersRow;
     private int md3LoadingRow;
     private int md3SliderRow;
     private int md3SwitchRow;
@@ -239,6 +241,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         } else {
             md3LoadingRow = md3SliderRow = md3SwitchRow = md3ChatHeaderRow = md3NavBarRow = md3ListItemsRow = -1;
         }
+        regramM3SlidersRow = addRow(NekoConfig.regramM3Sliders.key);
         iosGroupRow = addRow("iosStyles");
         if (iosExpanded) {
             iosNavBarRow = addRow("iosNavBar");
@@ -263,6 +266,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         }
         gooeyAvatarRow = addRow("gooeyAvatar");
         customThemesRow = addRow("customThemes");
+        disableWallpaperParallaxRow = addRow(NekoConfig.regramDisableWallpaperParallax.key);
         appearanceDividerRow = addRow();
 
         sectionsHeaderRow = addRow("sectionsHeader");
@@ -805,6 +809,10 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             item = AppearanceConfig.gooeyAvatarAnimation;
         } else if (position == customThemesRow) {
             item = AppearanceConfig.customThemes;
+        } else if (position == regramM3SlidersRow) {
+            item = NekoConfig.regramM3Sliders;
+        } else if (position == disableWallpaperParallaxRow) {
+            item = NekoConfig.regramDisableWallpaperParallax;
         } else if (position == separateHeadersRow) {
             item = AppearanceConfig.separateHeaders;
         } else if (position == disableAvatarBlurRow) {
@@ -965,7 +973,15 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                     } else if (position == gooeyAvatarRow) {
                         cell.setTextAndCheck(getString(R.string.OEAppearanceGooeyAvatar), AppearanceConfig.gooeyAvatarAnimation.Bool(), true);
                     } else if (position == customThemesRow) {
-                        cell.setTextAndCheck(getString(R.string.OEAppearanceCustomThemes), AppearanceConfig.customThemes.Bool(), false);
+                        cell.setTextAndCheck(getString(R.string.OEAppearanceCustomThemes), AppearanceConfig.customThemes.Bool(), true);
+                    } else if (position == disableWallpaperParallaxRow) {
+                        cell.setTextAndValueAndCheck(getString(R.string.RegramDisableWallpaperParallax),
+                                getString(R.string.RegramDisableWallpaperParallaxInfo),
+                                NekoConfig.regramDisableWallpaperParallax.Bool(), false, true);
+                    } else if (position == regramM3SlidersRow) {
+                        cell.setTextAndValueAndCheck(getString(R.string.RegramM3Sliders),
+                                getString(R.string.RegramM3SlidersInfo),
+                                NekoConfig.regramM3Sliders.Bool(), true, true);
                     } else if (position == separateHeadersRow) {
                         cell.setTextAndCheck(getString(R.string.OEAppearanceSeparateHeaders), AppearanceConfig.sectionsSeparatedHeaders(), true);
                     } else if (position == glassMessageMenuRow) {

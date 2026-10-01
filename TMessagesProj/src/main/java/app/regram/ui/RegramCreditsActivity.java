@@ -28,14 +28,13 @@ import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 public class RegramCreditsActivity extends BaseNekoSettingsActivity {
     private static final int TYPE_ART = 100;
     private static final String[] CREATORS = {
-            "WeexTech", "@ihufe", "ChatGPT", "@lime_2612", "@atb_ptzhn"
+            "@ihufe", "@lime_2612", "@atb_ptzhn"
     };
     private static final String[] SOURCES = {
             "@nagramxf", "@exteraless", "@inugram", "@exteragram", "@ayugram"
     };
     private static final int[] ROLES = {
-            R.string.RegramOwner, R.string.RegramDesigner, R.string.RegramCoder1,
-            R.string.RegramCoder2, R.string.RegramCoder3
+            R.string.RegramDesigner, R.string.RegramCoder1, R.string.RegramCoder2
     };
 
     private int artRow;

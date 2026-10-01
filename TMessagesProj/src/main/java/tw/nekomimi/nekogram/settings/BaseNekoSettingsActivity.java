@@ -83,6 +83,7 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
 
     protected BlurredRecyclerView listView;
     protected BaseListAdapter listAdapter;
+    private boolean settingsResumedOnce;
     protected LinearLayoutManager layoutManager;
     protected Theme.ResourcesProvider resourcesProvider;
 
@@ -123,6 +124,9 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
 
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setChangeDuration(350);
+        // Settings values are rebound when returning from subpages. Cross-fading
+        // every row creates duplicate view holders during the screen transition.
+        itemAnimator.setSupportsChangeAnimations(false);
         itemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
         itemAnimator.setDelayAnimations(false);
         listView.setItemAnimator(itemAnimator);
@@ -227,9 +231,12 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (listAdapter != null) {
+        if (settingsResumedOnce && listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
+        // The initial bind already reads current values. Keep the full refresh on
+        // later resumes: subclasses may change their row count while off screen.
+        settingsResumedOnce = true;
     }
 
     protected boolean hasWhiteActionBar() {

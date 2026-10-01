@@ -38,6 +38,7 @@ def test_exitfy_lite_bounds_concurrent_probes_and_ignores_stale_switches():
     assert 'CHECK_BATCH_TIMEOUT_MS' in code
     assert 'originalProxy != SharedConfig.currentProxy' in code
     assert 'if (activeBatch != this) return;' in code
+    assert 'import org.telegram.utils.proxy.ProxySettings;' in code
 
 
 def test_download_and_badge_fetch_do_not_block_telegram_global_queue():

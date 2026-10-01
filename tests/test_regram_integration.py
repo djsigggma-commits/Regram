@@ -28,18 +28,23 @@ firebase_placeholder = module("make_placeholder_google_services")
 class RegramIntegrationTests(unittest.TestCase):
     def test_credits_are_reachable_and_source_handles_are_preserved(self):
         credits = (JAVA / "app/regram/ui/RegramCreditsActivity.java").read_text()
-        features = (JAVA / "app/regram/ui/RegramSettingsActivity.java").read_text()
         root = (JAVA / "app/regram/settings/OpenExteraSettingsActivity.java").read_text()
-        for name in ("WeexTech", "@ihufe", "ChatGPT", "@lime_2612", "@atb_ptzhn",
+        other = (JAVA / "app/regram/settings/OpenExteraOtherActivity.java").read_text()
+        for name in ("@ihufe", "@lime_2612", "@atb_ptzhn",
                      "@nagramxf", "@exteraless", "@inugram", "@exteragram", "@ayugram"):
             self.assertIn('"' + name + '"', credits)
-        self.assertIn("presentFragment(new RegramCreditsActivity())", features)
-        self.assertIn("new app.regram.ui.RegramCreditsActivity()", root)
+        for name in ("WeexTech", "ChatGPT"):
+            self.assertNotIn('"' + name + '"', credits)
+        self.assertNotIn('addRow("regramCreatorsAndSources")', root)
+        self.assertIn('creditsRow = addRow("regramCreatorsAndSources")', other)
+        self.assertIn('presentFragment(new app.regram.ui.RegramCreditsActivity())', other)
+        self.assertIn('cell.setTextAndIcon(getString(R.string.RegramCreatorsAndSources), R.drawable.msg_groups, false)', other)
         for language in ("values", "values-ru-rRU"):
             path = ROOT / "TMessagesProj/src/main/res" / language / "strings_regram.xml"
             names = {node.get("name") for node in ET.parse(path).getroot()}
-            self.assertTrue({"RegramCreatorsAndSources", "RegramOwner", "RegramDesigner",
-                             "RegramCoder1", "RegramCoder2", "RegramCoder3", "RegramCodeSources"} <= names)
+            self.assertTrue({"RegramCreatorsAndSources", "RegramDesigner",
+                             "RegramCoder1", "RegramCoder2", "RegramCodeSources"} <= names)
+            self.assertFalse({"RegramOwner", "RegramCoder3"} & names)
         for path, text in branding.overlays().items():
             for node in ET.fromstring(text).findall("string"):
                 self.assertNotRegex(node.text or "", r"(?i)nagram|exteraless|exteragram")
@@ -87,7 +92,19 @@ class RegramIntegrationTests(unittest.TestCase):
         config = (JAVA / "tw/nekomimi/nekogram/NekoConfig.java").read_text()
         options = re.findall(r'ConfigItem (regram\w+) = addConfig\("(Regram\w+)", configTypeBool, false\)', config)
         self.assertEqual(len(options), 10)
-        settings = (JAVA / "app/regram/ui/RegramSettingsActivity.java").read_text()
+        destinations = {
+            "regramDisableBrowserCollapse": "OpenExteraGeneralActivity",
+            "regramNoPreloadRepeatOne": "OpenExteraGeneralActivity",
+            "regramLiveProxyPing": "OpenExteraGeneralActivity",
+            "regramM3Sliders": "OpenExteraAppearanceActivity",
+            "regramDisableWallpaperParallax": "OpenExteraAppearanceActivity",
+            "regramSortAlbumsBySize": "OpenExteraChatsActivity",
+            "regramKeepPeerSearch": "OpenExteraChatsActivity",
+            "regramHideHashtagSuggestions": "OpenExteraChatsActivity",
+            "regramDisableGeneralTopicSwipe": "OpenExteraChatsActivity",
+            "regramDisableSensitiveContent": "OpenExteraOtherActivity",
+        }
+        self.assertEqual({field for field, _ in options}, destinations.keys())
         consumers = "\n".join((JAVA / path).read_text() for path in (
             "app/regram/ui/M3SliderHelper.kt",
             "org/telegram/ui/ArticleViewer.java",
@@ -104,8 +121,16 @@ class RegramIntegrationTests(unittest.TestCase):
         resources = ET.parse(ROOT / "TMessagesProj/src/main/res/values/strings_regram.xml").getroot()
         names = {node.get("name") for node in resources}
         for field, key in options:
-            self.assertIn("NekoConfig." + field, settings)
+            settings = (JAVA / "app/regram/settings" / (destinations[field] + ".java")).read_text()
+            self.assertIn(f"addRow(NekoConfig.{field}.key)", settings)
+            self.assertIn("NekoConfig." + field + ".Bool()", settings)
             self.assertIn("NekoConfig." + field + ".Bool()", consumers)
+            self.assertIn(f"R.string.{key}", settings)
+            self.assertIn(f"R.string.{key}Info", settings)
+            toggle = (f"return NekoConfig.{field};" if destinations[field] == "OpenExteraChatsActivity"
+                      else f"toggleCheck(view, NekoConfig.{field})" if destinations[field] == "OpenExteraOtherActivity"
+                      else f"item = NekoConfig.{field};")
+            self.assertIn(toggle, settings)
             self.assertIn(key, names)
             self.assertIn(key + "Info", names)
 
@@ -182,7 +207,7 @@ class RegramIntegrationTests(unittest.TestCase):
         topics = (JAVA / "org/telegram/ui/TopicsFragment.java").read_text()
         self.assertIn("topic.id == 1 && selectedTopics.isEmpty() && NekoConfig.regramDisableGeneralTopicSwipe.Bool()", topics)
         self.assertIn("if (selectedTopics.isEmpty() && viewHolder.itemView instanceof TopicDialogCell && topic.id == 1)", topics)
-        settings = (JAVA / "app/regram/ui/RegramSettingsActivity.java").read_text()
+        settings = (JAVA / "app/regram/settings/OpenExteraChatsActivity.java").read_text()
         self.assertIn("NekoConfig.regramDisableGeneralTopicSwipe", settings)
         for language in ("values", "values-ru-rRU"):
             strings = (ROOT / "TMessagesProj/src/main/res" / language / "strings_regram.xml").read_text()
@@ -223,7 +248,7 @@ class RegramIntegrationTests(unittest.TestCase):
 
     def test_proxy_ping_has_no_disabled_polling_or_stale_results(self):
         controller = (JAVA / "org/telegram/messenger/ProxyPingController.java").read_text()
-        settings = (JAVA / "app/regram/ui/RegramSettingsActivity.java").read_text()
+        settings = (JAVA / "app/regram/settings/OpenExteraGeneralActivity.java").read_text()
         self.assertIn("ProxyPingController.onSettingChanged()", settings)
         self.assertIn("AndroidUtilities.cancelRunOnUIThread(pingRunnable)", controller)
         self.assertIn("if (NekoConfig.regramLiveProxyPing.Bool() && isForeground()) scheduleNextPing(0)", controller)
@@ -245,8 +270,11 @@ class RegramIntegrationTests(unittest.TestCase):
     def test_settings_are_reachable_and_searchable(self):
         root = (JAVA / "app/regram/settings/OpenExteraSettingsActivity.java").read_text()
         search = (JAVA / "tw/nekomimi/nekogram/helpers/SettingsHelper.java").read_text()
-        self.assertIn("new app.regram.ui.RegramSettingsActivity()", root)
-        self.assertIn("new app.regram.ui.RegramSettingsActivity()", search)
+        self.assertNotIn('regramRow = addRow("regram")', root)
+        self.assertFalse((JAVA / "app/regram/ui/RegramSettingsActivity.java").exists())
+        for category in ("General", "Appearance", "Chats", "Other"):
+            self.assertIn(f"new OpenExtera{category}Activity()", root)
+            self.assertIn(f"new OpenExtera{category}Activity()", search)
 
     def test_slider_fallbacks_and_no_missing_inugram_runtime(self):
         helper = (JAVA / "app/regram/ui/M3SliderHelper.kt").read_text()

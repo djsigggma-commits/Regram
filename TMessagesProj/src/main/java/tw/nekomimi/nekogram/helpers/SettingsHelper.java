@@ -334,7 +334,6 @@ public class SettingsHelper {
 
         ArrayList<BaseNekoSettingsActivity> regramFragments = new ArrayList<>();
         regramFragments.add(new OpenExteraSettingsActivity());
-        regramFragments.add(new app.regram.ui.RegramSettingsActivity());
         regramFragments.add(new app.regram.ui.RegramCreditsActivity());
         regramFragments.add(new OpenExteraGeneralActivity());
         regramFragments.add(new OpenExteraAppearanceActivity());

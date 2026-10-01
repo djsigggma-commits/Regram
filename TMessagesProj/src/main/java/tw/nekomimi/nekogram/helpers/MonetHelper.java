@@ -22,6 +22,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -301,7 +302,7 @@ public class MonetHelper {
     private static final String ACTION_OVERLAY_CHANGED = "android.intent.action.OVERLAY_CHANGED";
     private static final HashMap<String, Integer> tokenCache = new HashMap<>();
     private static final OverlayChangeReceiver overlayChangeReceiver = new OverlayChangeReceiver();
-    private static int lastMonetColor = 0;
+    private static int[] lastMonetColors;
 
     public static int getColor(String color) {
         Integer resolved = getColorOrNull(color);
@@ -734,7 +735,7 @@ public class MonetHelper {
                 return;
             }
             invalidateCache();
-            lastMonetColor = 0;
+            lastMonetColors = null;
             Theme.ThemeInfo activeTheme = Theme.getActiveTheme();
             if (activeTheme == null || !activeTheme.isMonet()) {
                 return;
@@ -766,32 +767,33 @@ public class MonetHelper {
         // Quick check: if the current theme is not a Monet theme, return directly
         Theme.ThemeInfo activeTheme = Theme.getActiveTheme();
         if (activeTheme == null || !activeTheme.isMonet()) {
-            lastMonetColor = 0; // Reset to detect correctly when switching back to Monet theme
+            lastMonetColors = null;
             return;
         }
 
-        int currentColor = getColor("a1_600");
-
-        // Record the color only on the first call, do not trigger refresh
-        if (lastMonetColor == 0) {
-            lastMonetColor = currentColor;
+        // Read resources directly. getColor("a1_600") uses tokenCache and would
+        // keep returning the *old* accent even after the wallpaper changes.
+        Context context = ApplicationLoader.applicationContext;
+        if (context == null) return;
+        int[] currentColors = {
+                context.getColor(android.R.color.system_accent1_600),
+                context.getColor(android.R.color.system_accent2_600),
+                context.getColor(android.R.color.system_accent3_600),
+                context.getColor(android.R.color.system_neutral1_900),
+                context.getColor(android.R.color.system_neutral2_50)
+        };
+        if (lastMonetColors == null) {
+            lastMonetColors = currentColors;
             return;
         }
-
-        // Return directly if the color has not changed
-        if (lastMonetColor == currentColor) {
-            return;
-        }
+        if (Arrays.equals(lastMonetColors, currentColors)) return;
 
         invalidateCache();
-
-        // Refresh theme
         boolean isNight = Theme.isCurrentThemeNight();
         Theme.applyTheme(activeTheme, isNight);
         NotificationCenter.getGlobalInstance().postNotificationName(
                 NotificationCenter.needSetDayNightTheme, activeTheme, isNight, null, -1
         );
-
-        lastMonetColor = currentColor;
+        lastMonetColors = currentColors;
     }
 }

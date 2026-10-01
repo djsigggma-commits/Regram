@@ -7,6 +7,7 @@ import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -39,10 +40,32 @@ public final class SupporterBadges {
     private static final long REFRESH_MS = 6 * 60 * 60 * 1000L;
     private static final long RETRY_MS = 15 * 60 * 1000L;
     private static final int MAX_BYTES = 128 * 1024;
+    private static final int MAX_MESSAGE_LENGTH = 200;
     private static final Pattern LINE = Pattern.compile(
-            "([1-9][0-9]{0,18})(?:\\s*-\\s*tg://emoji\\?id=([1-9][0-9]{0,18}))?");
-    // Value 0 means the default re:gram logo; otherwise it is a Telegram custom emoji document ID.
-    private static volatile Map<Long, Long> ids;
+            "([1-9][0-9]{0,18})(?:\\s*-\\s*tg://emoji\\?id=([1-9][0-9]{0,18})(?:\\s*-\\s*(\\S(?:.*\\S)?))?)?");
+    // Emoji ID 0 means the default re:gram logo. Older lines have no custom message.
+    private static volatile Map<Long, BadgeInfo> ids;
+
+    private static final class BadgeInfo {
+        final long emojiId;
+        final String message;
+
+        BadgeInfo(long emojiId, String message) {
+            this.emojiId = emojiId;
+            this.message = message;
+        }
+
+        @Override public boolean equals(Object other) {
+            if (this == other) return true;
+            if (!(other instanceof BadgeInfo)) return false;
+            BadgeInfo info = (BadgeInfo) other;
+            return emojiId == info.emojiId && TextUtils.equals(message, info.message);
+        }
+
+        @Override public int hashCode() {
+            return 31 * Long.hashCode(emojiId) + (message == null ? 0 : message.hashCode());
+        }
+    }
     private static long lastAttempt;
     private static boolean loading;
     private static final ArrayList<Runnable> listeners = new ArrayList<>();
@@ -59,15 +82,20 @@ public final class SupporterBadges {
         return ApplicationLoader.applicationContext.getSharedPreferences("regram_supporter_badges", Context.MODE_PRIVATE);
     }
 
-    private static Map<Long, Long> parse(String text) {
-        HashMap<Long, Long> parsed = new HashMap<>();
+    private static Map<Long, BadgeInfo> parse(String text) {
+        HashMap<Long, BadgeInfo> parsed = new HashMap<>();
         for (String line : text.split("\\R")) {
             Matcher match = LINE.matcher(line.trim());
             // Ignore comments and malformed lines, including invalid emoji links.
             if (!match.matches()) continue;
             try {
-                parsed.put(Long.parseLong(match.group(1)),
-                        match.group(2) == null ? 0L : Long.parseLong(match.group(2)));
+                String message = match.group(3);
+                // Remote text is displayed as plain text, never as HTML or a URL.
+                if (message != null && message.length() > MAX_MESSAGE_LENGTH) {
+                    message = null;
+                }
+                parsed.put(Long.parseLong(match.group(1)), new BadgeInfo(
+                        match.group(2) == null ? 0L : Long.parseLong(match.group(2)), message));
             } catch (NumberFormatException ignored) {}
         }
         return Collections.unmodifiableMap(parsed);
@@ -84,8 +112,8 @@ public final class SupporterBadges {
 
     public static long emojiFor(long userId) {
         loadCache();
-        Long emoji = ids.get(userId);
-        return emoji == null ? 0 : emoji;
+        BadgeInfo badge = ids.get(userId);
+        return badge == null ? 0 : badge.emojiId;
     }
 
     /** Called on the UI thread when a screen opens; the network request runs in the background. */
@@ -102,7 +130,7 @@ public final class SupporterBadges {
         if (onChange != null) listeners.add(onChange);
         IO.execute(() -> {
             String data = download();
-            Map<Long, Long> updated = data == null ? null : parse(data);
+            Map<Long, BadgeInfo> updated = data == null ? null : parse(data);
             AndroidUtilities.runOnUIThread(() -> {
                 boolean changed = updated != null && !updated.equals(ids);
                 if (updated != null) {
@@ -165,16 +193,17 @@ public final class SupporterBadges {
         BadgeAndIcon previous = current instanceof BadgeAndIcon ? (BadgeAndIcon) current : null;
         Drawable old = previous != null ? previous.original : current;
         loadCache();
-        Long configured = userId > 0 ? ids.get(userId) : null;
+        BadgeInfo configured = userId > 0 ? ids.get(userId) : null;
         if (configured == null) {
             clear(name);
             return;
         }
-        long emojiId = configured;
+        long emojiId = configured.emojiId;
         boolean dark = Theme.isCurrentThemeDark();
         if (previous != null && previous.emojiId == emojiId
-                && previous.account == account && previous.dark == dark) return;
-        BadgeAndIcon badge = new BadgeAndIcon(name, old, account, emojiId, dark);
+                && previous.account == account && previous.dark == dark
+                && TextUtils.equals(previous.message, configured.message)) return;
+        BadgeAndIcon badge = new BadgeAndIcon(name, old, account, emojiId, dark, configured.message);
         name.setRightDrawable2(badge);
         if (previous != null) previous.release(name);
         name.setOnTouchListener((view, event) -> {
@@ -190,7 +219,8 @@ public final class SupporterBadges {
             if (event.getActionMasked() == MotionEvent.ACTION_UP) {
                 new AlertDialog.Builder(name.getContext())
                         .setTitle(name.getContext().getString(R.string.RegramSupporterTitle))
-                        .setMessage(name.getContext().getString(R.string.RegramSupporterInfo))
+                        .setMessage(badge.message != null ? badge.message
+                                : name.getContext().getString(R.string.RegramSupporterInfo))
                         .setPositiveButton(name.getContext().getString(R.string.OK), null)
                         .show();
             }
@@ -217,17 +247,19 @@ public final class SupporterBadges {
         final long emojiId;
         final int account;
         final boolean dark;
+        final String message;
         final int iconWidth = AndroidUtilities.dp(23);
         private final int iconHeight;
         private final Drawable icon;
         private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable animatedIcon;
         private final int gap = AndroidUtilities.dp(5);
 
-        BadgeAndIcon(SimpleTextView name, Drawable original, int account, long emojiId, boolean dark) {
+        BadgeAndIcon(SimpleTextView name, Drawable original, int account, long emojiId, boolean dark, String message) {
             this.original = original;
             this.emojiId = emojiId;
             this.account = account;
             this.dark = dark;
+            this.message = message;
             if (original != null) original.setCallback(this);
             if (emojiId != 0) {
                 iconHeight = AndroidUtilities.dp(23);

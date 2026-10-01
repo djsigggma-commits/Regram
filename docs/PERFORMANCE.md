@@ -21,3 +21,11 @@ If a device remains slow: temporarily disable Custom Profile and exitFy separate
 - Updated the obsolete Custom Profile test to match the already removed additional-features shortcut. Previously installed plugins are unaffected.
 
 Validation: `python3 -m pytest -q tests` (157 passed, 32 skipped, 27 subtests). `:TMessagesProj:compileDebugJavaWithJavac` passed from the colon-free build copy with 10 GiB heap; this is a compilation check **not** a debug APK to distribute. A **release APK was not produced**: `assembleRelease` fails at the signing preflight because `TMessagesProj/release.keystore`, `KEYSTORE_PASS`, `ALIAS_NAME`, and `ALIAS_PASS` are absent. Never ship a debug-signed or unsigned build in its place. Re-run release verification from `docs/RELEASE.md` after the owner provides the matching signing key and credentials privately. Device-specific stutter still requires a trace.
+
+## Follow-up pass (Last.fm memory and request queue)
+
+- Recent-track entries now have a 128-profile LRU cap; expired entries are evicted on access. The separate timestamp map was removed so metadata cannot outlive its track.
+- Last.fm WebView requests use a deque instead of shifting an array on every completion; the idle-release timer restarts after the last request, even when a batch took longer than the previous timer.
+- The HTTP HTML reader no longer reads beyond its 24 KiB prefix limit on the final chunk.
+
+Validation in this checkout: `python3 -m pytest -q tests/test_nowplaying_debloat.py tests/test_performance_debloat.py tests/test_regressions.py` (21 passed, 1 skipped). Full suite: 161 passed, 32 skipped, 26 subtests passed; three pre-existing failures (missing alias targets, branding overlays, RecyclerListView invariant). Android compilation could not start: `TMessagesProj_Modules/media/core_settings.gradle` is missing (uninitialized submodule). No APK was produced or device performance measured.

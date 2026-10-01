@@ -13,7 +13,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +44,7 @@ public final class LastFmNowPlaying {
     private static final String PATH = "/user/%s/partial/recenttracks?ajax=1&page=1";
     private static final int DEBUG_LIMIT = 120;
     private static final int PREFIX_LIMIT = 24 * 1024;
+    private static final int CACHE_LIMIT = 128;
     private static final long TTL = 60_000L;
     private static final long CONNECT_TIMEOUT = 6_000L;
     private static final long READ_TIMEOUT = 6_000L;
@@ -54,8 +57,23 @@ public final class LastFmNowPlaying {
     private static final Pattern COVER = Pattern.compile("src=\"(https://lastfm-img[^\"]*)\"");
     private static final Pattern ALBUM = Pattern.compile("href=\"/music/[^/\"]+/(?!_/)([^\"]+)\"");
 
-    private static final HashMap<String, Track> CACHE = new HashMap<>();
-    private static final HashMap<String, Long> STAMPS = new HashMap<>();
+    private static final class CachedTrack {
+        final Track track;
+        final long storedAt;
+
+        CachedTrack(Track track, long storedAt) {
+            this.track = track;
+            this.storedAt = storedAt;
+        }
+    }
+
+    // Keep recent lookups only: the player can visit arbitrarily many profiles per session.
+    private static final LinkedHashMap<String, CachedTrack> CACHE = new LinkedHashMap<String, CachedTrack>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, CachedTrack> eldest) {
+            return size() > CACHE_LIMIT;
+        }
+    };
     private static final HashMap<String, ArrayList<Callback>> WAITING = new HashMap<>();
     private static final ArrayList<String> DEBUG = new ArrayList<>();
     private static volatile boolean webMode;
@@ -69,11 +87,13 @@ public final class LastFmNowPlaying {
             return null;
         }
         synchronized (CACHE) {
-            Long stamp = STAMPS.get(nick);
-            if (stamp == null || System.currentTimeMillis() - stamp > TTL) {
+            CachedTrack entry = CACHE.get(nick);
+            if (entry == null) return null;
+            if (System.currentTimeMillis() - entry.storedAt > TTL) {
+                CACHE.remove(nick);
                 return null;
             }
-            return CACHE.get(nick);
+            return entry.track;
         }
     }
 
@@ -112,7 +132,6 @@ public final class LastFmNowPlaying {
     public static void forget(String nick) {
         synchronized (CACHE) {
             CACHE.remove(nick);
-            STAMPS.remove(nick);
         }
     }
 
@@ -261,8 +280,7 @@ public final class LastFmNowPlaying {
         synchronized (CACHE) {
             waiting = WAITING.remove(nick);
             if (remember) {
-                CACHE.put(nick, track);
-                STAMPS.put(nick, System.currentTimeMillis());
+                CACHE.put(nick, new CachedTrack(track, System.currentTimeMillis()));
             }
         }
         if (waiting == null) {
@@ -298,24 +316,23 @@ public final class LastFmNowPlaying {
     }
 
     private static String read(Response response) throws Exception {
-        {
-            if (!response.isSuccessful() || response.body() == null) {
-                return null;
-            }
-            try (InputStream stream = response.body().byteStream();
-                 InputStreamReader reader = new InputStreamReader(stream, "UTF-8")) {
-                char[] buffer = new char[8192];
-                StringBuilder sb = new StringBuilder();
-                int read;
-                while (sb.length() < PREFIX_LIMIT && (read = reader.read(buffer)) > 0) {
-                    sb.append(buffer, 0, read);
-                    int rowAt = sb.indexOf("chartlist-row--");
-                    if (rowAt >= 0 && sb.indexOf("</tr>", rowAt) >= 0) {
-                        break;
-                    }
+        if (!response.isSuccessful() || response.body() == null) {
+            return null;
+        }
+        try (InputStream stream = response.body().byteStream();
+             InputStreamReader reader = new InputStreamReader(stream, "UTF-8")) {
+            char[] buffer = new char[8192];
+            StringBuilder sb = new StringBuilder();
+            int read;
+            while (sb.length() < PREFIX_LIMIT
+                    && (read = reader.read(buffer, 0, Math.min(buffer.length, PREFIX_LIMIT - sb.length()))) > 0) {
+                sb.append(buffer, 0, read);
+                int rowAt = sb.indexOf("chartlist-row--");
+                if (rowAt >= 0 && sb.indexOf("</tr>", rowAt) >= 0) {
+                    break;
                 }
-                return sb.toString();
             }
+            return sb.toString();
         }
     }
 

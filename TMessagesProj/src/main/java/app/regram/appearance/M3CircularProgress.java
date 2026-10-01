@@ -137,20 +137,28 @@ public class M3CircularProgress {
         final float arcLength = (float) (Math.abs(sweepAngle) / 180.0 * Math.PI * radius);
         final int steps = Math.max(8, Math.min(180, (int) (Math.abs(sweepAngle) / 2f)));
         final float phase = waveSpeed <= 0 ? 0 : (SystemClock.elapsedRealtime() % 100000L) / 1000f * waveSpeed;
+        // This runs on every frame: rotate the unit vector instead of computing
+        // sin/cos of the arc angle for each of up to 181 points.
+        final double angleStep = Math.toRadians(sweepAngle / steps);
+        final double stepCos = Math.cos(angleStep);
+        final double stepSin = Math.sin(angleStep);
+        double angleCos = Math.cos(Math.toRadians(startAngle));
+        double angleSin = Math.sin(Math.toRadians(startAngle));
+        final double waveStart = 2 * Math.PI * phase / waveLength;
+        final double waveStep = 2 * Math.PI * arcLength / (steps * waveLength);
         for (int i = 0; i <= steps; i++) {
-            final float t = i / (float) steps;
-            final float angle = startAngle + sweepAngle * t;
-            final float along = arcLength * t + phase;
-            final float offset = (float) (waveAmplitude * Math.sin(2 * Math.PI * along / waveLength));
-            final double rad = Math.toRadians(angle);
+            final float offset = (float) (waveAmplitude * Math.sin(waveStart + i * waveStep));
             final float r = radius + offset;
-            final float x = cx + (float) (r * Math.cos(rad));
-            final float y = cy + (float) (r * Math.sin(rad));
+            final float x = cx + (float) (r * angleCos);
+            final float y = cy + (float) (r * angleSin);
             if (i == 0) {
                 path.moveTo(x, y);
             } else {
                 path.lineTo(x, y);
             }
+            final double nextCos = angleCos * stepCos - angleSin * stepSin;
+            angleSin = angleSin * stepCos + angleCos * stepSin;
+            angleCos = nextCos;
         }
     }
 }

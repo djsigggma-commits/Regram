@@ -31,12 +31,10 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
 
     private int categoriesHeaderRow;
     private int generalRow;
-    private int regramRow;
     private int appearanceRow;
     private int chatsRow;
     private int pluginsRow;
     private int otherRow;
-    private int creditsRow;
     private int categoriesDividerRow;
 
     @Override
@@ -46,13 +44,11 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
         aboutRow = addRow("about");
 
         categoriesHeaderRow = addRow("categoriesHeader");
-        regramRow = addRow("regram");
         generalRow = addRow("general");
         appearanceRow = addRow("appearance");
         chatsRow = addRow("chats");
         pluginsRow = addRow("plugins");
         otherRow = addRow("other");
-        creditsRow = addRow("regramCreatorsAndSources");
         categoriesDividerRow = addRow();
     }
 
@@ -157,9 +153,7 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position == regramRow) {
-            presentFragment(new app.regram.ui.RegramSettingsActivity());
-        } else if (position == generalRow) {
+        if (position == generalRow) {
             presentFragment(new OpenExteraGeneralActivity());
         } else if (position == appearanceRow) {
             presentFragment(new OpenExteraAppearanceActivity());
@@ -169,8 +163,6 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new app.regram.plugins.ui.PluginsActivity());
         } else if (position == otherRow) {
             presentFragment(new OpenExteraOtherActivity());
-        } else if (position == creditsRow) {
-            presentFragment(new app.regram.ui.RegramCreditsActivity());
         }
     }
 
@@ -205,9 +197,7 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                 }
                 case TYPE_TEXT: {
                     TextCell cell = (TextCell) holder.itemView;
-                    if (position == regramRow) {
-                        cell.setTextAndIcon(getString(R.string.RegramFeatures), R.drawable.msg_settings_old, true);
-                    } else if (position == generalRow) {
+                    if (position == generalRow) {
                         cell.setTextAndIcon(getString(R.string.OpenExteraGeneral), R.drawable.msg_media, true);
                     } else if (position == appearanceRow) {
                         cell.setTextAndIcon(getString(R.string.OpenExteraAppearance), R.drawable.msg_theme, true);
@@ -216,9 +206,7 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                     } else if (position == pluginsRow) {
                         cell.setTextAndIcon(getString(R.string.OpenExteraPlugins), R.drawable.msg_plugins, true);
                     } else if (position == otherRow) {
-                        cell.setTextAndIcon(getString(R.string.OpenExteraOther), R.drawable.msg_fave, true);
-                    } else if (position == creditsRow) {
-                        cell.setTextAndIcon(getString(R.string.RegramCreatorsAndSources), R.drawable.msg_groups, false);
+                        cell.setTextAndIcon(getString(R.string.OpenExteraOther), R.drawable.msg_fave, false);
                     }
                     // ВАЖНО: только после setTextAndIcon* — они сбрасывают imageLeft в 16dp.
                     // Метрики сняты с 12.9.0 (420 dpi): иконка 88px от края экрана, текст 219px,

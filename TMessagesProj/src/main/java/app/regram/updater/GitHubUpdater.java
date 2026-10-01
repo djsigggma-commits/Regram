@@ -15,7 +15,6 @@ import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildConfig;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -50,7 +49,7 @@ public final class GitHubUpdater {
     private static final String PREFS = "exteraless_updater";
     private static final String KEY_LAST_CHECK = "last_check";
     private static final String KEY_SKIPPED = "skipped_tag";
-    private static final Pattern VERSION = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
+    private static final Pattern VERSION = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
 
     private static volatile OkHttpClient client;
     private static volatile boolean checking;
@@ -219,7 +218,8 @@ public final class GitHubUpdater {
             }
             Matcher matcher = VERSION.matcher(source);
             if (matcher.find()) {
-                return new int[]{Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3))};
+                return new int[]{Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
+                        matcher.group(3) == null ? 0 : Integer.parseInt(matcher.group(3))};
             }
         }
         return null;
@@ -227,7 +227,7 @@ public final class GitHubUpdater {
 
     private static Integer compareVersion(Release release) {
         int[] remote = version(release.tag, release.name, release.apkName);
-        int[] local = version(BuildVars.BUILD_VERSION_STRING);
+        int[] local = version(BuildConfig.VERSION_NAME);
         if (remote == null || local == null) {
             return null;
         }

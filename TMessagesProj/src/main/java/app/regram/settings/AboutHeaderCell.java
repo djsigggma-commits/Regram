@@ -17,6 +17,7 @@ import app.regram.icons.IconShapeHelper;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -95,9 +96,9 @@ public class AboutHeaderCell extends LinearLayout {
                 Gravity.TOP | Gravity.CENTER_HORIZONTAL, 60, 2, 60, 28));
     }
 
-    /** "12.9.2 (1258)" — версия плюс versionCode из PackageInfo, как в оригинале. */
+    /** "1.0 (10000)" — версия re:gram плюс versionCode из PackageInfo. */
     private static String buildVersionString() {
-        StringBuilder sb = new StringBuilder(BuildVars.BUILD_VERSION_STRING);
+        StringBuilder sb = new StringBuilder(BuildConfig.VERSION_NAME);
         try {
             PackageInfo info = ApplicationLoader.applicationContext.getPackageManager()
                     .getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);

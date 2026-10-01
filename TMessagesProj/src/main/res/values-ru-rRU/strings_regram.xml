@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="RegramFeatures">re:gram · Дополнительные функции</string>
     <string name="RegramSupporterTitle">Поддержка re:gram</string>
     <string name="RegramSupporterInfo">Этот пользователь поддержал разработку re:gram и получил эксклюзивный значок. Если хотите так же — денежно поддержите разработку клиента по реквизитам, указанным в настройках re:gram → Создатели и источники.</string>
     <string name="RegramRecommendedHeader">Рекомендуемые плагины</string>
@@ -60,7 +59,6 @@
     <string name="RegramExitFyLiteRefresh">Импортировать Telegram-прокси</string>
     <string name="RegramExitFyLiteOptimize">Проверить и включить самый быстрый прокси</string>
     <string name="RegramExitFyLiteInfo">Полный runtime exitFy выше содержит сторонний DEX/native-код и требует явного согласия. Независимые функции Lite ниже импортируют Telegram-прокси и выбирают самый быстрый без запуска этого runtime.</string>
-    <string name="RegramPortsInfo">Дополнительные функции отключены по умолчанию. Другие возможности находятся в существующих разделах настроек. Интеграция ещё продолжается.</string>
     <string name="RegramCreatorsAndSources">Создатели и источники</string>
     <string name="RegramCreditsArtDescription">Иллюстрация Иви</string>
     <string name="RegramCreators">Создатели</string>
@@ -69,11 +67,9 @@
     <string name="RegramDonationMir">Мир</string>
     <string name="RegramDonationVisa">Visa (только $)</string>
     <string name="RegramDonationCopyHint">Нажмите на карту, чтобы скопировать номер. На Visa — только доллары США.</string>
-    <string name="RegramOwner">Владелец</string>
     <string name="RegramDesigner">Дизайнер</string>
     <string name="RegramCoder1">Кодер 1</string>
     <string name="RegramCoder2">Кодер 2</string>
-    <string name="RegramCoder3">Кодер 3</string>
     <string name="RegramUpstreamChannel">Канал проекта-основы</string>
     <string name="RegramUpstreamSource">Исходники проекта-основы</string>
 </resources>

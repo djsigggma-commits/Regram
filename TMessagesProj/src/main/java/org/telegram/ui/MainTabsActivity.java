@@ -436,15 +436,6 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             tabsView.addView(tabs[index]);
             tabsView.setViewVisible(view, true, false);
         }
-        // Plugins are an auxiliary destination, not a ViewPager page: do not add
-        // this view to tabs[] or the chats/contacts pager index mapping changes.
-        final GlassTabView pluginsTab = GlassTabView.createMainTab(context, resourceProvider,
-                GlassTabView.TabAnimation.PLUGINS, R.string.OpenExteraPlugins);
-        pluginsTab.setMainTabsCompact(compact);
-        pluginsTab.setOnClickListener(v -> presentFragment(new app.regram.plugins.ui.PluginsActivity()));
-        tabsView.addTabToIgnoreClick(pluginsTab);
-        tabsView.addView(pluginsTab);
-        tabsView.setViewVisible(pluginsTab, true, false);
         checkUi_callTabVisible(MainTabsHelper.isCallsTabShown(currentAccount), false);
         checkUi_contactsOrFeedTabVisible(false);
 
@@ -860,7 +851,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     @Override
     protected void onViewPagerScrollEnd() {
         if (tabsView != null) {
-            selectTab(viewPager.getCurrentPosition(), true);
+            // The pager owns the indicator during a swipe or a tap. Commit its final
+            // value before releasing the override, so it cannot jump back mid-fade.
+            selectTab(viewPager.getCurrentPosition(), false);
             setGestureSelectedOverride(0, false);
         }
         blur3_invalidateBlur();
@@ -885,12 +878,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
     @Override
     protected void onViewPagerTabAnimationUpdate(boolean manual) {
-        final boolean isDragByGesture = !manual;
-
         if (tabsView != null) {
             final float position = viewPager.getPositionAnimated();
-            setGestureSelectedOverride(position, isDragByGesture);
-            if (isDragByGesture) {
+            // Drive the indicator from the page position for taps as well as drags.
+            // Otherwise it fades out immediately on tap while the page is still sliding.
+            setGestureSelectedOverride(position, true);
+            if (!manual) {
                 selectTab(Math.round(position), true);
             }
         }

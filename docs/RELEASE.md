@@ -18,7 +18,7 @@
 2. Выполните `python3 -m pytest tests -q` и `python3 tools/check_build_env.py --release` (из исходного каталога проверка сообщит о `:`; реальная сборка выполняется в копии). `REGRAM_COMPILE_CHECK=1` запрещён.
 3. `NATIVE_TARGET=arm64-v8a CHAQUOPY_BUILD_PYTHON=/path/to/python3.11 ./tools/build.sh -Dorg.gradle.jvmargs=-Xmx10g :TMessagesProj:assembleRelease`.
 4. В сборочной копии (`~/projects/regram` по умолчанию) проверьте APK: `python3 tools/verify_release_apk.py --abi arm64-v8a TMessagesProj/build/outputs/apk/release/*.apk`. Для x86_64 используйте `NATIVE_TARGET=x86_64`; для двух ABI одним APK — `NATIVE_TARGET=universal`. Проверка проверяет пакет, ABI, Python engine и подпись, но **не** корректность ключа, серверных настроек и приложения в работе.
-5. Сохраните контрольную сумму SHA-256, версию, сертификат подписи и список проверенных устройств; увеличивайте `verCode` в `TMessagesProj/build.gradle` перед каждым следующим опубликованным обновлением. Не распространяйте debug или `NATIVE_TARGET=SKIP` APK.
+5. Сохраните контрольную сумму SHA-256, версию, сертификат подписи и список проверенных устройств. Версия re:gram задаётся `REGRAM_VERSION` в `gradle.properties` независимо от версии Telegram-основы: `1.0` → `versionCode=10000`, `1.0.1` → `10001`, `1.1` → `10100`. Перед следующим выпуском увеличьте версию re:gram; код вычисляется автоматически. Не распространяйте debug или `NATIVE_TARGET=SKIP` APK.
 
 ## GitHub Actions
 

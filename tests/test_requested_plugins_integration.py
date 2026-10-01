@@ -8,13 +8,12 @@ def source(relative):
     return (ROOT / relative).read_text(encoding='utf-8')
 
 
-def test_bottom_plugin_tab_is_not_a_pager_page():
+def test_plugins_are_in_settings_not_in_bottom_navigation():
     tabs = source('org/telegram/ui/MainTabsActivity.java')
-    assert 'TabAnimation.PLUGINS, R.string.OpenExteraPlugins' in tabs
-    assert 'new app.regram.plugins.ui.PluginsActivity()' in tabs
-    assert 'tabsView.addTabToIgnoreClick(pluginsTab)' in tabs
-    assert 'tabsView.addView(pluginsTab)' in tabs
-    assert 'tabs[INDEX_PLUGINS]' not in tabs
+    settings = source('app/regram/settings/OpenExteraSettingsActivity.java')
+    assert 'TabAnimation.PLUGINS' not in tabs
+    assert 'pluginsTab' not in tabs
+    assert 'presentFragment(new app.regram.plugins.ui.PluginsActivity())' in settings
 
 
 def test_auto_read_opt_in_and_preserves_other_unread_messages():

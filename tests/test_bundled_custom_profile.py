@@ -34,13 +34,12 @@ def test_original_dex_and_server_unchanged():
 def test_author_visible_in_feature_and_plugin_settings():
     plugin = PAYLOAD.read_text(encoding='utf-8')
     feature = (MAIN / 'java/app/regram/ui/CustomProfileActivity.java').read_text()
-    settings = (MAIN / 'java/app/regram/ui/RegramSettingsActivity.java').read_text()
     assert plugin.count('Создатель / Creator: @roflplugins') == 2  # including core-load failure
     assert '"@roflplugins"' in feature
     assert '"https://t.me/roflplugins"' in feature
     # Bundled payload remains intact, but its extra-features entry was removed
     # at the user's request. Existing installations remain manageable in Plugins.
-    assert 'new CustomProfileActivity()' not in settings
+    assert not (MAIN / 'java/app/regram/ui/RegramSettingsActivity.java').exists()
 
 
 def test_install_only_after_consent_with_pinned_asset():

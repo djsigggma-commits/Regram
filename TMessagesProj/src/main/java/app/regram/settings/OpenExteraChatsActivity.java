@@ -153,12 +153,15 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
     private int quickTransitionGroupRow;
     private int quickTransitionChannelsRow;
     private int quickTransitionTopicsRow;
+    private int disableGeneralTopicSwipeRow;
     private int disableGreetingRow;
     private int deleteChatForBothSidesRow;
     private int hideKeyboardOnScrollRow;
     private int disableGlobalSearchRow;
+    private int keepPeerSearchRow;
     private int searchHashtagChatRow;
     private int searchHashtagChannelRow;
+    private int hideHashtagSuggestionsRow;
     private int addCommaRow;
     private int inlineMathRow;
     private int inlineMathCurrencyRow;
@@ -284,6 +287,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
     // Photos
     private int photoHeaderRow;
     private int alwaysSendHdRow;
+    private int sortAlbumsBySizeRow;
     private int hdrPhotosRow;
     private int disableInstantCameraRow;
     private int hideCameraTileRow;
@@ -386,12 +390,15 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         } else {
             quickTransitionChannelsRow = quickTransitionTopicsRow = -1;
         }
+        disableGeneralTopicSwipeRow = addRow(NekoConfig.regramDisableGeneralTopicSwipe.key);
         disableGreetingRow = addRow("disableGreeting");
         deleteChatForBothSidesRow = addRow("deleteChatForBothSides", "DeleteChatForBothSides");
         hideKeyboardOnScrollRow = addRow("hideKeyboardOnScroll");
         disableGlobalSearchRow = addRow("disableGlobalSearch");
+        keepPeerSearchRow = addRow(NekoConfig.regramKeepPeerSearch.key);
         searchHashtagChatRow = addRow("searchHashtagChat", "SearchHashtagDefaultPageChat");
         searchHashtagChannelRow = addRow("searchHashtagChannel", "SearchHashtagDefaultPageChannel");
+        hideHashtagSuggestionsRow = addRow(NekoConfig.regramHideHashtagSuggestions.key);
         addCommaRow = addRow("addCommaAfterMention");
         inlineMathRow = addRow("inlineMathResult");
         inlineMathCurrencyRow = ChatsConfig.inlineMathResult.Bool() ? addRow("inlineMathCurrency") : -1;
@@ -580,6 +587,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
 
         photoHeaderRow = addRow("photoHeader");
         alwaysSendHdRow = addRow("alwaysSendInHD");
+        sortAlbumsBySizeRow = addRow(NekoConfig.regramSortAlbumsBySize.key);
         hdrPhotosRow = addRow("hdrPhotos");
         disableInstantCameraRow = addRow("disableInstantCamera", "DisableInstantCamera");
         hideCameraTileRow = addRow("hideCameraTile");
@@ -1697,6 +1705,10 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         if (position == disableGreetingRow) return NekoConfig.dontSendGreetingSticker;
         if (position == hideKeyboardOnScrollRow) return NekoConfig.hideKeyboardOnChatScroll;
         if (position == disableGlobalSearchRow) return NaConfig.INSTANCE.getDisableGlobalSearch();
+        if (position == keepPeerSearchRow) return NekoConfig.regramKeepPeerSearch;
+        if (position == hideHashtagSuggestionsRow) return NekoConfig.regramHideHashtagSuggestions;
+        if (position == disableGeneralTopicSwipeRow) return NekoConfig.regramDisableGeneralTopicSwipe;
+        if (position == sortAlbumsBySizeRow) return NekoConfig.regramSortAlbumsBySize;
         if (position == addCommaRow) return OpenExteraConfig.addCommaAfterMention;
         if (position == inlineMathRow) return ChatsConfig.inlineMathResult;
         if (position == inlineMathCurrencyRow) return ChatsConfig.inlineMathCurrency;
@@ -2333,12 +2345,24 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
                 cell.setTextAndCheck(getString(R.string.OEChatsHideTimeOnStickers), NekoConfig.hideTimeForSticker.Bool(), true);
             } else if (position == adminShortcutsRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsAdminShortcuts), isQuickAdminShortcuts(), true);
+            } else if (position == disableGeneralTopicSwipeRow) {
+                cell.setTextAndValueAndCheck(getString(R.string.RegramDisableGeneralTopicSwipe),
+                        getString(R.string.RegramDisableGeneralTopicSwipeInfo),
+                        NekoConfig.regramDisableGeneralTopicSwipe.Bool(), true, true);
             } else if (position == disableGreetingRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsDisableGreetingSticker), NekoConfig.dontSendGreetingSticker.Bool(), true);
             } else if (position == hideKeyboardOnScrollRow) {
                 cell.setTextAndCheck(getString(R.string.HideKeyboardOnChatScroll), NekoConfig.hideKeyboardOnChatScroll.Bool(), true);
             } else if (position == disableGlobalSearchRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsDisableGlobalSearch), NaConfig.INSTANCE.getDisableGlobalSearch().Bool(), true);
+            } else if (position == keepPeerSearchRow) {
+                cell.setTextAndValueAndCheck(getString(R.string.RegramKeepPeerSearch),
+                        getString(R.string.RegramKeepPeerSearchInfo),
+                        NekoConfig.regramKeepPeerSearch.Bool(), true, true);
+            } else if (position == hideHashtagSuggestionsRow) {
+                cell.setTextAndValueAndCheck(getString(R.string.RegramHideHashtagSuggestions),
+                        getString(R.string.RegramHideHashtagSuggestionsInfo),
+                        NekoConfig.regramHideHashtagSuggestions.Bool(), true, true);
             } else if (position == addCommaRow) {
                 cell.setTextAndCheck(getString(R.string.AddCommaAfterMention), OpenExteraConfig.addCommaAfterMention.Bool(), true);
             } else if (position == inlineMathRow) {
@@ -2397,6 +2421,10 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
                 cell.setTextAndCheck(getString(R.string.OEChatsStaticZoom), ChatsConfig.staticZoom.Bool(), false);
             } else if (position == alwaysSendHdRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsAlwaysSendInHD), ChatsConfig.alwaysSendInHD.Bool(), true);
+            } else if (position == sortAlbumsBySizeRow) {
+                cell.setTextAndValueAndCheck(getString(R.string.RegramSortAlbumsBySize),
+                        getString(R.string.RegramSortAlbumsBySizeInfo),
+                        NekoConfig.regramSortAlbumsBySize.Bool(), true, true);
             } else if (position == hdrPhotosRow) {
                 cell.setTextAndValueAndCheck(getString(R.string.OEChatsHdrPhotos),
                         getString(R.string.OEChatsHdrPhotosInfo),

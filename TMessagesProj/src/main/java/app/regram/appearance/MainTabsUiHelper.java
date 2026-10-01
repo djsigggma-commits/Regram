@@ -191,7 +191,9 @@ public final class MainTabsUiHelper {
     }
 
     public static void applyMaterial3MainTabStyle(TextView textView, BoolAnimator animator) {
-        animator.setDuration(500L);
+        // Match ViewPagerActivity's 320 ms tab slide, so the label does not
+        // keep fading (or snap to its final color) after the page has settled.
+        animator.setDuration(320L);
         animator.setInterpolator(CubicBezierInterpolator.Emphasized);
         textView.setIncludeFontPadding(false);
         textView.setLetterSpacing(0.04166667f);
