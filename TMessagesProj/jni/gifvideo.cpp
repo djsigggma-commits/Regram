@@ -1001,6 +1001,9 @@ extern "C" JNIEXPORT jint JNICALL Java_org_telegram_ui_Components_AnimatedFileNa
 }
 
 extern "C" jint videoOnJNILoad(JavaVM *vm, JNIEnv *env) {
+    // Streaming video callbacks can run before ConnectionsManager.setJava() is
+    // called. requestFd/readCallback must have a VM to attach their decode thread.
+    javaVm = vm;
     //av_log_set_callback(custom_log);
     DEBUG_REF("gifvideo.cpp AnimatedFileDrawableStream ref");
     jclass_AnimatedFileDrawableStream = (jclass) env->NewGlobalRef(env->FindClass("org/telegram/messenger/AnimatedFileDrawableStream"));

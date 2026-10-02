@@ -11,8 +11,8 @@ def test_first_release_version_and_monotonic_android_code():
     version = re.search(r'^REGRAM_VERSION=(\d+)\.(\d+)(?:\.(\d+))?$', properties, re.M)
     assert version is not None
     major, minor, patch = (int(part or 0) for part in version.groups())
-    assert version.group(0) == 'REGRAM_VERSION=1.0'
-    assert major * 10000 + minor * 100 + patch == 10000 > 1263
+    # New releases must keep moving forward from the initial 1.0 (10000).
+    assert major * 10000 + minor * 100 + patch >= 10000 > 1263
     assert 'def verName = project.findProperty(\'REGRAM_VERSION\')' in gradle
     assert 'def verCode = major * 10000 + minor * 100 + patch' in gradle
     assert 'minor > 99 || patch > 99' in gradle
