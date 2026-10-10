@@ -1,10 +1,10 @@
 package app.regram.plugins;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
@@ -28,6 +28,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import tw.nekomimi.nekogram.helpers.AppRestartHelper;
 
 /**
  * Защита от плагина, который вешает или роняет приложение. Перенос
@@ -594,7 +596,7 @@ public class PluginsWatchdog {
     private void disablePluginPref(String pluginId) {
         preferences.edit()
                 .putBoolean(PluginsConstants.KEY_PLUGIN_ENABLED_PREFIX + pluginId, false)
-                .apply();
+                .commit();
     }
 
     /** Отключить зависший плагин и перезапустить приложение (пункт диалога). */
@@ -610,16 +612,11 @@ public class PluginsWatchdog {
         }
         AndroidUtilities.runOnUIThread(() -> {
             try {
-                ApplicationLoader.applicationContext.startActivity(
-                        ApplicationLoader.applicationContext.getPackageManager()
-                                .getLaunchIntentForPackage(
-                                        ApplicationLoader.applicationContext.getPackageName())
-                                .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                        | android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
+                AppRestartHelper.triggerRebirth(activity, new Intent(activity, LaunchActivity.class));
             } catch (Throwable t) {
                 FileLog.e("PluginsWatchdog: restart failed", t);
+                System.exit(0);
             }
-            System.exit(0);
         });
     }
 
@@ -686,7 +683,7 @@ public class PluginsWatchdog {
                         .setMessage(LocaleController.formatString(
                                 R.string.PluginSlowingDownMessage, displayName, millisPerSecond))
                         .setPositiveButton(LocaleController.getString(R.string.PluginDisable),
-                                (dialog, which) -> forceDisablePlugin(pluginId, activity))
+                                (dialog, which) -> PluginsController.getInstance().setPluginEnabled(pluginId, false, null))
                         .setNeutralButton(LocaleController.getString(R.string.PluginWatchdogMute),
                                 (dialog, which) -> muteFromDialog(pluginId, displayName))
                         .setNegativeButton(LocaleController.getString(R.string.Cancel), null)

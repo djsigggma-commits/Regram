@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="OEChatsHideTimeOnStickers">Скрывать время на стикерах</string>
+    <string name="OEChatsStickerTime">Время на стикерах</string>
+    <string name="OEChatsStickerTimeSide">Сбоку</string>
+    <string name="OEChatsStickerTimeHidden">Скрыто</string>
 
     <string name="OEChatsReplies">Ответы</string>
     <string name="OEChatsReplyColors">Цветной фон</string>
@@ -34,7 +36,6 @@
     <string name="OEChatsPhoto">Фото</string>
     <string name="OEChatsAlwaysSendInHD">Всегда отправлять в HD</string>
     <string name="OEChatsHideCameraTile">Скрыть плитку камеры</string>
-    <string name="OEChatsHideCameraTileInfo">Плитка камеры в меню вложений будет скрыта.</string>
 
     <string name="OEChatsDoubleTapSeekDuration">Перемотка двойным тапом</string>
     <string name="OEChatsPauseOnMinimize">Автопауза</string>
@@ -44,7 +45,7 @@
     <string name="OEChatsStickersAndEmoji">Стикеры и эмодзи</string>
     <string name="OEChatsDoubleTap">Двойной тап</string>
     <string name="OEChatsMessages">Сообщения</string>
-    <string name="OEChatsVideos">Видео и медиа</string>
+    <string name="OEChatsVideos">Видео</string>
     <string name="OEChatsUnlimited">Бесконечные</string>
     <string name="OEChatsUnlimitedStickers">Стикеры</string>
     <string name="OEChatsUnlimitedGifs">GIF</string>
@@ -66,7 +67,6 @@
     <string name="OEChatsHideReactionsChannels">Каналы</string>
     <string name="OEChatsHideReactionsGroups">Группы</string>
     <string name="OEChatsHideReactionsPrivate">Личные чаты</string>
-    <string name="OEChatsHideReactionsInfo">Реакции будут скрыты из интерфейса в выбранных типах чатов.</string>
     <string name="OEChatsQuickTransitions">Быстрый свайп-переход</string>
     <string name="OEChatsQuickTransitionChannels">Каналы</string>
     <string name="OEChatsQuickTransitionTopics">Темы</string>
@@ -130,6 +130,17 @@
     <string name="OEChatsAskWhenCalling">Звонке</string>
     <string name="OEChatsAskWhenRepeating">Повторе сообщений</string>
     <string name="OEChatsAskWhenBotCommands">Отправке команд ботам</string>
+    <string name="OEChatsStripTracking">Убирать трекинг из ссылок</string>
+    <string name="OEChatsStripTrackingOnOpen">При открытии ссылок</string>
+    <string name="OEChatsStripTrackingOnPaste">При вставке ссылок</string>
+    <string name="OEChatsStripTrackingInfo">Убирает из ссылок метки слежки вроде utm_source и fbclid по фильтру AdGuard URL Tracking.</string>
+    <string name="OEChatsTrackingFilter">Фильтр трекинга</string>
+    <string name="OEChatsTrackingFilterValue">AdGuard, %1$s</string>
+    <string name="OEChatsTrackingFilterUpdate">Обновить фильтр</string>
+    <string name="OEChatsTrackingFilterRevert">Вернуть встроенный фильтр</string>
+    <string name="OEChatsTrackingFilterUpdated">Фильтр обновлён</string>
+    <string name="OEChatsTrackingFilterLatest">Фильтр уже свежий</string>
+    <string name="OEChatsTrackingFilterFailed">Не удалось обновить фильтр</string>
     <string name="OEChatsHdrPhotos">HDR-фото</string>
     <string name="OEChatsHdrPhotosInfo">Показывать HDR-фото в полной яркости. Выключите, если фото темнеют.</string>
     <string name="SendLockedCustomEmojiAsSticker">Премиум-эмодзи как стикеры</string>
@@ -143,4 +154,14 @@
     <string name="OEChatsInlineMathAnnouncement">Результат: %1$s</string>
     <string name="OELocalPremiumInfo">Премиум-эмодзи уходят ссылками, которые exteraless и поддерживающие это клиенты показывают как настоящие эмодзи. Остальные функции Premium работают только на этом устройстве.</string>
     <string name="OELocalPremiumEmojiHint">У вас нет **Telegram Premium**, поэтому эмодзи уйдёт ссылкой: увидят его только пользователи **exteraless** и клиентов, поддерживающих это.</string>
+    <string name="OEChatsSections">Разделы</string>
+    <string name="OEChatsMenus">Меню и кнопки</string>
+    <string name="OEChatsMenusInfo">Меню чата, сообщений и просмотра медиа</string>
+    <string name="OEChatsMedia">Медиа и камера</string>
+    <string name="OEChatsMediaInfo">Камера, фото, видео и голосовые</string>
+    <string name="OEChatsInputHeader">Поле ввода</string>
+    <string name="OEChatsButtonsHeader">Кнопки</string>
+    <string name="OEChatsMenusHeader">Меню</string>
+    <string name="OEChatsPlaybackHeader">Воспроизведение</string>
+    <string name="OEChatsVoiceHeader">Голосовые сообщения</string>
 </resources>

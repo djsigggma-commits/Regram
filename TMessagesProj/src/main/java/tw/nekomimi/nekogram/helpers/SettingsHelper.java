@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import app.regram.ai.ui.AiSettingsActivity;
 import app.regram.pillstack.PillStackSettingsActivity;
 import app.regram.plugins.ui.PluginsActivity;
 import app.regram.settings.OpenExteraAppNavigationActivity;
@@ -45,6 +46,7 @@ public class SettingsHelper {
     private static final Map<String, String> SEARCH_TITLE_ALIASES = new HashMap<>();
     private static final Map<String, String> TRANSLATOR_ROWS = new HashMap<>();
     private static final Map<String, String> NAGRAM_ROWS = new HashMap<>();
+    private static final Map<String, String> MOVED_ROWS = new HashMap<>();
 
     static {
         SEARCH_TITLE_ALIASES.put("OEGeneral:lastfm", "OEGeneralLastFm");
@@ -52,10 +54,65 @@ public class SettingsHelper {
         SEARCH_TITLE_ALIASES.put("OEAyu:ayuDisableAll", "OEGeneralAyuMomentsDisableAll");
         SEARCH_TITLE_ALIASES.put("OEAyu:ayuClearDatabase", "ClearMessageDatabase");
         SEARCH_TITLE_ALIASES.put("OEAppearance:appNavigation", "OEAppearanceNavigation");
-        SEARCH_TITLE_ALIASES.put("OEAppearance:hideStories", "OEAppearanceStories");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideStories", "OEAppearanceStories");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideActionBarStatus", "OEAppearanceHideActionBarStatus");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideFloatingButton", "OEAppearanceHideFloatingButton");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideSearchBar", "OEAppearanceHideSearchBar");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideAllChats", "HideAllTab");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideShareButton", "HideShareButtonInChannel");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideAi", "OEAppearanceHideAi");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideAiEditor", "OEAppearanceHideAiEditor");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideAiSummary", "OEAppearanceHideAiSummary");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideAiIv", "OEAppearanceHideAiIv");
+        SEARCH_TITLE_ALIASES.put("OEChats:hideSettingsSections", "OEAppearanceHideSettingsSections");
         SEARCH_TITLE_ALIASES.put("OEChats:disableGreeting", "OEChatsDisableGreetingSticker");
         SEARCH_TITLE_ALIASES.put("OEChats:hideKeyboardOnScroll", "HideKeyboardOnChatScroll");
         SEARCH_TITLE_ALIASES.put("OEChats:transcribeProvider", "PremiumPreviewVoiceToText");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:translator", "TranslatorSettings");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:translateInSheet", "OEChatsTranslateInSheet");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:glyph", "OEGlyphTitle");
+        SEARCH_TITLE_ALIASES.put("OpenExtera:channel", "ProfileChannel");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:downloadSpeed", "OEGeneralSpeedHeader");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:md3Styles", "OEAppearanceMaterialDesign3");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:md3Loading", "OEAppearanceNewLoadingStyle");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:md3Slider", "OEAppearanceSliderStyle");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:md3Switch", "OEAppearanceSwitchStyle");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:md3NavBar", "OEAppearanceNewNavigationBarStyle");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:md3ListItems", "OEAppearanceM3ListItems");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:iosStyles", "OEAppearanceIosDesign");
+        SEARCH_TITLE_ALIASES.put("OEAppearance:iosNavBar", "OEAppearanceIosNavigationBarStyle");
+        SEARCH_TITLE_ALIASES.put("OEChats:doubleTapReaction", "DoubleTapSetting");
+        SEARCH_TITLE_ALIASES.put("OEChats:quickTransition", "OEChatsQuickTransitions");
+        SEARCH_TITLE_ALIASES.put("OEChats:inlineMathResult", "OEChatsInlineMath");
+        SEARCH_TITLE_ALIASES.put("OEChats:searchHashtagChat", "SearchHashtagDefaultPageChat");
+        SEARCH_TITLE_ALIASES.put("OEChats:searchHashtagChannel", "SearchHashtagDefaultPageChannel");
+        SEARCH_TITLE_ALIASES.put("OEChats:replaceEdited", "OEChatsReplaceEditedWithIcon");
+        SEARCH_TITLE_ALIASES.put("OEChats:videoMessagesCamera", "CameraInVideoMessages");
+        SEARCH_TITLE_ALIASES.put("OEChats:voskModels", "VoskModelsShort");
+        MOVED_ROWS.put("chats:translateInSheet", "general");
+        MOVED_ROWS.put("other:unlimitedPinnedDialogs", "general");
+        MOVED_ROWS.put("other:glyph", "general");
+        moveRows("chats", "menus", "bottomButton", "adminShortcuts", "chatMenu", "messageMenu",
+                "groupedMessageMenu", "textStyle", "TextStyle", "mediaViewerMenu", "actionBarButtons",
+                "defaultDeleteMenu", "DefaultDeleteMenu");
+        moveRows("chats", "media", "cameraType", "extendedSettings", "videoMessagesCamera",
+                "rememberLastUsedCamera", "zoomSlider", "staticZoom", "alwaysSendInHD", "hdrPhotos",
+                "disableInstantCamera", "DisableInstantCamera", "doubleTapSeekDuration", "preferOriginalQuality",
+                "videoPlayerDecoder", "VideoPlayerDecoder", "swipeToPip", "unmuteWithVolumeButtons",
+                "showSmallGIF", "ShowSmallGIF", "dontAutoPlayNextVoice", "DontAutoPlayNextVoice",
+                "disableProximityEvents", "DisableProximityEvents", "pauseOnMinimize", "transcribeProvider",
+                "TranscribeProviderShort", "cloudflareCredentials", "CloudflareCredentials", "llmProviderGeminiKey",
+                "LlmProviderGeminiKey", "transcribeProviderOpenAI", "TranscribeProviderOpenAI", "voskModels",
+                "VoskModelsShort");
+        moveRows("chats", "hiding", "disableTrending", "DisableTrending", "hideGroupSticker", "hideReactions",
+                "disableGreeting", "hideSendAsPeer", "hideShareButton", "hideGiftButton", "hideSearchButton",
+                "hideCameraTile", "premiumElements", "PremiumElements");
+        moveRows("other", "media", "noiseSuppressAndVoiceEnhance", "NoiseSuppressAndVoiceEnhance",
+                "enhancedVideoBitrate", "EnhancedVideoBitrate");
+        moveRows("appearance", "hiding", "hideActionBarStatus", "hideStories", "HideStoriesFromHeader",
+                "DisableStories", "hideFloatingButton", "hideSearchBar", "hideAllChats", "hideAi", "hideAiEditor",
+                "hideAiSummary", "hideAiIv", "hideSettingsSections", "hidePremiumSection", "HidePremiumSection",
+                "hideHelpSection", "HideHelpSection");
         TRANSLATOR_ROWS.put("translateButton", "showTranslate");
         TRANSLATOR_ROWS.put("translateChatButton", "TelegramUIAutoTranslate");
         TRANSLATOR_ROWS.put("translationProvider", "translationProvider");
@@ -74,9 +131,15 @@ public class SettingsHelper {
         NAGRAM_ROWS.put("VideoPlayerDecoder", "chats");
     }
 
+    private static void moveRows(String from, String to, String... rows) {
+        for (String row : rows) {
+            MOVED_ROWS.put(from + ":" + row, to);
+        }
+    }
+
     private static final Set<String> REGRAM_SCREENS = new HashSet<>(Arrays.asList(
             "settings", "general", "appearance", "chats", "plugins", "pillstack", "other",
-            "ayumoments", "navigation"));
+            "ayumoments", "navigation", "menus", "media", "hiding"));
 
     public static boolean isDeepLink(String path) {
         if (path == null) {
@@ -104,6 +167,12 @@ public class SettingsHelper {
                 return HOST_REGRAM + "/appearance";
             case "exteraless_chats":
                 return HOST_REGRAM + "/chats";
+            case "exteraless_menus":
+                return HOST_REGRAM + "/menus";
+            case "exteraless_media":
+                return HOST_REGRAM + "/media";
+            case "exteraless_hiding":
+                return HOST_REGRAM + "/hiding";
             case "exteraless_other":
                 return HOST_REGRAM + "/other";
             case "exteraless_ayumoments":
@@ -144,7 +213,19 @@ public class SettingsHelper {
         BaseNekoSettingsActivity neko_fragment = null;
         BaseNekoXSettingsActivity nekox_fragment = null;
         OpenExteraAppNavigationActivity navigation_fragment = null;
-        final String screen = regram ? segments.get(1) : nagramScreen(segments.size() == 1 ? null : segments.get(1), row);
+        String screen = regram ? segments.get(1) : nagramScreen(segments.size() == 1 ? null : segments.get(1), row);
+        if (screen == null && segments.size() == 2 && segments.get(1).startsWith("exteraless_")) {
+            String base = segments.get(1).substring("exteraless_".length());
+            if (row != null && MOVED_ROWS.containsKey(base + ":" + row)) {
+                screen = base;
+            }
+        }
+        if (screen != null && row != null) {
+            String moved = MOVED_ROWS.get(screen + ":" + row);
+            if (moved != null) {
+                screen = moved;
+            }
+        }
         if (screen != null) {
             switch (screen) {
                 case "settings":
@@ -159,10 +240,20 @@ public class SettingsHelper {
                     }
                     break;
                 case "appearance":
-                    fragment = neko_fragment = new OpenExteraAppearanceActivity();
+                    fragment = neko_fragment = "useSystemEmoji".equals(row)
+                            ? new NekoEmojiSettingsActivity() : new OpenExteraAppearanceActivity();
                     break;
                 case "chats":
                     fragment = neko_fragment = new OpenExteraChatsActivity();
+                    break;
+                case "menus":
+                    fragment = neko_fragment = new OpenExteraChatsActivity(OpenExteraChatsActivity.SCREEN_MENUS);
+                    break;
+                case "media":
+                    fragment = neko_fragment = new OpenExteraChatsActivity(OpenExteraChatsActivity.SCREEN_MEDIA);
+                    break;
+                case "hiding":
+                    fragment = neko_fragment = new OpenExteraChatsActivity(OpenExteraChatsActivity.SCREEN_HIDING);
                     break;
                 case "other":
                     fragment = neko_fragment = new OpenExteraOtherActivity();
@@ -216,7 +307,8 @@ public class SettingsHelper {
                     }
                     break;
                 case "exteraless_appearance":
-                    fragment = neko_fragment = new OpenExteraAppearanceActivity();
+                    fragment = neko_fragment = "useSystemEmoji".equals(row)
+                            ? new NekoEmojiSettingsActivity() : new OpenExteraAppearanceActivity();
                     break;
                 case "exteraless_chats":
                     fragment = neko_fragment = new OpenExteraChatsActivity();
@@ -334,13 +426,17 @@ public class SettingsHelper {
 
         ArrayList<BaseNekoSettingsActivity> regramFragments = new ArrayList<>();
         regramFragments.add(new OpenExteraSettingsActivity());
-        regramFragments.add(new app.regram.ui.RegramCreditsActivity());
         regramFragments.add(new OpenExteraGeneralActivity());
         regramFragments.add(new OpenExteraAppearanceActivity());
         regramFragments.add(new OpenExteraChatsActivity());
+        regramFragments.add(new OpenExteraChatsActivity(OpenExteraChatsActivity.SCREEN_MENUS));
+        regramFragments.add(new OpenExteraChatsActivity(OpenExteraChatsActivity.SCREEN_MEDIA));
+        regramFragments.add(new OpenExteraChatsActivity(OpenExteraChatsActivity.SCREEN_HIDING));
         regramFragments.add(new OpenExteraOtherActivity());
         regramFragments.add(new OpenExteraAyuMomentsActivity());
         regramFragments.add(new PillStackSettingsActivity());
+        regramFragments.add(new AiSettingsActivity());
+        regramFragments.add(new app.regram.ui.RegramCreditsActivity());
 
         String e_title = getString(R.string.OpenExtera);
         for (BaseNekoSettingsActivity fragment : regramFragments) {
@@ -369,6 +465,13 @@ public class SettingsHelper {
                         uid + entry.getKey(), title, e_title, f_title, drawable, open));
             }
         }
+
+        items.add(new SettingsSearchResult(29000, getString(R.string.OEAppearanceUseSystemEmoji), e_title,
+                getString(R.string.EmojiSets), R.drawable.msg_emoji_smiles, () -> {
+                    NekoEmojiSettingsActivity emoji = new NekoEmojiSettingsActivity();
+                    callback.presentFragment(emoji);
+                    AndroidUtilities.runOnUIThread(() -> emoji.scrollToRow("useSystemEmoji", null));
+                }));
 
         String n_title = getString(R.string.Language);
         for (BaseNekoXSettingsActivity fragment: fragments) {

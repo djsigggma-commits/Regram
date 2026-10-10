@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 import tw.nekomimi.nekogram.filters.AyuFilter;
+import xyz.nextalone.nagram.NaConfig;
 import tw.nekomimi.nekogram.utils.AndroidUtil;
 
 public class DownloadController extends BaseController implements NotificationCenter.NotificationCenterDelegate {
@@ -878,7 +879,7 @@ public class DownloadController extends BaseController implements NotificationCe
             return canPreloadStories() ? 2 : 0;
         }
 
-        if (AyuFilter.isFiltered(new MessageObject(currentAccount, message, false, false), null)) {
+        if (NaConfig.INSTANCE.getRegexFiltersEnabled().Bool() && AyuFilter.isFiltered(new MessageObject(currentAccount, message, false, false), null)) {
             return 0;
         }
 

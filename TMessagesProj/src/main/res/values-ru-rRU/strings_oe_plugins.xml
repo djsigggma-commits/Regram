@@ -155,7 +155,7 @@
     <string name="PluginsPinned">Закреплён</string>
     <string name="PluginsUnpinned">Откреплён</string>
     <string name="PluginSlowingDownTitle">Плагин тормозит интерфейс</string>
-    <string name="PluginSlowingDownMessage">%1$s занимает главный поток примерно на %2$d мс каждую секунду. Из-за этого приложение перестаёт отвечать на нажатия. Отключить плагин и перезапустить?</string>
+    <string name="PluginSlowingDownMessage">%1$s занимает главный поток примерно на %2$d мс каждую секунду. Из-за этого приложение перестаёт отвечать на нажатия. Отключить плагин?</string>
     <string name="PluginsViewSource">Посмотреть код</string>
     <string name="PluginsAiReview">Проверка ИИ</string>
     <string name="PluginsAiReviewRole">Ты проверяешь код стороннего плагина для Telegram-клиента. Формат ответа строгий. Первая строка — вердикт одним словом: БЕЗОПАСНО, ПОДОЗРИТЕЛЬНО или ОПАСНО, и одно предложение почему. Дальше — находки, по одной короткой строке на пункт: что делает код и где. Сразу после каждой находки длинную часть убирай в &lt;details&gt;&lt;summary&gt;короткий заголовок&lt;/summary&gt; разбор, цитата строки и рассуждение &lt;/details&gt;. Всё, что вне этих тегов, должно читаться с одного взгляда. Если находок нет, скажи об этом одной строкой. Не пересказывай код, не давай общих советов, не выдумывай того, чего в исходнике нет.</string>
@@ -179,4 +179,17 @@
     <string name="PluginGrantTrustedConfirm">%1$s получит уровень доступа «Доверенный»: с ним плагин может менять код приложения. Выдать?</string>
     <string name="PluginsAiReviewToolsPrompt">Проверь плагин для Telegram-клиента на то, что может навредить пользователю: скрытый сбор данных, отправка сообщений или файлов на сторону, кража ключей и паролей, подгрузка кода во время работы.\n\nОтвечай на языке: %2$s.\n\nПлагин: %1$s\n\nИсходника здесь нет — читай его инструментами. Файлы: %3$s.\nВстроенные данные (base64-строки и бинарные файлы): %4$s\n\nПрочитай каждый файл до конца через read_source, по диапазонам, и расшифруй каждый встроенный блок через decode_base64, чтобы увидеть, что в нём на самом деле: код, DEX, нативные библиотеки, адреса, ключи. Вердикт давай только по тому, что действительно прочитал, и скажи, что проверить не удалось.</string>
     <string name="PluginsSourceTrusted">Надёжный источник</string>
+    <string name="PluginUnconsentedTitle">Плагин добавлен без разрешений</string>
+    <string name="PluginsUnconsentedTitle">Плагины добавлены без разрешений</string>
+    <string name="PluginsUnconsentedMore">%1$s и ещё %2$d</string>
+    <string name="PluginsUnconsentedAction">Настроить</string>
+    <string name="PluginsDexTitle">Встроенный Java-код (DEX)</string>
+    <string name="PluginsDexLoaded">%1$s. Плагин загружает и запускает его; что он вызывает, учтено в разрешениях ниже с пометкой «DEX».</string>
+    <string name="PluginsDexUnused">%1$s, но плагин его нигде не загружает — этот код не выполняется.</string>
+    <string name="PluginsDexClasses">Классы: %1$s</string>
+    <string name="PluginOverlayTitle">Поверх других приложений</string>
+    <string name="PluginOverlayText">%1$s хочет показать окно поверх других приложений. Разрешите это в настройках системы и попробуйте снова.</string>
+    <string name="PluginOverlayOpen">Открыть настройки</string>
+    <string name="PluginsSafeModeEnabledNow">Безопасный режим включён, все плагины выключены.</string>
+    <string name="PluginsSafeModeDisabledNow">Безопасный режим выключен, плагины загружаются.</string>
 </resources>

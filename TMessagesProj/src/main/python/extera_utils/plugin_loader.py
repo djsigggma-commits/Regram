@@ -22,6 +22,8 @@ import re
 import logging
 import sys
 import threading
+import time
+import types
 from collections import namedtuple
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Dict, List, Optional
@@ -391,6 +393,8 @@ _INTERNAL_MODULES = frozenset({
     "extera_utils.capability_scan",
     "extera_utils.sandbox_main",
     "extera_utils.metadata_parser",
+    "extera_utils.hook_profile",
+    "extera_utils.thread_state",
     "dev_server",
 })
 
@@ -435,6 +439,8 @@ _JAVA_CLASS_RULES = {
     "android.content.ContentResolver": "files",
     "android.provider.MediaStore": "files",
     "de.robv.android.xposed.": "hooks",
+    "java.security.KeyStore": "hooks",
+    "android.security.keystore.": "hooks",
     # Загрузка dex — произвольный Java-код в нашем процессе, та же власть,
     # что у хуков. 33 плагина каталога этим пользуются, поэтому запрет
     # «никогда» им не подходит: это разрешение hooks, а не отказ.
@@ -459,6 +465,8 @@ _JAVA_CLASS_RULES = {
 _JAVA_CLASS_DENIED = frozenset({
     "app.regram.plugins.PluginPermissions",
     "app.regram.plugins.PluginTrustLevel",
+    "app.regram.plugins.PluginGrantStore",
+    "app.regram.plugins.SignedGrantPreferences",
     "app.regram.plugins.PluginSinkGate",
     "app.regram.plugins.PluginsWatchdog",
     "app.regram.plugins.PluginRuntime",
@@ -527,6 +535,24 @@ def _java_class_permission_uncached(name):
         if prefix.endswith(".") and name.startswith(prefix):
             return perm
     return None
+
+
+_plain_java_classes = set()
+
+
+def plain_java_class(name) -> bool:
+    if type(name) is not str:
+        return False
+    if name in _plain_java_classes:
+        return True
+    if name in _JAVA_CLASS_DENIED or java_class_permission(name) is not None:
+        return False
+    from .class_aliases import is_plain
+    if not is_plain(name):
+        return False
+    if len(_plain_java_classes) < 4096:
+        _plain_java_classes.add(name)
+    return True
 
 
 def engine_java_class(name):
@@ -609,6 +635,107 @@ def guard_java_class(name):
     except Exception:
         pass
     return False
+
+
+_UNSAFE_CLASSES = frozenset({"sun.misc.Unsafe", "jdk.internal.misc.Unsafe"})
+
+_REFLECTION_VERDICT_CACHE = {}
+_REFLECTION_ALLOW = object()
+
+
+def _reflection_normalize(name):
+    name = name.lstrip("[")
+    if len(name) > 2 and name.startswith("L") and name.endswith(";"):
+        name = name[1:-1]
+    if not name:
+        return None
+    return name.replace("/", ".")
+
+
+def _reflection_verdict(name):
+    cached = _REFLECTION_VERDICT_CACHE.get(name)
+    if cached is not None:
+        return None if cached is _REFLECTION_ALLOW else cached
+    verdict = _reflection_verdict_uncached(name)
+    if len(_REFLECTION_VERDICT_CACHE) < 4096:
+        _REFLECTION_VERDICT_CACHE[name] = _REFLECTION_ALLOW if verdict is None else verdict
+    return verdict
+
+
+def _reflection_verdict_uncached(name):
+    name = _reflection_normalize(name)
+    if not name:
+        return None
+    try:
+        from .class_aliases import resolve
+        name = resolve(name)
+    except Exception:
+        pass
+    if name in _JAVA_CLASS_DENIED:
+        return "deny"
+    if name in _UNSAFE_CLASSES:
+        return "native"
+    perm = java_class_permission(name)
+    if perm is not None:
+        return ("perm", perm)
+    return None
+
+
+def _reflection_gate(op, target, member):
+    if type(target) is tuple:
+        for interface in target:
+            if not _reflection_gate(op, interface, None):
+                return False
+        return True
+    if type(target) is not str:
+        return True
+    verdict = _reflection_verdict(target)
+    if verdict is None:
+        return True
+    if unsafe_mode() or _engine_lookup():
+        return True
+    pid = plugin_frame_owner()
+    if pid is None:
+        return True
+    if verdict == "deny":
+        _log_once(f"{pid}|reflect|{op}|{target}",
+                  f"plugin {pid!r}: reflection {op} on {target!r} "
+                  f"is not available to plugins")
+        return False
+    if verdict == "native":
+        wanted = ("native",)
+    else:
+        perm = verdict[1]
+        wanted = perm if isinstance(perm, tuple) else (perm,)
+    if any(has_permission(single, pid) for single in wanted):
+        return True
+    perm = " или ".join(wanted)
+    _log_once(f"{pid}|reflect|{op}|{target}",
+              f"plugin {pid!r}: reflection {op} on {target!r} refused, missing {perm!r}")
+    try:
+        java = _permissions()
+        if java is not None:
+            java.check(pid, wanted[0], f"reflection {op} {target}")
+    except Exception:
+        pass
+    try:
+        from . import audit_gate
+        audit_gate.note_denied_class(pid, target, perm)
+    except Exception:
+        pass
+    return False
+
+
+def _install_reflection_gate() -> None:
+    try:
+        from java.chaquopy import set_reflection_policy
+    except Exception:
+        return
+    try:
+        set_reflection_policy(_reflection_gate)
+    except Exception as e:
+        print(f"[exteraless:plugin_loader] reflection gate install failed: {e}",
+              file=sys.stderr)
 
 
 def _log(message: str) -> None:
@@ -767,15 +894,45 @@ def plugin_frame_owner() -> Optional[str]:
         frame = None
     barrier = getattr(_context_state, "import_barrier", None)
     depth = 0
+    first = None
+    others = None
     while frame is not None and depth < _MAX_FRAMES:
         if frame is barrier:
-            return None
+            break
         owner = _owner_of_frame(frame)
         if owner is not None:
-            return owner
+            if first is None:
+                first = owner
+            elif owner != first:
+                if others is None:
+                    others = []
+                if owner not in others:
+                    others.append(owner)
         frame = frame.f_back
         depth += 1
-    return None
+    if others is None:
+        return first
+    return _least_trusted([first] + others)
+
+
+_RANKED_PERMISSIONS = ("hooks", "native", "files", "network", "messages.send",
+                       "messages.read", "settings")
+
+
+def _least_trusted(owners):
+    java = _permissions()
+    if java is None:
+        return owners[0]
+    best = owners[0]
+    best_score = None
+    for owner in owners:
+        try:
+            score = sum(1 for perm in _RANKED_PERMISSIONS if java.hasPermission(owner, perm))
+        except Exception:
+            score = 0
+        if best_score is None or score < best_score:
+            best, best_score = owner, score
+    return best
 
 
 def _direct_plugin_caller() -> Optional[str]:
@@ -840,19 +997,23 @@ _unsafe_mode: Optional[bool] = None
 
 def set_unsafe_mode(value) -> None:
     global _unsafe_mode
+    if plugin_frame_owner() is not None:
+        _log_once("plugin|set_unsafe_mode", "refused to switch unsafe mode from plugin code")
+        return
     _unsafe_mode = bool(value)
 
 
 def unsafe_mode() -> bool:
     global _unsafe_mode
-    if _unsafe_mode is None:
-        java = _permissions()
-        if java is None:
-            return False
-        try:
-            _unsafe_mode = bool(java.isUnsafeMode())
-        except Exception:
-            return False
+    if _unsafe_mode is False:
+        return False
+    java = _permissions()
+    if java is None:
+        return False
+    try:
+        _unsafe_mode = bool(java.isUnsafeMode())
+    except Exception:
+        return False
     return _unsafe_mode
 
 
@@ -966,6 +1127,10 @@ def _sandboxed_import_module(name, package=None):
     Отдельно от __import__: import_module идёт в машинерию напрямую, минуя
     builtins.__import__, а для уже загруженного модуля — ещё и минуя meta_path.
     """
+    if package is None and type(name) is str and name in sys.modules and _plain_import(name):
+        module = sys.modules[name]
+        if module is not None:
+            return module
     if package is None:
         _deny_internal_import(name)
         _deny_denied_java_class(name)
@@ -1036,6 +1201,22 @@ def _import_as_neighbour(plugin_id, importer, *args):
         _context_state.import_barrier = previous
 
 
+_plain_imports = {}
+_INTERNAL_PARENTS = frozenset(name.rpartition(".")[0] for name in _INTERNAL_MODULES)
+
+
+def _plain_import(name) -> bool:
+    plain = _plain_imports.get(name)
+    if plain is None:
+        root = name.partition(".")[0]
+        plain = (name not in _INTERNAL_MODULES and name not in _INTERNAL_PARENTS
+                 and name not in _JAVA_CLASS_DENIED and name not in _DENIED_CLASS_PACKAGES
+                 and root not in _GATED_ROOTS and root not in _JAVA_ROOTS)
+        if len(_plain_imports) < 4096:
+            _plain_imports[name] = plain
+    return plain
+
+
 def _sandboxed_import(name, globals=None, locals=None, fromlist=(), level=0):
     """Обёртка builtins.__import__.
 
@@ -1043,6 +1224,13 @@ def _sandboxed_import(name, globals=None, locals=None, fromlist=(), level=0):
     старта движка уже лежат в sys.modules, а закэшированный импорт до
     meta_path вообще не доходит. Враппер ловит именно этот случай — для лога.
     """
+    if level == 0 and type(name) is str and name in sys.modules and _plain_import(name):
+        if fromlist:
+            return _original_import(name, globals, locals, fromlist, level)
+        if "." not in name:
+            module = sys.modules[name]
+            if module is not None:
+                return module
     if level == 0:
         _deny_internal_import(name, fromlist)
         _deny_denied_java_class(name, fromlist)
@@ -1062,17 +1250,42 @@ def _sandboxed_import(name, globals=None, locals=None, fromlist=(), level=0):
         except Exception as exc:
             _log_neighbour_import_failure(name, exc)
             raise
+    key = (name, tuple(fromlist)) if fromlist and level == 0 else None
+    if key is not None:
+        cached = _java_from_imports.get(key)
+        if cached is not None:
+            return cached
     try:
-        return _original_import(name, globals, locals, fromlist, level)
+        module = _original_import(name, globals, locals, fromlist, level)
     except ModuleNotFoundError as exc:
         # Chaquopy отдаёт «No module named 'org'» — корень пакета, а не то, что
         # действительно не нашлось. Настоящий запрос знает только этот кадр.
         if getattr(exc, "_regram_java_import", None) is None:
             exc._regram_java_import = (name, tuple(fromlist or ()))
         raise
+    if key is not None and _cacheable_java_import(module, name, key[1]):
+        if len(_java_from_imports) >= _JAVA_FROM_IMPORTS_MAX:
+            _java_from_imports.clear()
+        _java_from_imports[key] = module
+    return module
 
 
 _sandboxed_import._regram_sandbox = True
+
+_java_from_imports = {}
+_JAVA_FROM_IMPORTS_MAX = 4096
+
+
+def _cacheable_java_import(module, name, fromlist) -> bool:
+    if getattr(module, "__name__", None) != "<java import hook>":
+        return False
+    for item in fromlist:
+        if not isinstance(item, str) or item == "*":
+            return False
+        full = f"{name}.{item}"
+        if full in _JAVA_CLASS_DENIED or java_class_permission(full) is not None:
+            return False
+    return True
 
 
 # ---- прямой доступ к файлам из кода плагина ----
@@ -1094,7 +1307,7 @@ def _sandboxed_open(file, mode="r", *args, **kwargs):
         if pid is not None and target is not None:
             from file_utils import _is_own_path
             decoded = os.fsdecode(target)
-            if not _is_own_path(pid, decoded):
+            if has_permission(PERM_FILES, pid) or not _is_own_path(pid, decoded):
                 require_permission(PERM_FILES, "open a file",
                                    detail=f"{decoded} ({mode})",
                                    plugin_id=pid)
@@ -1426,6 +1639,141 @@ def _install_dual_member_setters() -> None:
                   file=sys.stderr)
 
 
+_NO_GETTER = object()
+
+
+def _getter_candidates(name):
+    head = name[:1].upper() + name[1:]
+    return "get" + head, "is" + head
+
+
+def _is_python_method(value) -> bool:
+    if isinstance(value, types.FunctionType):
+        return True
+    return isinstance(value, types.MethodType) and isinstance(value.__func__, types.FunctionType)
+
+
+_TYPE_ATTRS = frozenset(dir(type))
+_NOT_FOUND = object()
+
+
+def _bind_class_value(value, obj, owner):
+    getter = getattr(type(value), "__get__", None)
+    return value if getter is None else getter(value, obj, owner)
+
+
+class _AbsentJavaMember:
+    __slots__ = ("name",)
+
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, owner=None):
+        if owner is None:
+            owner = type(obj)
+        for klass in owner.__mro__:
+            value = klass.__dict__.get(self.name, _NOT_FOUND)
+            if value is not _NOT_FOUND and not isinstance(value, _AbsentJavaMember):
+                return _bind_class_value(value, obj, owner)
+        if obj is not None:
+            raise AttributeError(f"'{owner.__name__}' object has no attribute '{self.name}'",
+                                 name=self.name, obj=obj)
+        for klass in type(owner).__mro__:
+            value = klass.__dict__.get(self.name, _NOT_FOUND)
+            if value is not _NOT_FOUND:
+                return _bind_class_value(value, owner, type(owner))
+        raise AttributeError(f"type object '{owner.__name__}' has no attribute '{self.name}'",
+                             name=self.name, obj=owner)
+
+
+def _note_absent_java_member(cls, name):
+    if name[:2] == "__" or name.startswith("_chaquopy") or name in _TYPE_ATTRS:
+        return
+    try:
+        if isinstance(cls.__dict__.get(name), _AbsentJavaMember):
+            return
+        for klass in cls.__mro__:
+            value = klass.__dict__.get(name, _NOT_FOUND)
+            if value is not _NOT_FOUND and not isinstance(value, _AbsentJavaMember):
+                return
+        type.__setattr__(cls, name, _AbsentJavaMember(name))
+    except Exception:
+        pass
+
+
+def _java_getter_value(obj, name):
+    lookup = type(obj).__getattribute__
+    for candidate in _getter_candidates(name):
+        try:
+            method = lookup(obj, candidate)
+        except AttributeError:
+            _note_absent_java_member(type(obj), candidate)
+            continue
+        if _is_python_method(method):
+            continue
+        try:
+            return method()
+        except TypeError:
+            pass
+        try:
+            return getattr(type(obj), candidate)()
+        except (AttributeError, TypeError):
+            continue
+    return _NO_GETTER
+
+
+def _java_getattr(original):
+    def __getattr__(self, name):
+        if original is not None:
+            try:
+                return original(self, name)
+            except AttributeError:
+                pass
+        _note_absent_java_member(type(self), name)
+        if name[:1].isalpha() and _direct_plugin_caller() is not None:
+            value = _java_getter_value(self, name)
+            if value is not _NO_GETTER:
+                return value
+        return type(self).__getattribute__(self, name)
+
+    return __getattr__
+
+
+def _java_setattr(original):
+    def __setattr__(self, name, value):
+        original(self, name, value)
+        try:
+            if name in object.__getattribute__(self, "__dict__"):
+                _note_absent_java_member(type(self), name)
+        except Exception:
+            pass
+
+    return __setattr__
+
+
+_java_getters_installed = False
+
+
+def _install_java_getters() -> None:
+    global _java_getters_installed
+    if _java_getters_installed:
+        return
+    _java_getters_installed = True
+    try:
+        from java import jclass
+        root = jclass("java.lang.Object")
+        original = getattr(root, "__getattr__", None)
+        _set_class_attr(root, "__getattr__", _java_getattr(original))
+    except Exception as e:
+        print(f"[exteraless:plugin_loader] java getters failed: {e}", file=sys.stderr)
+        return
+    try:
+        proxy = jclass("com.chaquo.python.PyProxy")
+        _set_class_attr(proxy, "__setattr__", _java_setattr(root.__setattr__))
+    except Exception as e:
+        print(f"[exteraless:plugin_loader] proxy attribute cache failed: {e}", file=sys.stderr)
+
+
 def _install_jclass_guard() -> None:
     """Обернуть java.jclass проверкой разрешений. Идемпотентно, не бросает.
 
@@ -1442,6 +1790,8 @@ def _install_jclass_guard() -> None:
         from .class_aliases import resolve, adapt
 
         def jclass(name, *args, **kwargs):
+            if type(name) is str and plain_java_class(name):
+                return original(name, *args, **kwargs)
             requested = name
             try:
                 name = resolve(name)
@@ -1524,6 +1874,24 @@ def _proxy_return_defaults_uncached(interfaces):
 
 
 def _guard_proxy_method(fn, default, owner):
+    try:
+        from java.chaquopy import GuardedMethod
+    except Exception:
+        GuardedMethod = None
+    if GuardedMethod is not None:
+        name = getattr(fn, "__name__", "?")
+
+        def on_error(e):
+            if isinstance(e, PermissionError):
+                print(f"[exteraless:plugin_loader] {owner}.{name} denied: {e}",
+                      file=sys.stderr)
+                return
+            import traceback
+            print(f"[exteraless:plugin_loader] {owner}.{name} "
+                  f"raised into Java:\n{traceback.format_exc()}", file=sys.stderr)
+
+        return GuardedMethod(fn, default, on_error)
+
     import functools
 
     @functools.wraps(fn)
@@ -1555,9 +1923,60 @@ def _guard_proxy_subclass(cls, defaults):
         if isinstance(value, (staticmethod, classmethod, type)):
             continue
         try:
-            setattr(cls, name, _guard_proxy_method(value, defaults.get(name), cls.__name__))
+            type.__setattr__(cls, name, _guard_proxy_method(value, defaults.get(name), cls.__name__))
         except Exception:
             continue
+
+
+def _proxy_interfaces(cls):
+    interfaces = []
+    for base in cls.__bases__:
+        try:
+            if "_chaquopy_j_klass" not in vars(base):
+                continue
+            klass = base.getClass()
+            if not klass.isInterface() or str(klass.getName()).startswith("com.chaquo.python."):
+                continue
+        except Exception:
+            continue
+        interfaces.append(base)
+    return interfaces
+
+
+_proxy_class_type = None
+
+
+def _guard_new_proxy_class(cls) -> None:
+    global _proxy_class_type
+    if _proxy_class_type is None:
+        try:
+            from java.chaquopy import ProxyClass
+        except Exception:
+            return
+        _proxy_class_type = ProxyClass
+    if not isinstance(cls, _proxy_class_type):
+        return
+    _guard_proxy_subclass(cls, _proxy_return_defaults(_proxy_interfaces(cls)))
+
+
+def _install_proxy_class_guard() -> None:
+    try:
+        from java import jclass
+        root = jclass("java.lang.Object")
+        if getattr(getattr(vars(root).get("__init_subclass__"), "__func__", None), "_exteraless_guard", False):
+            return
+
+        def __init_subclass__(cls, **kwargs):
+            try:
+                _guard_new_proxy_class(cls)
+            except Exception as e:
+                print(f"[exteraless:plugin_loader] proxy class guard skipped: {e}",
+                      file=sys.stderr)
+
+        __init_subclass__._exteraless_guard = True
+        _set_class_attr(root, "__init_subclass__", classmethod(__init_subclass__))
+    except Exception as e:
+        print(f"[exteraless:plugin_loader] proxy class guard failed: {e}", file=sys.stderr)
 
 
 def _install_dynamic_proxy_guard() -> None:
@@ -1651,7 +2070,23 @@ def _callable_interface_proxy(interface, fn):
     return proxy
 
 
+def _interface_call_fallback(cls, fn):
+    if isinstance(fn, type) or not callable(fn) or hasattr(fn, "getClass"):
+        return None
+    try:
+        return _callable_interface_proxy(cls, fn)
+    except Exception:
+        return None
+
+
 def _install_interface_call_shim() -> None:
+    try:
+        from java.chaquopy import set_call_fallback
+    except Exception:
+        set_call_fallback = None
+    if set_call_fallback is not None:
+        set_call_fallback(_interface_call_fallback)
+        return
     try:
         from java.chaquopy import JavaClass
         original = JavaClass.__call__
@@ -1785,10 +2220,13 @@ def _install_sandbox() -> None:
         audit_gate.install(sys.modules[__name__])
         _install_thread_marking()
         _install_jclass_guard()
+        _install_reflection_gate()
         _install_color_int_shims()
         _install_dual_member_setters()
+        _install_java_getters()
         _install_log_capture()
         _install_dynamic_proxy_guard()
+        _install_proxy_class_guard()
         _install_interface_call_shim()
         from . import class_aliases
         class_aliases.install_import_hook()
@@ -2117,10 +2555,14 @@ def _ensure_requirements(plugin_id: str, requirements) -> None:
             "механизм зависимостей недоступен, поставить "
             + ", ".join(str(r) for r in requirements)
             + " нечем" + (f": {_pip_import_error}" if _pip_import_error else ""))
+    previous = getattr(_context_state, "engine_write", False)
+    _context_state.engine_write = True
     try:
         pip_controller.ensure_requirements(plugin_id, requirements)
     except Exception as e:
         raise RuntimeError(f"не удалось поставить зависимости плагина: {e}")
+    finally:
+        _context_state.engine_write = previous
 
     import importlib.util
     for raw in requirements:
@@ -2153,26 +2595,53 @@ def _dependency_available(name: str) -> bool:
         return False
 
 
+class _PhaseClock:
+    def __init__(self):
+        self.entered = time.monotonic_ns()
+        self.last = self.entered
+        self.phases = {}
+
+    def lap(self, name):
+        now = time.monotonic_ns()
+        self.phases[name] = round((now - self.last) / 1e6, 1)
+        self.last = now
+
+    def attach(self, result):
+        try:
+            data = json.loads(result)
+        except Exception:
+            return result
+        data["timings"] = dict(self.phases, entered_ns=self.entered)
+        return json.dumps(data, ensure_ascii=False)
+
+
 def load_plugin(path: str, plugin_id: str) -> str:
     """Validate metadata, install requirements, import and start the plugin."""
+    clock = _PhaseClock()
     _install_sandbox()  # идемпотентно; на случай, если импорт модуля не прошёл
+    clock.lap("sandbox")
     if str(path).endswith((".elyx", ".eaf")):
-        return _load_elyx_plugin(path, plugin_id)
+        return clock.attach(_load_elyx_plugin(path, plugin_id, clock))
 
     try:
         meta = read_metadata(path)  # validation; raises PluginMetadataError
     except Exception as e:
-        return _error_json(e)
+        return clock.attach(_error_json(e))
+    clock.lap("metadata")
 
     try:
         if plugin_id in plugins:
             _unload_record(plugin_id, quiet=True)
+            clock.lap("unload previous")
 
         if meta.get("requirements"):
             _ensure_requirements(plugin_id, meta["requirements"])
+            clock.lap("requirements")
 
         _preload_neighbour_plugins(path, plugin_id)
+        clock.lap("neighbours")
         module, module_name = _import_module(path, plugin_id)
+        clock.lap("import")
         plugin_class = _find_plugin_class(module, path, plugin_id)
         instance = plugin_class()
         instance._exteraless_attach(plugin_id)
@@ -2184,6 +2653,7 @@ def load_plugin(path: str, plugin_id: str) -> str:
                 continue
         plugins[plugin_id] = PluginRecord(module=module, instance=instance, path=path,
                                           module_name=module_name)
+        clock.lap("instantiate")
 
         try:
             if _overrides(plugin_class, "on_plugin_load"):
@@ -2192,16 +2662,17 @@ def load_plugin(path: str, plugin_id: str) -> str:
         except Exception:
             _unload_record(plugin_id, quiet=True)
             raise
+        clock.lap("on_plugin_load")
 
         has_settings = _overrides(plugin_class, "create_settings")
-        return json.dumps({"ok": True, "error": None, "has_settings": has_settings,
-                           "handles": _handled_hooks(plugin_class)},
-                          ensure_ascii=False)
+        return clock.attach(json.dumps({"ok": True, "error": None, "has_settings": has_settings,
+                                        "handles": _handled_hooks(plugin_class)},
+                                       ensure_ascii=False))
     except Exception as e:
-        return _error_json(e)
+        return clock.attach(_error_json(e))
 
 
-def _load_elyx_plugin(path: str, plugin_id: str) -> str:
+def _load_elyx_plugin(path: str, plugin_id: str, clock=None) -> str:
     """Structured .elyx/.eaf plugins delegate to elyx_runtime (owned elsewhere).
 
     SINGLE DISPATCH POINT: elyx_runtime.load_plugin_record(record, path)
@@ -2219,8 +2690,10 @@ def _load_elyx_plugin(path: str, plugin_id: str) -> str:
             _unload_record(plugin_id, quiet=True)
         record = PluginRecord(module=None, instance=None, path=path)
         record.__dict__["_elyx"] = True
+        record.__dict__["_clock"] = clock
         with plugin_context(plugin_id):
             elyx_runtime.load_plugin_record(record, path)
+        record.__dict__.pop("_clock", None)
         if record.instance is None:
             raise RuntimeError("elyx_runtime did not populate the plugin record")
         plugins[plugin_id] = record
@@ -2231,6 +2704,8 @@ def _load_elyx_plugin(path: str, plugin_id: str) -> str:
         except Exception:
             _unload_record(plugin_id, quiet=True)
             raise
+        if clock is not None:
+            clock.lap("on_plugin_load")
         has_settings = _overrides(type(record.instance), "create_settings")
         return json.dumps({"ok": True, "error": None, "has_settings": has_settings,
                            "handles": _handled_hooks(type(record.instance))},
@@ -2239,7 +2714,23 @@ def _load_elyx_plugin(path: str, plugin_id: str) -> str:
         return _error_json(e)
 
 
-def _unload_record(plugin_id: str, quiet: bool):
+def _mark_disabled(instance) -> None:
+    if instance is None:
+        return
+    try:
+        if "enabled" in vars(instance):
+            return
+        for cls in type(instance).__mro__:
+            if "enabled" in vars(cls):
+                if cls is not BasePlugin:
+                    return
+                break
+        instance.enabled = False
+    except Exception:
+        pass
+
+
+def _unload_record(plugin_id: str, quiet: bool, clock=None):
     record = plugins.pop(plugin_id, None)
     if record is None:
         return
@@ -2250,12 +2741,17 @@ def _unload_record(plugin_id: str, quiet: bool):
             with plugin_context(plugin_id):
                 instance.on_plugin_unload()
     finally:
+        if clock is not None:
+            clock.lap("on_plugin_unload")
+        _mark_disabled(instance)
         try:
             if instance is not None and hasattr(instance, "_exteraless_cleanup_resources"):
                 with plugin_context(plugin_id):
                     instance._exteraless_cleanup_resources()
         except Exception:
             pass
+        if clock is not None:
+            clock.lap("cleanup")
         if getattr(record, "_elyx", False):
             # Elyx namespace teardown (module eviction etc.) is elyx_runtime's job.
             try:
@@ -2263,6 +2759,8 @@ def _unload_record(plugin_id: str, quiet: bool):
                 elyx_runtime.unload_plugin_record(record)
             except Exception:
                 pass
+            if clock is not None:
+                clock.lap("elyx teardown")
         else:
             # Не по module.__name__: плагины переписывают его себе в шапке
             # (zwylib ставит "ZwyLib"), и запись в sys.modules пережила бы
@@ -2272,18 +2770,36 @@ def _unload_record(plugin_id: str, quiet: bool):
                 sys.modules.pop(name, None)
         if getattr(record, "path", None):
             _forget_owner(record.path)
+        if clock is not None:
+            clock.lap("forget owner")
         try:
             from . import classes as _classes
             _classes.forget_plugin_classes(plugin_id)
         except Exception:
             pass
+        if clock is not None:
+            clock.lap("forget classes")
         record.click_callbacks.clear()
         record.custom_views.clear()
 
 
-def unload_plugin(plugin_id: str) -> None:
-    _unload_record(plugin_id, quiet=False)
-    return None
+def unload_plugin(plugin_id: str) -> str:
+    clock = _PhaseClock()
+    _unload_record(plugin_id, quiet=False, clock=clock)
+    clock.lap("finish")
+    return clock.attach("{}")
+
+
+def debug_python_stacks() -> str:
+    import traceback
+    names = {t.ident: t.name for t in threading.enumerate()}
+    out = []
+    for ident, frame in sys._current_frames().items():
+        out.append(f"      [{names.get(ident, ident)}]")
+        for entry in traceback.format_stack(frame, limit=12):
+            for line in entry.rstrip().splitlines():
+                out.append("        " + line)
+    return "\n".join(out) + "\n"
 
 
 def uninstall_plugin(plugin_id: str) -> None:
@@ -2294,11 +2810,15 @@ def uninstall_plugin(plugin_id: str) -> None:
     """
     _unload_record(plugin_id, quiet=False)
     if pip_controller is not None:
+        previous = getattr(_context_state, "engine_write", False)
+        _context_state.engine_write = True
         try:
             pip_controller.remove_requirements(plugin_id)
         except Exception as e:
             print(f"[regram:plugin_loader] remove_requirements({plugin_id!r}) "
                   f"failed: {e}", file=sys.stderr)
+        finally:
+            _context_state.engine_write = previous
     # Elyx: вычистить экстракции и локальные wheels (<plugins_dir>/.elyx_extracted/<id>).
     try:
         import elyx_runtime

@@ -108,7 +108,7 @@ import xyz.nextalone.nagram.NaConfig;
 
 public class MainTabsActivity extends ViewPagerActivity implements NotificationCenter.NotificationCenterDelegate, FactorAnimator.Target {
 
-    public static final int TABS_COUNT = 4;
+    public static final int TABS_COUNT = 5;
     private static final int POSITION_CHATS = 0;
     private static final int POSITION_CONTACTS = 1;
     private static final int POSITION_CALLS_OR_SETTINGS = 2;
@@ -120,6 +120,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     private static final int INDEX_CALLS = 3;
     private static final int INDEX_PROFILE = 4;
     private static final int INDEX_FEED = 5;
+    private static final int INDEX_PLUGINS = 6;
 
     private int indexToPosition(int index) {
         // return index > 2 ? index - 1 : index;
@@ -129,6 +130,8 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             return MainTabsHelper.isContactsTabHidden() || isFeedTabEnabled() ? -1 : getPositionContacts();
         } else if (index == INDEX_FEED) {
             return isFeedTabEnabled() ? getPositionContacts() : -1;
+        } else if (index == INDEX_PLUGINS) {
+            return getTabsCount() - 1;
         } else if (index == INDEX_PROFILE) {
             return getPositionProfile();
         } else {
@@ -173,6 +176,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     private boolean dropCallsFragmentAfterPageScroll;
 
     private UpdateLayoutWrapper updateLayoutWrapper;
+    private app.regram.player.PlayerMiniView miniPlayer;
     private FrameLayout tabsViewWrapper;
     private MainTabsLayout tabsView;
     private BlurredBackgroundDrawable tabsViewBackground;
@@ -259,7 +263,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             @Override
             public int getBottomOffset(int tag) {
                 // В M3 всегда 64
-                return navigationBarHeight + (NaConfig.INSTANCE.getHideBottomNavigationBar().Bool() ? 0 : dp(MainTabsUiHelper.getTabsFabOffsetDp()));
+                return navigationBarHeight + (NaConfig.INSTANCE.getHideBottomNavigationBar().Bool() ? 0 : dp(MainTabsUiHelper.getTabsFabOffsetDp())) + (miniPlayer != null ? (int) miniPlayer.getVisibleOffset() : 0);
             }
         };
 
@@ -334,6 +338,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     @Override
     public void onResume() {
         super.onResume();
+        if (miniPlayer != null) {
+            miniPlayer.update(true);
+        }
         blur3_updateColors();
         checkContactsTabBadge();
         checkUnreadCount(true);
@@ -379,15 +386,16 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         tabsView.setClipChildren(false);
         // В M3 панель без внутренних
         // отступов и без ограничения ширины
-        MainTabsUiHelper.applyTabsLayoutStyle(tabsView, dp(328 + DialogsActivity.MAIN_TABS_MARGIN * 2));
+        MainTabsUiHelper.applyTabsLayoutStyle(tabsView, MainTabsHelper.getTabsViewWidth());
 
-        tabs = new GlassTabView[6];
+        tabs = new GlassTabView[7];
         tabs[INDEX_CHATS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CHATS, R.string.MainTabsChats);
         tabs[INDEX_CONTACTS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CONTACTS, R.string.MainTabsContacts);
         tabs[INDEX_SETTINGS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.SETTINGS, R.string.Settings);
         tabs[INDEX_CALLS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CALLS, R.string.MainTabsCalls);
         tabs[INDEX_PROFILE] = GlassTabView.createAvatar(context, resourceProvider, currentAccount, R.string.MainTabsProfile);
         tabs[INDEX_FEED] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.FEED, R.string.Feed);
+        tabs[INDEX_PLUGINS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.PLUGINS, R.string.OpenExteraPlugins);
         tabs[INDEX_CHATS].setOnLongClickListener(this::openFoldersSelector);
         tabs[INDEX_CONTACTS].setOnLongClickListener(this::openContactsSelector);
         tabs[INDEX_CALLS].setOnLongClickListener(this::openCallsSelector);
@@ -402,8 +410,9 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         tabsView.addTabToIgnoreClick(tabs[INDEX_PROFILE]);
         tabsView.addTabToIgnoreClick(tabs[INDEX_CALLS]);
         tabsView.addTabToIgnoreClick(tabs[INDEX_FEED]);
+        tabsView.addTabToIgnoreClick(tabs[INDEX_PLUGINS]);
 
-        final int[] displayOrder = {INDEX_CHATS, INDEX_FEED, INDEX_CONTACTS, INDEX_SETTINGS, INDEX_CALLS, INDEX_PROFILE};
+        final int[] displayOrder = {INDEX_CHATS, INDEX_FEED, INDEX_CONTACTS, INDEX_SETTINGS, INDEX_CALLS, INDEX_PROFILE, INDEX_PLUGINS};
         for (int index : displayOrder) {
             final GlassTabView view = tabs[index];
             final int tabIndex = index;
@@ -463,6 +472,10 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         fadeView.setBackground(fadeDrawable);
 
         contentView.addView(fadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM));
+
+        miniPlayer = new app.regram.player.PlayerMiniView(context, this, resourceProvider);
+        miniPlayer.setOffsetListener(this::onMiniPlayerOffsetChanged);
+        contentView.addView(miniPlayer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, app.regram.player.PlayerMiniView.HEIGHT_DP + 16, Gravity.BOTTOM));
 
         tabsViewWrapper = new FrameLayout(context);
         tabsViewWrapper.setOnClickListener(v -> {});
@@ -935,6 +948,11 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
     @Override
     protected BaseFragment createBaseFragmentAt(int position) {
+        if (position == getTabsCount() - 1) {
+            app.regram.plugins.ui.PluginsActivity page = new app.regram.plugins.ui.PluginsActivity(true);
+            page.setCurrentAccount(currentAccount);
+            return prepareTabFragment(page);
+        }
         if (isFeedTabEnabled() && position == getPositionContacts()) {
             Bundle args = new Bundle();
             args.putBoolean("hasMainTabs", true);
@@ -991,7 +1009,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             }
 
             // Fragment positions are cached. Drop non-chats fragments to avoid mismatches after layout changes.
-            for (int pos = 1; pos <= 3; pos++) {
+            for (int pos = 1; pos < TABS_COUNT; pos++) {
                 dropFragmentAtPosition(pos);
             }
 
@@ -1045,11 +1063,18 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         default void setParentTabsGlassInvalidationCallback(Runnable callback) {
 
         }
+
+        default void setMiniPlayerInset(float inset, int padding) {
+
+        }
     }
 
     private <T extends BaseFragment> T prepareTabFragment(T fragment) {
         if (fragment instanceof TabFragmentDelegate) {
             ((TabFragmentDelegate) fragment).setParentTabsGlassInvalidationCallback(this::invalidateTabsGlass);
+            if (miniPlayer != null) {
+                ((TabFragmentDelegate) fragment).setMiniPlayerInset(miniPlayer.getVisibleOffset(), miniPlayer.getTargetOffset());
+            }
         }
         return fragment;
     }
@@ -1234,11 +1259,18 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         super.onFragmentDestroy();
     }
 
+    public float getBottomTabsVisibility() {
+        return animatorTabsVisible.getFloatValue();
+    }
+
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
         if (id == ANIMATOR_ID_TABS_VISIBLE) {
             checkUi_tabsPosition();
             checkUi_fadeView();
+            if (dialogsActivity != null) {
+                dialogsActivity.onBottomTabsAnimationChanged();
+            }
         }
     }
 
@@ -1260,7 +1292,35 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         fadeView.setVisibility(alpha > 0 ? View.VISIBLE : View.GONE);
     }
 
+    private void checkUi_miniPlayer() {
+        if (miniPlayer == null || updateLayoutWrapper == null) {
+            return;
+        }
+        final boolean hidden = NaConfig.INSTANCE.getHideBottomNavigationBar().Bool();
+        final int updateLayoutHeight = updateLayoutWrapper.isUpdateLayoutVisible() ? dp(UpdateLayoutWrapper.HEIGHT) : 0;
+        final int tabsHeight = hidden ? 0 : dp(MainTabsUiHelper.getTabsViewHeightDp());
+        final int gap = hidden || MainTabsUiHelper.isMaterial3NavigationBar() ? dp(12) : dp(4);
+        final float factor = hidden ? 1f : animatorTabsVisible.getFloatValue();
+        miniPlayer.setHostPosition(-(navigationBarHeight + updateLayoutHeight + tabsHeight + gap - dp(12)), factor);
+        onMiniPlayerOffsetChanged();
+    }
+
+    private void onMiniPlayerOffsetChanged() {
+        if (miniPlayer == null) {
+            return;
+        }
+        final float inset = miniPlayer.getVisibleOffset();
+        final int padding = miniPlayer.getTargetOffset();
+        for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
+            final BaseFragment fragment = fragmentsArr.valueAt(a).fragment;
+            if (fragment instanceof TabFragmentDelegate) {
+                ((TabFragmentDelegate) fragment).setMiniPlayerInset(inset, padding);
+            }
+        }
+    }
+
     private void checkUi_tabsPosition() {
+        checkUi_miniPlayer();
         if (tabsView == null) return;
         if (NaConfig.INSTANCE.getHideBottomNavigationBar().Bool()) {
             tabsView.setVisibility(View.GONE);

@@ -30,6 +30,7 @@ public class PillStackController implements PillStackEvents.Listener {
     private final EditText editText;
     private PillStackView stackView;
     private boolean attached;
+    private int builtLayoutVersion = -1;
 
     /** Подключает полосу пилюль к контейнеру строки поиска. */
     public static PillStackController attach(FrameLayout container, EditText editText) {
@@ -53,7 +54,13 @@ public class PillStackController implements PillStackEvents.Listener {
             public void onViewAttachedToWindow(@NonNull View v) {
                 attached = true;
                 PillStackEvents.addListener(PillStackController.this);
-                rebuild();
+                if (stackView != null && stackView.getParent() == container
+                        && builtLayoutVersion == PillStackEvents.getLayoutVersion()) {
+                    stackView.updateColors();
+                    updateVisibility();
+                } else {
+                    rebuild();
+                }
             }
 
             @Override
@@ -104,6 +111,7 @@ public class PillStackController implements PillStackEvents.Listener {
     }
 
     public void rebuildContents() {
+        builtLayoutVersion = PillStackEvents.getLayoutVersion();
         if (stackView != null && stackView.getParent() != container) {
             stackView.clearPills();
             stackView = null;

@@ -60,7 +60,45 @@ import app.regram.plugins.ui.components.PluginPermissionsDelegate;
  * живут на втором экране, а не свалены сюда: раньше всё было одним списком, и
  * это ощутимо расходилось с оригиналом.
  */
-public class PluginsActivity extends BaseFragment {
+public class PluginsActivity extends BaseFragment implements org.telegram.ui.MainTabsActivity.TabFragmentDelegate {
+
+    private final boolean hasMainTabs;
+    private int bottomInset;
+    private int miniPlayerPadding;
+
+    public PluginsActivity() {
+        this(false);
+    }
+
+    public PluginsActivity(boolean hasMainTabs) {
+        this.hasMainTabs = hasMainTabs;
+    }
+
+    @Override
+    public boolean canParentTabsSlide(android.view.MotionEvent ev, boolean forward) {
+        return hasMainTabs && !actionBar.isSearchFieldVisible();
+    }
+
+    @Override
+    public void onParentScrollToTop() {
+        if (listView != null) {
+            listView.smoothScrollToPosition(0);
+        }
+    }
+
+    @Override
+    public void setMiniPlayerInset(float inset, int padding) {
+        miniPlayerPadding = padding;
+        updateTabPadding();
+    }
+
+    private void updateTabPadding() {
+        if (listView == null) return;
+        int tabsPadding = hasMainTabs && org.telegram.ui.MainTabsLayout.isBottomNavigationVisible()
+                ? dp(app.regram.appearance.MainTabsUiHelper.getTabsViewHeightDp()) : 0;
+        listView.setPadding(0, 0, 0, bottomInset + tabsPadding + miniPlayerPadding);
+        listView.setClipToPadding(false);
+    }
 
     private static final int MENU_SEARCH = 0;
     private static final int MENU_INFO = 1;
@@ -81,7 +119,9 @@ public class PluginsActivity extends BaseFragment {
 
     @Override
     public View createView(Context context) {
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        if (!hasMainTabs) {
+            actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        }
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(getString(R.string.OpenExteraPlugins));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
@@ -142,7 +182,12 @@ public class PluginsActivity extends BaseFragment {
         listView.setSections();
         listView.adapter.setApplyBackground(false);
         contentView.addView(listView,
-                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+                LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT,
+                        android.view.Gravity.TOP, 0, hasMainTabs
+                                ? (ActionBar.getCurrentActionBarHeight() + (actionBar.getOccupyStatusBar()
+                                    ? AndroidUtilities.statusBarHeight : 0)) / AndroidUtilities.density : 0,
+                        0, 0));
+        updateTabPadding();
         actionBar.setAdaptiveBackground(listView);
 
         fragmentView = contentView;
@@ -723,9 +768,13 @@ public class PluginsActivity extends BaseFragment {
 
     @Override
     public void onInsets(int left, int top, int right, int bottom) {
-        if (listView != null) {
-            listView.setPadding(0, 0, 0, bottom);
-            listView.setClipToPadding(false);
+        bottomInset = bottom;
+        updateTabPadding();
+        if (hasMainTabs && listView != null) {
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) listView.getLayoutParams();
+            lp.topMargin = ActionBar.getCurrentActionBarHeight()
+                    + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
+            listView.setLayoutParams(lp);
         }
     }
 }

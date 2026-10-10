@@ -31,3 +31,7 @@
 [submodule "TMessagesProj/jni/third_party/wamr"]
 	path = TMessagesProj/jni/third_party/wamr
 	url = https://github.com/wasm-micro-runtime/wasm-micro-runtime.git
+[submodule "TMessagesProj/chaquopy"]
+	path = TMessagesProj/chaquopy
+	url = https://github.com/exteraless/chaquopy.git
+	branch = exteraless

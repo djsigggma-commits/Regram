@@ -347,6 +347,14 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
     private boolean crossfadeWithThumb;
     private float crossfadeByScale = .05f;
     private ColorFilter colorFilter;
+    private boolean regramPeerAvatar;
+
+    private ColorFilter visualColorFilter() {
+        if (regramPeerAvatar && app.regram.appearance.MonoColor.avatars()) {
+            return app.regram.appearance.MonoColor.avatarFilter();
+        }
+        return colorFilter;
+    }
     private boolean isRoundVideo;
     private long startTime;
     private long endTime;
@@ -431,6 +439,11 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
     }
 
     public void setForUserOrChat(TLObject object, Drawable avatarDrawable, Object parentObject, boolean animationEnabled, int vectorType, boolean big) {
+        setForUserOrChatInternal(object, avatarDrawable, parentObject, animationEnabled, vectorType, big);
+        regramPeerAvatar = app.regram.appearance.MonoColor.hasAvatarPhoto(object);
+    }
+
+    private void setForUserOrChatInternal(TLObject object, Drawable avatarDrawable, Object parentObject, boolean animationEnabled, int vectorType, boolean big) {
         if (parentObject == null) {
             parentObject = object;
         }
@@ -584,6 +597,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
     }
 
     public void setImage(ImageLocation mediaLocation, String mediaFilter, ImageLocation imageLocation, String imageFilter, ImageLocation thumbLocation, String thumbFilter, Drawable thumb, long size, String ext, Object parentObject, int cacheType) {
+        regramPeerAvatar = app.regram.appearance.MonoColor.hasAvatarPhoto(parentObject);
         if (allowLoadingOnAttachedOnly && !attachedToWindow) {
             if (setImageBackup == null) {
                 setImageBackup = new SetImageBackup();
@@ -896,6 +910,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
     }
 
     public void setImageBitmap(Drawable bitmap, boolean notify) {
+        regramPeerAvatar = false;
         ImageLoader.getInstance().cancelLoadingForImageReceiver(this, true);
 
         if (crossfadeWithOldImage) {
@@ -1285,6 +1300,19 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
     }
 
     protected void drawDrawable(Canvas canvas, Drawable drawable, int alpha, BitmapShader shader, int orientation, int invert, int isPressed, BackgroundThreadDrawHolder backgroundThreadDrawHolder) {
+        boolean restoreFilter = drawable != null && (backgroundThreadDrawHolder != null
+                ? backgroundThreadDrawHolder.regramPeerAvatar && backgroundThreadDrawHolder.colorFilter != null
+                : regramPeerAvatar && app.regram.appearance.MonoColor.avatars());
+        ColorFilter previous = restoreFilter ? drawable.getColorFilter() : null;
+        try {
+            drawDrawableInternal(canvas, drawable, alpha, shader, orientation, invert, isPressed, backgroundThreadDrawHolder);
+        } finally {
+            // Shared/static avatar thumbnails must not retain our tint after drawing.
+            if (restoreFilter) drawable.setColorFilter(previous);
+        }
+    }
+
+    private void drawDrawableInternal(Canvas canvas, Drawable drawable, int alpha, BitmapShader shader, int orientation, int invert, int isPressed, BackgroundThreadDrawHolder backgroundThreadDrawHolder) {
         float imageX, imageY, imageH, imageW;
         RectF drawRegion;
         ColorFilter colorFilter;
@@ -1304,7 +1332,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
             imageH = this.imageH;
             imageW = this.imageW;
             drawRegion = this.drawRegion;
-            colorFilter = this.colorFilter;
+            colorFilter = visualColorFilter();
             roundRadius = this.roundRadius;
         }
         if (!useRoundRadius) roundRadius = emptyRoundRadius;
@@ -1970,7 +1998,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
                 crossfadeShader = this.crossfadeShader;
                 overrideAlpha = this.overrideAlpha;
                 animationNotReady = animation != null && !animation.hasBitmap() || lottieDrawable != null && !lottieDrawable.hasBitmap();
-                colorFilter = this.colorFilter;
+                colorFilter = visualColorFilter();
             }
             if (!useRoundRadius) roundRadius = emptyRoundRadius;
 
@@ -3416,7 +3444,8 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
         holder.staticThumbShader = staticThumbShader;
         holder.staticThumbDrawable = staticThumbDrawable;
         holder.crossfadeImage = crossfadeImage;
-        holder.colorFilter = colorFilter;
+        holder.colorFilter = visualColorFilter();
+        holder.regramPeerAvatar = regramPeerAvatar;
         holder.crossfadingWithThumb = crossfadingWithThumb;
         holder.crossfadeWithOldImage = crossfadeWithOldImage;
         holder.currentAlpha = currentAlpha;
@@ -3476,6 +3505,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
         private Drawable crossfadeImage;
         public RectF drawRegion = new RectF();
         public ColorFilter colorFilter;
+        public boolean regramPeerAvatar;
         Paint paint;
         private Path roundPath;
 
@@ -3495,6 +3525,7 @@ public class ImageReceiver implements NotificationCenter.NotificationCenterDeleg
             staticThumbDrawable = null;
             crossfadeImage = null;
             colorFilter = null;
+            regramPeerAvatar = false;
         }
 
         public void setBounds(Rect bounds) {

@@ -1,5 +1,6 @@
 package tw.nekomimi.nekogram.ui.icons
 
+import android.util.SparseIntArray
 import org.telegram.messenger.R
 
 class SolarIcons {
@@ -423,13 +424,18 @@ class SolarIcons {
             solarIcons.add(R.drawable.filter_setup to R.drawable.filter_setup_solar)
         }
 
-        fun getConversion(icon: Int): Int {
-            for (pair in solarIcons) {
-                if (pair.first == icon) {
-                    return pair.second
+        private val conversions: SparseIntArray by lazy {
+            val map = SparseIntArray(solarIcons.size)
+            for ((from, to) in solarIcons) {
+                if (map.indexOfKey(from) < 0) {
+                    map.put(from, to)
                 }
             }
-            return icon
+            map
+        }
+
+        fun getConversion(icon: Int): Int {
+            return conversions.get(icon, icon)
         }
     }
 }

@@ -44,6 +44,7 @@ import xyz.nextalone.nagram.NaConfig;
 public final class GitHubUpdater {
 
     private static final String REPO = "djsigggma-commits/Regram";
+    public static final String RELEASES_URL = "https://github.com/" + REPO + "/releases";
     private static final String API = "https://api.github.com/repos/" + REPO;
     private static final long AUTO_INTERVAL = TimeUnit.HOURS.toMillis(6);
     private static final String PREFS = "exteraless_updater";
@@ -58,13 +59,29 @@ public final class GitHubUpdater {
     private GitHubUpdater() {
     }
 
-    private static final class Release {
-        String tag;
-        String name;
-        String body;
-        String apkUrl;
-        String apkName;
-        long apkSize;
+    public static final class Release {
+        public String tag;
+        public String name;
+        public String body;
+        public String apkUrl;
+        public String apkName;
+        public long apkSize;
+        public long published;
+
+        public String displayVersion() {
+            String value = TextUtils.isEmpty(tag) ? name : tag;
+            return value != null && value.startsWith("v") ? value.substring(1) : value;
+        }
+    }
+
+    public interface CheckCallback {
+        void onChecked(Release release, Boolean newer, boolean failed);
+    }
+
+    public interface DownloadListener {
+        void onProgress(long done, long total);
+
+        void onFinished(boolean success, boolean canceled);
     }
 
     private static OkHttpClient client() {
@@ -91,7 +108,7 @@ public final class GitHubUpdater {
             if (channel == UpdateHelper.UPDATE_OFF) {
                 return;
             }
-            if (Math.abs(System.currentTimeMillis() - prefs().getLong(KEY_LAST_CHECK, 0)) < AUTO_INTERVAL) {
+            if (Math.abs(System.currentTimeMillis() - lastCheck()) < AUTO_INTERVAL) {
                 return;
             }
         }
@@ -99,10 +116,25 @@ public final class GitHubUpdater {
             return;
         }
         checking = true;
-        final boolean prerelease = channel == UpdateHelper.UPDATE_CHANNEL_BETA;
+        fetch((found, isNewer, failed) -> {
+            checking = false;
+            boolean offer = found != null && (Boolean.TRUE.equals(isNewer) || force && isNewer == null);
+            if (offer && (force || !TextUtils.equals(found.tag, prefs().getString(KEY_SKIPPED, null)))) {
+                show(found);
+            } else if (force) {
+                bulletin(failed
+                        ? LocaleController.getString(R.string.OEUpdateCheckFailed)
+                        : LocaleController.getString(R.string.YourVersionIsLatestNax), failed);
+            }
+        });
+    }
+
+    public static void fetch(CheckCallback callback) {
+        final boolean prerelease = NaConfig.INSTANCE.getAutoUpdateChannel().Int() == UpdateHelper.UPDATE_CHANNEL_BETA;
         new Thread(() -> {
             Release release = null;
             Boolean newer = null;
+            boolean failed = false;
             try {
                 release = latest(prerelease);
                 if (release != null) {
@@ -110,22 +142,29 @@ public final class GitHubUpdater {
                 }
                 prefs().edit().putLong(KEY_LAST_CHECK, System.currentTimeMillis()).apply();
             } catch (Exception e) {
+                failed = true;
                 FileLog.e("GitHubUpdater: check failed", e);
             }
             final Release found = release;
             final Boolean isNewer = newer;
-            AndroidUtilities.runOnUIThread(() -> {
-                checking = false;
-                boolean offer = found != null && (Boolean.TRUE.equals(isNewer) || force && isNewer == null);
-                if (offer && (force || !TextUtils.equals(found.tag, prefs().getString(KEY_SKIPPED, null)))) {
-                    show(found);
-                } else if (force) {
-                    bulletin(found == null && isNewer == null
-                            ? LocaleController.getString(R.string.OEUpdateCheckFailed)
-                            : LocaleController.getString(R.string.YourVersionIsLatestNax), found == null && isNewer == null);
-                }
-            });
+            final boolean error = failed;
+            AndroidUtilities.runOnUIThread(() -> callback.onChecked(found, isNewer, error));
         }, "gh-updater").start();
+    }
+
+    public static long lastCheck() {
+        return prefs().getLong(KEY_LAST_CHECK, 0);
+    }
+
+    public static boolean isDownloading() {
+        return download != null;
+    }
+
+    public static void cancelDownload() {
+        Call call = download;
+        if (call != null) {
+            call.cancel();
+        }
     }
 
     private static void bulletin(String text, boolean error) {
@@ -180,6 +219,7 @@ public final class GitHubUpdater {
             release.apkUrl = asset.optString("browser_download_url");
             release.apkName = asset.optString("name");
             release.apkSize = asset.optLong("size");
+            release.published = parseDate(item.optString("published_at"));
             return release;
         }
         return null;
@@ -291,7 +331,22 @@ public final class GitHubUpdater {
                 subtitle.toString(), notes, updateText, new UpdateSheet.Delegate() {
             @Override
             public void onUpdate(UpdateSheet sheet) {
-                download(activity, sheet, release);
+                sheet.setDownloading(true);
+                download(activity, release, new DownloadListener() {
+                    @Override
+                    public void onProgress(long done, long total) {
+                        sheet.setProgress(done, total);
+                    }
+
+                    @Override
+                    public void onFinished(boolean success, boolean canceled) {
+                        if (success) {
+                            sheet.finishDownload();
+                        } else if (!canceled) {
+                            sheet.setDownloading(false);
+                        }
+                    }
+                });
             }
 
             @Override
@@ -301,21 +356,19 @@ public final class GitHubUpdater {
 
             @Override
             public void onCancelDownload() {
-                Call call = download;
-                if (call != null) {
-                    call.cancel();
-                }
+                cancelDownload();
             }
         }).show();
     }
 
-    private static void download(Activity activity, UpdateSheet sheet, Release release) {
+    public static void download(Activity activity, Release release, DownloadListener listener) {
         if (download != null) {
             return;
         }
         File dir = new File(activity.getCacheDir(), "updates");
         if (!dir.exists() && !dir.mkdirs()) {
             bulletin(LocaleController.getString(R.string.OEUpdateDownloadFailed), true);
+            listener.onFinished(false, false);
             return;
         }
         File[] old = dir.listFiles();
@@ -325,7 +378,6 @@ public final class GitHubUpdater {
             }
         }
         File target = new File(dir, release.apkName.replaceAll("[^A-Za-z0-9._-]", "_"));
-        sheet.setDownloading(true);
         Call call = client().newCall(new Request.Builder().url(release.apkUrl)
                 .header("User-Agent", "exteraless").build());
         download = call;
@@ -350,7 +402,7 @@ public final class GitHubUpdater {
                             if (percent != lastPercent) {
                                 lastPercent = percent;
                                 final long doneBytes = done;
-                                AndroidUtilities.runOnUIThread(() -> sheet.setProgress(doneBytes, total));
+                                AndroidUtilities.runOnUIThread(() -> listener.onProgress(doneBytes, total));
                             }
                         }
                     }
@@ -365,12 +417,12 @@ public final class GitHubUpdater {
             AndroidUtilities.runOnUIThread(() -> {
                 download = null;
                 if (success) {
-                    sheet.finishDownload();
+                    listener.onFinished(true, false);
                     install(activity, target);
                 } else {
                     target.delete();
+                    listener.onFinished(false, call.isCanceled());
                     if (!call.isCanceled()) {
-                        sheet.setDownloading(false);
                         bulletin(LocaleController.getString(R.string.OEUpdateDownloadFailed), true);
                     }
                 }

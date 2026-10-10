@@ -3500,6 +3500,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
 
         req.peer = getMessagesController().getInputPeer(messageObject.getDialogId());
+        app.regram.chats.LinkedCustomEmoji.replaceForSend(currentAccount, messageObject.getDialogId(), rich);
         req.rich_message = richMessageToInputRichMessage(rich, users);
         req.flags |= TLObject.FLAG_23;
         if (messageObject.scheduled) {
@@ -4396,6 +4397,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (richMessage != null && DialogObject.isEncryptedDialog(peer)) {
             return;
         }
+        app.regram.chats.LinkedCustomEmoji.replaceForSend(currentAccount, peer, richMessage);
         if (message == null && caption == null && richMessage == null) {
             caption = "";
         }

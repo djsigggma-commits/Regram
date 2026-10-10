@@ -3,6 +3,7 @@ package app.regram.plugins.xposed;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mvel2.MVEL;
+import org.mvel2.optimizers.OptimizerFactory;
 import org.telegram.messenger.FileLog;
 
 import java.io.Serializable;
@@ -25,6 +26,10 @@ import de.robv.android.xposed.XC_MethodHook;
  * вычисления (в т.ч. MVEL) — fail closed (фильтр не пройден) + FileLog.
  */
 final class HookFilter {
+
+    static {
+        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
+    }
 
     /** Маркер «класс не найден» для кэша (ConcurrentHashMap не хранит null). */
     private static final class Unresolvable {

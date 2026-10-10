@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEAppearanceNativeVisual">Native appearance</string>
+    <string name="OEAppearanceNativeVisualInfo">Single-color interface and left-aligned messages, built into the client</string>
+    <string name="RegramMonoColor">Enable MonoColor UI</string>
+    <string name="RegramMonoSource">Color source</string>
+    <string name="RegramMonoCustomColor">Custom color</string>
+    <string name="RegramMonoButton">Button</string>
+    <string name="RegramMonoAccent">Theme accent</string>
+    <string name="RegramMonoHeader">Header</string>
+    <string name="RegramMonoLinks">Links</string>
+    <string name="RegramMonoFloating">Floating button</string>
+    <string name="RegramMonoOutgoing">Outgoing bubble</string>
+    <string name="RegramMonoGradient">Gradient</string>
+    <string name="RegramMonoAvatars">Avatars and profile photos</string>
+    <string name="RegramMonoStories">Story rings, close friends and live streams</string>
+    <string name="RegramMonoNames">Sender names</string>
+    <string name="RegramMonoDialogs">Chat titles and message previews</string>
+    <string name="RegramMonoProfiles">Custom profile colors</string>
+    <string name="RegramMonoInfo">The selected shade adapts to light and dark themes. No plugin is needed. Disable the original MonoColor UI plugin before using this setting. Inspired by MonoColor UI by @limeplug.</string>
+    <string name="RegramAllLeft">Enable AllLeft</string>
+    <string name="RegramAllLeftPrivate">Private chats only</string>
+    <string name="RegramAllLeftStatus">Delivery and read marks on my messages</string>
+    <string name="RegramAllLeftInfo">Messages appear on the left with sender names and avatars. Consecutive messages from the same sender stay grouped. Saved Messages and sponsored messages are unchanged. Ownership and sending behavior stay intact. Disable the original AllLeft plugin before using this setting. Inspired by AllLeft by @limeplug.</string>
+    <string name="RegramMentionAvatars">Show avatars next to mentions</string>
+    <string name="RegramMentionPosition">Avatar position</string>
+    <string name="RegramMentionBefore">Before username</string>
+    <string name="RegramMentionAfter">After username</string>
+    <string name="RegramMentionSize">Avatar size</string>
+    <string name="RegramMentionSmall">Small (14 dp)</string>
+    <string name="RegramMentionMedium">Medium (16 dp)</string>
+    <string name="RegramMentionLarge">Large (18 dp)</string>
+    <string name="RegramMentionChats">Channels and groups</string>
+    <string name="RegramMentionBots">Bots</string>
+    <string name="RegramMentionInfo">Avatars next to mentions in messages and media captions. Uses peers already known to this account; no username lookup requests or cross-account fallback. Hidden spoilers and code are excluded. Text, copying and entity offsets remain unchanged. Disable the original MentionAvatars plugin. Inspired by MentionAvatars 1.1.1 by @limeplug.</string>
+    <string name="RegramPlayerColor">Custom player color</string>
+    <string name="RegramPlayerPreset">Preset</string>
+    <string name="RegramPlayerHex">Custom color (HEX)</string>
+    <string name="RegramPlayerInvalidHex">Enter #RGB or #RRGGBB</string>
+    <string name="RegramPlayerInfo">Native Player Color 1.3 by @neptuniy237. Mini and full player palette, with or without artwork. Disable the original Player Color plugin. Updates on the next player event: pause or track change.</string>
+    <string-array name="RegramPlayerColorPresets">
+        <item>Custom color (HEX)</item><item>Red</item><item>Pink</item><item>Purple</item><item>Indigo</item><item>Blue</item><item>Cyan</item><item>Green</item><item>Lime</item><item>Yellow</item><item>Orange</item><item>Brown</item><item>Grey</item>
+    </string-array>
+</resources>

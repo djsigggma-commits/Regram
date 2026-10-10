@@ -1,0 +1,12 @@
+diff --git a/exteraless/build.sh b/exteraless/build.sh
+index 41ae081..ce95828 100755
+--- a/exteraless/build.sh
++++ b/exteraless/build.sh
+@@ -59,6 +59,7 @@ echo "add_compile_options(\"-ffile-prefix-map=$CY/=\")" > "$WORK/prefix-map.cmak
+ 
+ "$CMAKE" -S "$SRC" -B "$WORK" "${GENERATOR[@]}" \
+     -DCMAKE_PROJECT_INCLUDE="$WORK/prefix-map.cmake" \
++    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+     -DCMAKE_BUILD_TYPE=Release \
+     -DCHAQUOPY_SRC_DIR="$CY" \
+     -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \

@@ -29,6 +29,8 @@ public class BuildVars {
 
     public static int APP_ID = 4;
     public static String APP_HASH = "014b35b6184100b085b0d0572f9b5103";
+    private static final int EXTERA_APP_ID;
+    private static final String EXTERA_APP_HASH;
 
     // SafetyNet key for Google Identity SDK, set it to empty to disable
     public static String SAFETYNET_KEY = "";
@@ -47,6 +49,8 @@ public class BuildVars {
     static {
         APP_ID = BuildConfig.APP_ID;
         APP_HASH = BuildConfig.APP_HASH;
+        EXTERA_APP_ID = BuildConfig.APP_ID;
+        EXTERA_APP_HASH = BuildConfig.APP_HASH;
         if (ApplicationLoader.applicationContext != null) {
             SharedPreferences sharedPreferences = ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE);
             LOGS_ENABLED = DEBUG_VERSION || sharedPreferences.getBoolean("logsEnabled", DEBUG_VERSION);
@@ -60,6 +64,14 @@ public class BuildVars {
                 });
             }
         }
+    }
+
+    public static int getExteraAppId() {
+        return EXTERA_APP_ID;
+    }
+
+    public static String getExteraAppHash() {
+        return EXTERA_APP_HASH;
     }
 
     public static boolean useInvoiceBilling() {

@@ -3,13 +3,17 @@ package app.regram.general;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.TypedValue;
+import android.view.contentcapture.ContentCaptureManager;
 import android.widget.LinearLayout;
 
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -35,6 +39,20 @@ import xyz.nextalone.nagram.NaConfig;
 public final class GeneralHelper {
 
     private GeneralHelper() {
+    }
+
+    public static void applyContentCapture(Activity activity) {
+        if (activity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return;
+        }
+        try {
+            ContentCaptureManager manager = activity.getSystemService(ContentCaptureManager.class);
+            if (manager != null) {
+                manager.setContentCaptureEnabled(GeneralConfig.contentCapture());
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
     }
 
     public interface StringCallback {

@@ -147,6 +147,7 @@ public class PillStackView extends FrameLayout {
         }
         int action = event.getActionMasked();
         if (action == MotionEvent.ACTION_DOWN) {
+            settleAnimation();
             startX = event.getRawX();
             startY = event.getRawY();
             isSwiping = false;
@@ -177,6 +178,9 @@ public class PillStackView extends FrameLayout {
         BasePill current = pills.get(currentIndex);
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                if (settleAnimation()) {
+                    current = pills.get(currentIndex);
+                }
                 startX = event.getRawX();
                 startY = event.getRawY();
                 isSwiping = false;
@@ -238,6 +242,16 @@ public class PillStackView extends FrameLayout {
             }
         }
         return super.onTouchEvent(event);
+    }
+
+    private boolean settleAnimation() {
+        ValueAnimator animator = currentAnimator;
+        if (animator == null || !animator.isStarted()) {
+            return false;
+        }
+        currentAnimator = null;
+        animator.end();
+        return true;
     }
 
     private void handleSwipeProgress(float dy) {

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Строки экрана «Chats» раздела re:gram. -->
 <resources>
-    <string name="OEChatsHideTimeOnStickers">Hide Time on Stickers</string>
+    <string name="OEChatsStickerTime">Time on Stickers</string>
+    <string name="OEChatsStickerTimeSide">On the Side</string>
+    <string name="OEChatsStickerTimeHidden">Hidden</string>
 
     <string name="OEChatsReplies">Replies</string>
     <string name="OEChatsReplyColors">Background Colors</string>
@@ -35,7 +37,6 @@
     <string name="OEChatsPhoto">Photo</string>
     <string name="OEChatsAlwaysSendInHD">Always Send in HD</string>
     <string name="OEChatsHideCameraTile">Hide Instant Camera Tile</string>
-    <string name="OEChatsHideCameraTileInfo">The camera tile in the attachment menu will be hidden.</string>
 
     <string name="OEChatsDoubleTapSeekDuration">Double Tap Skip Time</string>
     <string name="OEChatsPauseOnMinimize">Auto-Pause</string>
@@ -46,7 +47,7 @@
     <string name="OEChatsStickersAndEmoji">Stickers and Emoji</string>
     <string name="OEChatsDoubleTap">Double Tap</string>
     <string name="OEChatsMessages">Messages</string>
-    <string name="OEChatsVideos">Video and Media</string>
+    <string name="OEChatsVideos">Video</string>
     <string name="OEChatsUnlimited">Unlimited</string>
     <string name="OEChatsUnlimitedStickers">Stickers</string>
     <string name="OEChatsUnlimitedGifs">GIFs</string>
@@ -69,7 +70,6 @@
     <string name="OEChatsHideReactionsChannels">Channels</string>
     <string name="OEChatsHideReactionsGroups">Groups</string>
     <string name="OEChatsHideReactionsPrivate">Private Chats</string>
-    <string name="OEChatsHideReactionsInfo">Reactions will be hidden from the interface in the selected chat types.</string>
     <string name="OEChatsQuickTransitions">Quick Swipe Transition</string>
     <string name="OEChatsQuickTransitionChannels">Channels</string>
     <string name="OEChatsQuickTransitionTopics">Topics</string>
@@ -132,6 +132,17 @@
     <string name="OEChatsAskWhenCalling">Calling</string>
     <string name="OEChatsAskWhenRepeating">Repeating messages</string>
     <string name="OEChatsAskWhenBotCommands">Sending bot commands</string>
+    <string name="OEChatsStripTracking">Remove tracking from links</string>
+    <string name="OEChatsStripTrackingOnOpen">When opening links</string>
+    <string name="OEChatsStripTrackingOnPaste">When pasting links</string>
+    <string name="OEChatsStripTrackingInfo">Removes tracking parameters such as utm_source and fbclid from links using the AdGuard URL Tracking filter.</string>
+    <string name="OEChatsTrackingFilter">Tracking filter</string>
+    <string name="OEChatsTrackingFilterValue">AdGuard, %1$s</string>
+    <string name="OEChatsTrackingFilterUpdate">Update filter</string>
+    <string name="OEChatsTrackingFilterRevert">Use built-in filter</string>
+    <string name="OEChatsTrackingFilterUpdated">Filter updated</string>
+    <string name="OEChatsTrackingFilterLatest">Filter is already up to date</string>
+    <string name="OEChatsTrackingFilterFailed">Couldn\'t update the filter</string>
     <string name="OEChatsHdrPhotos">HDR photos</string>
     <string name="OEChatsHdrPhotosInfo">Show HDR photos at full brightness. Turn this off if photos look dark.</string>
     <string name="SendLockedCustomEmojiAsSticker">Premium Emoji as Stickers</string>
@@ -146,4 +157,14 @@
     <string name="OEChatsInlineMathAnnouncement">Result: %1$s</string>
     <string name="OELocalPremiumInfo">Premium emoji are sent as links that exteraless and other clients that support this show as the real emoji. Other Premium features work only on this device.</string>
     <string name="OELocalPremiumEmojiHint">You don\'t have **Telegram Premium**, so this emoji is sent as a link: only users of **exteraless** and clients that support this will see it.</string>
+    <string name="OEChatsSections">Sections</string>
+    <string name="OEChatsMenus">Menus and Buttons</string>
+    <string name="OEChatsMenusInfo">Chat, message and media viewer menus</string>
+    <string name="OEChatsMedia">Media and Camera</string>
+    <string name="OEChatsMediaInfo">Camera, photos, videos and voice messages</string>
+    <string name="OEChatsInputHeader">Input Field</string>
+    <string name="OEChatsButtonsHeader">Buttons</string>
+    <string name="OEChatsMenusHeader">Menus</string>
+    <string name="OEChatsPlaybackHeader">Playback</string>
+    <string name="OEChatsVoiceHeader">Voice Messages</string>
 </resources>

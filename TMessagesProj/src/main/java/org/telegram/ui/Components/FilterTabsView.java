@@ -322,7 +322,7 @@ public class FilterTabsView extends FrameLayout {
         @SuppressLint("DrawAllocation")
         @Override
         protected void onDraw(@NonNull Canvas canvas) {
-            boolean reorderEnabled = !currentTab.isDefault || UserConfig.getInstance(UserConfig.selectedAccount).isPremium();
+            boolean reorderEnabled = !currentTab.isDefault || UserConfig.getInstance(UserConfig.selectedAccount).isPremiumOrLocal();
             boolean showRemove = !currentTab.isDefault && reorderEnabled;
             if (reorderEnabled && editingAnimationProgress != 0) {
                 canvas.save();
@@ -2088,7 +2088,7 @@ public class FilterTabsView extends FrameLayout {
 
         @Override
         public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-            if (!NekoConfig.hideAllTab.Bool() && (!isEditing || (viewHolder.getAdapterPosition() == 0 && tabs.get(0).isDefault && !UserConfig.getInstance(UserConfig.selectedAccount).isPremium()))) {
+            if (!NekoConfig.hideAllTab.Bool() && (!isEditing || (viewHolder.getAdapterPosition() == 0 && tabs.get(0).isDefault && !UserConfig.getInstance(UserConfig.selectedAccount).isPremiumOrLocal()))) {
                 return makeMovementFlags(0, 0);
             }
             return makeMovementFlags(ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, 0);
@@ -2096,7 +2096,7 @@ public class FilterTabsView extends FrameLayout {
 
         @Override
         public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder source, @NonNull RecyclerView.ViewHolder target) {
-            if (!NekoConfig.hideAllTab.Bool() && ((source.getAdapterPosition() == 0 || target.getAdapterPosition() == 0) && !UserConfig.getInstance(UserConfig.selectedAccount).isPremium())) {
+            if (!NekoConfig.hideAllTab.Bool() && ((source.getAdapterPosition() == 0 || target.getAdapterPosition() == 0) && !UserConfig.getInstance(UserConfig.selectedAccount).isPremiumOrLocal())) {
                 return false;
             }
             adapter.swapElements(source.getAdapterPosition(), target.getAdapterPosition());
@@ -2104,7 +2104,7 @@ public class FilterTabsView extends FrameLayout {
         }
 
         private final Runnable resetDefaultPosition = () ->  {
-            if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium()) {
+            if (UserConfig.getInstance(UserConfig.selectedAccount).isPremiumOrLocal()) {
                 return;
             }
             for (int i = 0; i < tabs.size(); ++i) {

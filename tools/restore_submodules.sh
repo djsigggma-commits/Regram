@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Восстанавливает отсутствующие подмодули re:gram по ревизиям, закреплённым в
-# upstream-теге exteraless v12.10.5-beta13.1 (gitlink SHA получены через GitHub
+# upstream-теге exteraless v12.10.6-beta14 (gitlink SHA получены через GitHub
 # git trees API). Каталог проекта не является git-репозиторием, поэтому
 # используется git init + fetch по SHA вместо `git submodule update`.
 set -uo pipefail
@@ -21,8 +21,8 @@ fetch_one() {
     return 0
   fi
   if [ -d "$path" ] && [ -n "$(ls -A "$path" 2>/dev/null)" ]; then
-    echo "SKIP  $path (не пустой)"
-    return 0
+    echo "FAIL  $path: непустой каталог без .git; закреплённая ревизия не проверена. Сохраните его отдельно и восстановите подмодуль в пустой каталог." >&2
+    return 1
   fi
   echo "FETCH $path <- $url @ $sha"
   mkdir -p "$path" || return 1
@@ -39,6 +39,7 @@ fetch_one() {
 }
 
 failures=0
+fetch_one TMessagesProj/chaquopy            https://github.com/exteraless/chaquopy.git         c217deac1c2df5ab879b9844d911e1c90e59a4c1 || failures=$((failures + 1))
 fetch_one TMessagesProj_Modules/media        https://github.com/Arseny271/media.git            c430d207677071b1873f9f18266d55ec45722180 || failures=$((failures + 1))
 fetch_one TMessagesProj/lib/jlatexmath       https://github.com/dkaraush/jlatexmath-android.git f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4 || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/tlottie          https://github.com/dkaraush/tlottie.git            92df98dc209bc39b1e567ec74a8c86a0af5239de || failures=$((failures + 1))

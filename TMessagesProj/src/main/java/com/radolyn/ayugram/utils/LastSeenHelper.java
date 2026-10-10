@@ -146,10 +146,10 @@ public class LastSeenHelper {
         }
     }
 
-    public static String getFormattedLastSeenOrDefault(TLRPC.User user, boolean[] madeShorter, String defaultValue) {
+    public static String getFormattedLastSeenOrDefault(TLRPC.User user, boolean[] madeShorter, String defaultValue, boolean relative) {
         int savedLastSeen = getLastSeen(user.id);
         if (savedLastSeen > 0) {
-            return LocaleController.formatDateOnline(savedLastSeen, madeShorter, true);
+            return LocaleController.formatDateOnline(savedLastSeen, madeShorter, true, relative);
         }
         return defaultValue;
     }

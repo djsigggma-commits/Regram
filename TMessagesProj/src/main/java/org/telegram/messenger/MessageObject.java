@@ -362,6 +362,9 @@ public class MessageObject {
     private float generatedWithDensity;
     private float generatedWithFontSize;
     private boolean generatedWithWideChannelPosts;
+    private boolean generatedWithAllLeft;
+    private int mentionAvatarSettings;
+    private int mentionAvatarCaptionSettings;
     public boolean wasJustSent;
     public boolean isBotPendingDraft;
 
@@ -1319,6 +1322,13 @@ public class MessageObject {
         public MessageObject captionMessage;
         public boolean isDocuments;
         public boolean captionAbove;
+        private boolean generatedWithAllLeft;
+
+        public void ensurePresentationLayout() {
+            if (!messages.isEmpty() && generatedWithAllLeft != app.regram.chats.AllLeft.active(messages.get(0))) {
+                calculate();
+            }
+        }
 
         public int cachedWidthForCaption = -1;
 
@@ -1440,6 +1450,7 @@ public class MessageObject {
         }
 
         private void calculate(int groupedMediaViewportWidth) {
+            generatedWithAllLeft = !messages.isEmpty() && app.regram.chats.AllLeft.active(messages.get(0));
             posArray.clear();
             positions.clear();
             positionsArray.clear();
@@ -1484,7 +1495,7 @@ public class MessageObject {
                 MessageObject messageObject = messages.get(a);
                 if (a == (reversed ? count - 1 : 0)) {
                     messageObject.isOutOwnerCached = null;
-                    isOut = messageObject.isOutOwner();
+                    isOut = messageObject.isOutOwnerForLayout();
                     needShare = !isOut && (
                             messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.saved_from_peer != null ||
                                     messageObject.messageOwner.from_id instanceof TLRPC.TL_peerUser && (messageObject.messageOwner.peer_id.channel_id != 0 || messageObject.messageOwner.peer_id.chat_id != 0 ||
@@ -2149,6 +2160,10 @@ public class MessageObject {
     }
 
     protected void checkBigAnimatedEmoji() {
+        checkBigAnimatedEmoji(true);
+    }
+
+    private void checkBigAnimatedEmoji(boolean generate) {
         emojiAnimatedSticker = null;
         emojiAnimatedStickerId = null;
         if (emojiOnlyCount == 1 && !(getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage) && !(getMedia(messageOwner) instanceof TLRPC.TL_messageMediaInvoice) && (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaEmpty || getMedia(messageOwner) == null) && this.messageOwner.grouped_id == 0) {
@@ -2194,7 +2209,9 @@ public class MessageObject {
             }
         }
         if (emojiAnimatedSticker == null && emojiAnimatedStickerId == null) {
-            generateLayout(null);
+            if (generate) {
+                generateLayout(null);
+            }
         } else if (isSticker()) {
             type = TYPE_STICKER;
         } else if (isAnimatedSticker()) {
@@ -7001,8 +7018,18 @@ public class MessageObject {
     }
 
     public boolean checkLayout() {
+        int mentionSignature = app.regram.chats.MentionAvatars.signature();
+        boolean mentionChanged = mentionAvatarSettings != mentionSignature
+                || caption != null && mentionAvatarCaptionSettings != mentionSignature;
+        if (mentionChanged) {
+            messageText = app.regram.chats.MentionAvatars.apply(messageText, currentAccount);
+            caption = app.regram.chats.MentionAvatars.apply(caption, currentAccount);
+            mentionAvatarSettings = mentionSignature;
+            mentionAvatarCaptionSettings = mentionSignature;
+            layoutCreated = false;
+        }
         if (type != TYPE_TEXT && type != TYPE_EMOJIS && type != TYPE_ARTICLE || messageOwner.peer_id == null || messageText == null || messageText.length() == 0 && !isBotPendingDraft) {
-            return false;
+            return mentionChanged;
         }
         if (layoutCreated) {
             int newMinSize = AndroidUtilities.isTablet() ? AndroidUtilities.getMinTabletSide() : AndroidUtilities.displaySize.x;
@@ -7010,7 +7037,8 @@ public class MessageObject {
             if (Math.abs(generatedWithMinSize - newMinSize) > dp(52)
                     || generatedWithDensity != AndroidUtilities.density
                     || generatedWithFontSize != newFontSize
-                    || generatedWithWideChannelPosts != isWideChannelPost()) {
+                    || generatedWithWideChannelPosts != isWideChannelPost()
+                    || generatedWithAllLeft != app.regram.chats.AllLeft.active(this)) {
                 layoutCreated = false;
             }
         }
@@ -7033,7 +7061,7 @@ public class MessageObject {
                 replaceEmojiToLottieFrame(messageText, emojiOnly);
             }
             checkEmojiOnly(emojiOnly);
-            checkBigAnimatedEmoji();
+            checkBigAnimatedEmoji(false);
             setType();
             generateLayout(fromUser);
             if (caption != null) {
@@ -7907,6 +7935,8 @@ public class MessageObject {
                 addUrlsByPattern(isOutOwner(), caption, true, 4, (int) getDuration(), false);
             }
             applyTimestampsHighlightForReplyMsg(caption);
+            caption = app.regram.chats.MentionAvatars.apply(caption, currentAccount);
+            mentionAvatarCaptionSettings = app.regram.chats.MentionAvatars.signature();
         }
     }
 
@@ -8497,6 +8527,9 @@ public class MessageObject {
         int linksCount = 0, spoilersCount = 0, codesCount = 0;
         for (int a = 0; a < count; a++) {
             TextStyleSpan.TextStyleRun run = runs.get(a);
+            if (run.start < 0 || run.start >= run.end || run.end > text.length()) {
+                continue;
+            }
 
             if (run.start >= run.end)
                 continue;
@@ -8563,6 +8596,13 @@ public class MessageObject {
             } else {
                 setRun = true;
                 spannable.setSpan(new TextStyleSpan(run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            if (!setRun && (run.flags & TextStyleSpan.FLAG_STYLE_MONO) == 0
+                    && (run.flags & (TextStyleSpan.FLAG_STYLE_BOLD | TextStyleSpan.FLAG_STYLE_ITALIC)) != 0) {
+                Typeface linkTypeface = run.getTypeface();
+                if (linkTypeface != null) {
+                    spannable.setSpan(new app.regram.chats.LinkTypefaceSpan(linkTypeface), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
             }
             if (!setRun && (run.flags & TextStyleSpan.FLAG_STYLE_SPOILER) != 0) {
                 if (spoilersCount >= SpoilerEffect.MAX_SPOILERS_COUNT) continue;
@@ -8707,18 +8747,19 @@ public class MessageObject {
         generatedWithDensity = AndroidUtilities.density;
         generatedWithFontSize = Theme.chat_msgTextPaint != null ? Theme.chat_msgTextPaint.getTextSize() : 0;
         generatedWithWideChannelPosts = wideChannelPost;
+        generatedWithAllLeft = app.regram.chats.AllLeft.active(this);
         final boolean needDrawAvatarInternal = needDrawAvatarInternal();
         if (wideChannelPost) {
             int leadingInset = sideMenuEnabled
                     ? dp(64)
-                    : needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage ? dp(52) : 0;
+                    : needDrawAvatarInternal && !isOutOwnerForLayout() && !messageOwner.isThreadMessage ? dp(52) : 0;
             maxWidth = app.regram.chats.WideChannelPostLayout.messageTextWidth(
                     generatedWithMinSize, leadingInset);
         } else if (hasCode && !isSaved) {
             maxWidth = generatedWithMinSize - dp(45 + 15);
             if (sideMenuEnabled) {
                 maxWidth -= dp(64);
-            } else if (needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage) {
+            } else if (needDrawAvatarInternal && !isOutOwnerForLayout() && !messageOwner.isThreadMessage) {
                 maxWidth -= dp(52);
             }
         } else if (getMedia(messageOwner) instanceof TLRPC.TL_messageMediaWebPage && getMedia(messageOwner).webpage != null && "telegram_background".equals(getMedia(messageOwner).webpage.type)) {
@@ -8738,7 +8779,7 @@ public class MessageObject {
             maxWidth = generatedWithMinSize - dp(type == TYPE_ARTICLE ? 40 : 80);
             if (sideMenuEnabled) {
                 maxWidth -= dp(64);
-            } else if (needDrawAvatarInternal && !isOutOwner() && !messageOwner.isThreadMessage) {
+            } else if (needDrawAvatarInternal && !isOutOwnerForLayout() && !messageOwner.isThreadMessage) {
                 maxWidth -= dp(52);
             }
             if (needDrawShareButton() && (isSaved || !isOutOwner())) {
@@ -8913,6 +8954,8 @@ public class MessageObject {
             return;
         }
         boolean hasUrls = applyEntities();
+        messageText = app.regram.chats.MentionAvatars.apply(messageText, currentAccount);
+        mentionAvatarSettings = app.regram.chats.MentionAvatars.signature();
         boolean noforwards = messageOwner != null && messageOwner.noforwards;
         if (!noforwards) {
             final long dialogId = getDialogId();
@@ -9338,7 +9381,7 @@ public class MessageObject {
             }
         }
 
-        hasWideCode = hasCode && textWidth > generatedWithMinSize - dp(80 + (needDrawAvatarInternal() && !isOutOwner() && !messageOwner.isThreadMessage ? 52 : 0));
+        hasWideCode = hasCode && textWidth > generatedWithMinSize - dp(80 + (needDrawAvatarInternal() && !isOutOwnerForLayout() && !messageOwner.isThreadMessage ? 52 : 0));
         factCheckText = null;
     }
 
@@ -9825,6 +9868,11 @@ public class MessageObject {
         return isOutOwnerCached = messageOwner.fwd_from.saved_from_peer == null || messageOwner.fwd_from.saved_from_peer.user_id == selfUserId;
     }
 
+    /** Bubble geometry only. Do not use for ownership, permissions or networking. */
+    public boolean isOutOwnerForLayout() {
+        return isOutOwner() && !app.regram.chats.AllLeft.active(this);
+    }
+
     public boolean needDrawAvatar() {
         if (type == TYPE_JOINED_CHANNEL) {
             return false;
@@ -9856,6 +9904,9 @@ public class MessageObject {
     }
 
     private boolean needDrawAvatarInternal() {
+        if (app.regram.chats.AllLeft.privateChat(this)) {
+            return needDrawAvatar();
+        }
         if (isRepostPreview) {
             return true;
         }

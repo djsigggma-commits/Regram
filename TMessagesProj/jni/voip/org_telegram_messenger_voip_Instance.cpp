@@ -365,7 +365,8 @@ DataSaving parseDataSaving(JNIEnv *env, jint dataSaving) {
             throwNewJavaIllegalArgumentException(env, "DATA_SAVING_ROAMING is not supported");
             return DataSaving::Never;
         default:
-            throwNewJavaIllegalArgumentException(env, "Unknown data saving constant: " + dataSaving);
+            const auto message = "Unknown data saving constant: " + std::to_string(dataSaving);
+            throwNewJavaIllegalArgumentException(env, message.c_str());
             return DataSaving::Never;
     }
 }
@@ -427,15 +428,21 @@ extern "C" {
 bool webrtcLoaded = false;
 
 void initWebRTC(JNIEnv *env) {
+    static std::mutex initializationMutex;
+    const std::lock_guard<std::mutex> lock(initializationMutex);
     if (webrtcLoaded) {
         return;
     }
     JavaVM* vm;
     env->GetJavaVM(&vm);
+    // Modern tgcalls callbacks also use libtgvoip's JNI helper.
+    // Do not depend on successful optional decoder registration during JNI_OnLoad.
+    if (!sharedJVM) {
+        sharedJVM = vm;
+    }
     webrtc::InitAndroid(vm);
     webrtc::JVM::Initialize(vm);
     rtc::InitializeSSL();
-    webrtcLoaded = true;
 
     DEBUG_REF("NativeInstanceClass");
     NativeInstanceClass = static_cast<jclass>(env->NewGlobalRef(env->FindClass("org/telegram/messenger/voip/NativeInstance")));
@@ -446,6 +453,7 @@ void initWebRTC(JNIEnv *env) {
     DEBUG_REF("FinalStateClass");
     FinalStateClass = static_cast<jclass>(env->NewGlobalRef(env->FindClass("org/telegram/messenger/voip/Instance$FinalState")));
     FinalStateInitMethod = env->GetMethodID(FinalStateClass, "<init>", "([BLjava/lang/String;Lorg/telegram/messenger/voip/Instance$TrafficStats;Z)V");
+    webrtcLoaded = true;
 }
 
 extern "C"
@@ -801,14 +809,24 @@ JNIEXPORT jlong JNICALL Java_org_telegram_messenger_voip_NativeInstance_makeNati
     jlong videoCapturer,
     jfloat aspectRatio
 ) {
+    if (version == nullptr || config == nullptr || endpoints == nullptr || encryptionKey == nullptr) {
+        throwNewJavaIllegalArgumentException(env, "Missing VoIP configuration");
+        return 0;
+    }
     initWebRTC(env);
+    if (env->ExceptionCheck()) return 0;
 
     JavaObject configObject(env, config);
     JavaObject encryptionKeyObject(env, encryptionKey);
     std::string v = tgvoip::jni::JavaStringToStdString(env, version);
 
     jbyteArray valueByteArray = encryptionKeyObject.getByteArrayField("value");
+    if (valueByteArray == nullptr || env->GetArrayLength(valueByteArray) != 256) {
+        throwNewJavaIllegalArgumentException(env, "VoIP encryption key must contain 256 bytes");
+        return 0;
+    }
     auto *valueBytes = (uint8_t *) env->GetByteArrayElements(valueByteArray, nullptr);
+    if (valueBytes == nullptr) return 0;
     auto encryptionKeyValue = std::make_shared<std::array<uint8_t, 256>>();
     memcpy(encryptionKeyValue->data(), valueBytes, 256);
     env->ReleaseByteArrayElements(valueByteArray, (jbyte *) valueBytes, JNI_ABORT);
@@ -897,6 +915,7 @@ JNIEXPORT jlong JNICALL Java_org_telegram_messenger_voip_NativeInstance_makeNati
                 });
             },
     };
+    if (env->ExceptionCheck()) return 0;
     descriptor.version = v;
 
     for (int i = 0, size = env->GetArrayLength(endpoints); i < size; i++) {
@@ -922,14 +941,20 @@ JNIEXPORT jlong JNICALL Java_org_telegram_messenger_voip_NativeInstance_makeNati
             rtcServer.isTcp = endpointObject.getBooleanField("tcp");
             descriptor.rtcServers.push_back(std::move(rtcServer));
 
-            Endpoint endpoint;
+            Endpoint endpoint{};
             endpoint.endpointId = endpointObject.getLongField("id");
             endpoint.host = EndpointHost{tgvoip::jni::JavaStringToStdString(env, endpointObject.getStringField("ipv4")), tgvoip::jni::JavaStringToStdString(env, endpointObject.getStringField("ipv6"))};
             endpoint.port = static_cast<uint16_t>(endpointObject.getIntField("port"));
             endpoint.type = parseEndpointType(env, endpointObject.getIntField("type"));
+            if (env->ExceptionCheck()) return 0;
             jbyteArray peerTag = endpointObject.getByteArrayField("peerTag");
             if (peerTag && env->GetArrayLength(peerTag)) {
+                if (env->GetArrayLength(peerTag) != 16) {
+                    throwNewJavaIllegalArgumentException(env, "VoIP peer tag must contain 16 bytes");
+                    return 0;
+                }
                 jbyte *peerTagBytes = env->GetByteArrayElements(peerTag, nullptr);
+                if (peerTagBytes == nullptr) return 0;
                 memcpy(endpoint.peerTag, peerTagBytes, 16);
                 env->ReleaseByteArrayElements(peerTag, peerTagBytes, JNI_ABORT);
             }
@@ -948,15 +973,19 @@ JNIEXPORT jlong JNICALL Java_org_telegram_messenger_voip_NativeInstance_makeNati
 
     readPersistentState(tgvoip::jni::JavaStringToStdString(env, persistentStateFilePath).c_str(), descriptor.persistentState);
 
-    auto *holder = new InstanceHolder;
+    auto holder = std::make_unique<InstanceHolder>();
     holder->nativeInstance = tgcalls::Meta::Create(v, std::move(descriptor));
+    if (!holder->nativeInstance) {
+        throwNewJavaIllegalArgumentException(env, "Unsupported VoIP engine version");
+        return 0;
+    }
     holder->_videoCapture = videoCapture;
     holder->_platformContext = platformContext;
     holder->_sink = webrtc::JavaToNativeVideoSink(env, remoteSink);
     holder->nativeInstance->setIncomingVideoOutput(holder->_sink);
     holder->nativeInstance->setNetworkType(parseNetworkType(networkType));
     holder->nativeInstance->setRequestedVideoAspect(aspectRatio);
-    return reinterpret_cast<jlong>(holder);
+    return reinterpret_cast<jlong>(holder.release());
 }
 extern "C"
 JNIEXPORT void JNICALL Java_org_telegram_messenger_voip_NativeInstance_setGlobalServerConfig(JNIEnv *env, jobject obj, jstring serverConfigJson) {

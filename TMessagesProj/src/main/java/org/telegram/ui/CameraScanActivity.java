@@ -610,7 +610,7 @@ public class CameraScanActivity extends BaseFragment {
             titleTextView.setText(LocaleController.getString(R.string.PassportScanPassport));
             descriptionText.setText(LocaleController.getString(R.string.PassportScanPassportInfo));
             titleTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-            recognizedMrzView.setTypeface(Typeface.MONOSPACE);
+            recognizedMrzView.setTypeface(AndroidUtilities.mono());
         } else {
             if (needGalleryButton) {
                 //titleTextView.setText(LocaleController.getString(R.string.WalletScanCode));

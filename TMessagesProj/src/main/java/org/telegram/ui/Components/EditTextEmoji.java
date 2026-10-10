@@ -791,12 +791,19 @@ public class EditTextEmoji extends FrameLayout implements NotificationCenter.Not
 
     public boolean glassDesignForEmojiView;
 
+    private void applyLocalPremiumEmojis() {
+        if (emojiView != null && !allowEmojisForNonPremium && allowAnimatedEmoji && (currentStyle == STYLE_DIALOG || currentStyle == STYLE_PHOTOVIEWER)) {
+            emojiView.allowLocalPremiumEmojis(LinkedCustomEmoji.canSend(UserConfig.selectedAccount));
+        }
+    }
+
     protected void createEmojiView() {
         if (emojiView != null && emojiView.currentAccount != UserConfig.selectedAccount) {
             sizeNotifierLayout.removeView(emojiView);
             emojiView = null;
         }
         if (emojiView != null) {
+            applyLocalPremiumEmojis();
             return;
         }
         emojiView = new EmojiView(parentFragment, allowAnimatedEmoji, false, false, getContext(), allowSearch(), null, null, currentStyle != STYLE_STORY && currentStyle != STYLE_PHOTOVIEWER && currentStyle != STYLE_CALL, resourcesProvider, false, glassDesignForEmojiView) {
@@ -831,9 +838,7 @@ public class EditTextEmoji extends FrameLayout implements NotificationCenter.Not
         };
         emojiView.emojiCacheType = emojiViewCacheType;
         emojiView.allowEmojisForNonPremium(allowEmojisForNonPremium);
-        if (!allowEmojisForNonPremium && allowAnimatedEmoji && (currentStyle == STYLE_DIALOG || currentStyle == STYLE_PHOTOVIEWER)) {
-            emojiView.allowLocalPremiumEmojis(LinkedCustomEmoji.canSend(UserConfig.selectedAccount));
-        }
+        applyLocalPremiumEmojis();
         emojiView.setVisibility(GONE);
         emojiViewAlpha = 0.0f;
         if (AndroidUtilities.isTablet()) {

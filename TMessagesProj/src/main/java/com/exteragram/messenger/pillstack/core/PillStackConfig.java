@@ -3,6 +3,18 @@ package com.exteragram.messenger.pillstack.core;
 import java.util.ArrayList;
 
 public final class PillStackConfig {
+    public static final ArrayList<Integer> activePills;
+    public static final ArrayList<Integer> hiddenPills;
+    static {
+        app.regram.pillstack.PillStackConfig.loadConfig(false);
+        activePills = app.regram.pillstack.PillStackConfig.getActivePills();
+        hiddenPills = app.regram.pillstack.PillStackConfig.getHiddenPills();
+    }
+
+    public static void savePillsLayout() {
+        app.regram.pillstack.PillStackConfig.savePillsLayout();
+    }
+
     private PillStackConfig() {
     }
 

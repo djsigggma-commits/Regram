@@ -545,6 +545,9 @@ def _check(event, args, loader):
             _deny_network(plugin_id, event, what, detail)
         return
 
+    if event in _FILES or event in _DATABASE:
+        _check_protected_write(event, args, plugin_id, loader)
+
     if event in _DATABASE:
         path = _as_text(_arg(args, 0))
         if _is_own_file(plugin_id, path) or _is_runtime_file(path):
@@ -579,6 +582,134 @@ def _check(event, args, loader):
                                        detail=path, plugin_id=plugin_id)
             return
         return
+
+
+_SEALED_DIRS = ("shared_prefs", "databases", "files/chaquopy")
+_PLUGIN_CODE_SUFFIXES = (".py", ".pyc", ".pyo", ".pyw", ".pth", ".so", ".plugin", ".eaf", ".elyx")
+_PLUGIN_PRIVATE_DIRS = (".data", ".elyx_extracted", "elyx_local_libs")
+_PLUGIN_ENGINE_DIRS = ("__pycache__", "shared_libs")
+
+_WRITE_TARGETS = {
+    "os.remove": (0,),
+    "os.rename": (0, 1),
+    "os.rmdir": (0,),
+    "os.mkdir": (0,),
+    "os.chmod": (0,),
+    "os.chown": (0,),
+    "os.truncate": (0,),
+    "os.link": (1,),
+    "os.symlink": (1,),
+    "os.utime": (0,),
+    "shutil.copyfile": (1,),
+    "shutil.copymode": (1,),
+    "shutil.copystat": (1,),
+    "shutil.copytree": (1,),
+    "shutil.move": (0, 1),
+    "shutil.rmtree": (0,),
+    "shutil.unpack_archive": (1,),
+    "sqlite3.connect": (0,),
+    "sqlite3.connect/handle": (0,),
+}
+
+_DIR_FD_ARGS = {"os.rename": (2, 3), "os.remove": (1,), "os.rmdir": (1,), "os.mkdir": (2,),
+                "os.chmod": (2,), "os.chown": (3,), "os.link": (2, 3), "os.symlink": (2,),
+                "os.utime": (3,)}
+
+_WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
+
+_storage_roots = None
+
+
+def _storage_paths():
+    global _storage_roots
+    if _storage_roots is not None:
+        return _storage_roots
+    try:
+        from file_utils import get_files_dir
+        files_dir = get_files_dir()
+    except Exception:
+        files_dir = None
+    if not files_dir:
+        return (), None
+    files_dir = os.path.realpath(files_dir)
+    data_dir = os.path.dirname(files_dir)
+    sealed = tuple(os.path.realpath(os.path.join(data_dir, name)) for name in _SEALED_DIRS)
+    _storage_roots = (sealed, os.path.realpath(os.path.join(files_dir, "plugins")))
+    return _storage_roots
+
+
+def _within(target: str, root: str) -> bool:
+    return target == root or target.startswith(root + os.sep)
+
+
+def _protected_reason(plugin_id: str, path: str) -> Optional[str]:
+    try:
+        target = os.path.realpath(path)
+    except Exception:
+        return None
+    sealed, plugins_dir = _storage_paths()
+    for root in sealed:
+        if _within(target, root):
+            return "app settings and databases"
+    if plugins_dir is None or not _within(target, plugins_dir) or target == plugins_dir:
+        return None
+    parts = os.path.relpath(target, plugins_dir).split(os.sep)
+    if target.lower().endswith(_PLUGIN_CODE_SUFFIXES):
+        return "plugin code"
+    if parts[0] in _PLUGIN_ENGINE_DIRS:
+        return "plugin engine files"
+    if parts[0] in _PLUGIN_PRIVATE_DIRS and (len(parts) < 2 or parts[1] != plugin_id):
+        return "data of other plugins"
+    return None
+
+
+def _fd_path(fd) -> Optional[str]:
+    if type(fd) is not int or fd < 0:
+        return None
+    try:
+        return os.readlink(f"/proc/self/fd/{fd}")
+    except Exception:
+        return None
+
+
+def _write_targets(event, args):
+    if event == "open":
+        path = _as_text(_arg(args, 0))
+        if path is None:
+            return ()
+        mode = _arg(args, 1)
+        flags = _arg(args, 2)
+        writes = (isinstance(mode, str) and any(c in mode for c in "wax+")) \
+            or (type(flags) is int and flags & _WRITE_FLAGS)
+        if writes:
+            return (path,)
+        return (path,) if os.path.isdir(path) else ()
+    targets = []
+    for index in _WRITE_TARGETS.get(event, ()):
+        path = _as_text(_arg(args, index))
+        if path is not None:
+            targets.append(path)
+    for index in _DIR_FD_ARGS.get(event, ()):
+        directory = _fd_path(_arg(args, index))
+        if directory is not None:
+            targets.append(directory)
+    return targets
+
+
+def _check_protected_write(event, args, plugin_id, loader) -> None:
+    for path in _write_targets(event, args):
+        reason = _protected_reason(plugin_id, path)
+        if reason is None:
+            continue
+        if getattr(loader._context_state, "engine_write", False) \
+                or loader.has_permission(loader.PERM_HOOKS, plugin_id):
+            _record(plugin_id, event, path, True)
+            return
+        _record(plugin_id, event, path, False)
+        loader.log_denial(plugin_id, event, "modify " + reason)
+        raise _denial(PermissionError(
+            f"plugin {plugin_id!r} cannot modify {path!r}: {reason} are only "
+            f"writable by trusted plugins"))
 
 
 def _file_verb(event: str) -> str:

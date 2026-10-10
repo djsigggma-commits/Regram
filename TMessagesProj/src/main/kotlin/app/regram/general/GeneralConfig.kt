@@ -74,6 +74,15 @@ object GeneralConfig {
     @JvmField
     val crashReports = addConfig("OEGeneralCrashReports", ConfigItem.configTypeBool, false)
 
+    @JvmField
+    val contentCapture = addConfig("OEGeneralContentCapture", ConfigItem.configTypeBool, false)
+
+    @JvmStatic
+    fun contentCapture(): Boolean {
+        loadConfig(false)
+        return contentCapture.Bool()
+    }
+
     @JvmStatic
     fun crashReports(): Boolean {
         loadConfig(false)

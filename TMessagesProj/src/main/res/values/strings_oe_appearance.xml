@@ -82,6 +82,8 @@
     <string name="OEAppearanceGlassMessageMenu">Glass Message Menu</string>
     <string name="OEAppearanceGlassMessageMenuInfo">The message menu and the reactions bar become frosted glass.</string>
     <string name="OEAppearanceGlassMessageMenuBlurOff">Glass menus need blur, which is currently off.</string>
+    <string name="OEAppearancePowerSaverActive">Power saving is on below %1$d%% battery, so blur and animations are paused. The setting is saved and turns back on once you charge.</string>
+    <string name="OEAppearancePowerSaverSettings">Power saving</string>
     <string name="OEAppearanceIconPacks">Icon Packs</string>
     <string name="OEAppearanceIconPacksInfo">Customize icons across the app</string>
     <string name="OEAppearancePillStack">Pill Stack</string>
@@ -140,4 +142,8 @@
     <string name="OEProfileMusicUseOfficialInfo">Show the track under the avatar, like in the official app?</string>
     <string name="OEProfileMusicUseCard">Card</string>
     <string name="OEProfileMusicUseCardInfo">Show the track as a card below the profile header?</string>
+    <string name="OEAppearanceHiding">Hide Elements</string>
+    <string name="OEAppearanceHidingInfo">Stories, buttons, tabs and AI features</string>
+    <string name="OEAppearanceHidingInChats">In Chats</string>
+    <string name="OEAppearanceHidingAiPremium">AI and Premium</string>
 </resources>

@@ -537,17 +537,21 @@ public class PluginSettingsActivity extends BasePreferencesActivity {
      * Цифрами, а не словами, — строка справа узкая, а перевода не требует.
      */
     private String permissionsValue() {
-        List<String> requested = PluginPermissionsActivity.requestedFor(resolvePlugin());
-        if (requested.isEmpty()) {
-            return "";
-        }
+        int total = 0;
         int granted = 0;
-        for (String perm : requested) {
+        for (String perm : PluginPermissionsActivity.requestedFor(resolvePlugin())) {
+            if (!PluginPermissionsActivity.isEnforced(perm)) {
+                continue;
+            }
+            total++;
             if (PluginPermissions.has(pluginId, perm)) {
                 granted++;
             }
         }
-        return granted + "/" + requested.size();
+        if (total == 0) {
+            return "";
+        }
+        return granted + "/" + total;
     }
 
     // ---------- строка JSON -> UItem ----------

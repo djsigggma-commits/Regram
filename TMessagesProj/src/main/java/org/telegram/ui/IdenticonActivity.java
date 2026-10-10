@@ -156,7 +156,7 @@ public class IdenticonActivity extends BaseFragment implements NotificationCente
         codeTextView = new TextView(context);
         codeTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText4));
         codeTextView.setGravity(Gravity.CENTER);
-        codeTextView.setTypeface(Typeface.MONOSPACE);
+        codeTextView.setTypeface(AndroidUtilities.mono());
         codeTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         /*codeTextView.setOnClickListener(new View.OnClickListener() {
             @Override

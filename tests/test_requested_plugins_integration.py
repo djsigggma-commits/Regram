@@ -8,11 +8,15 @@ def source(relative):
     return (ROOT / relative).read_text(encoding='utf-8')
 
 
-def test_plugins_are_in_settings_not_in_bottom_navigation():
+def test_plugins_are_in_settings_and_native_bottom_navigation():
     tabs = source('org/telegram/ui/MainTabsActivity.java')
     settings = source('app/regram/settings/OpenExteraSettingsActivity.java')
-    assert 'TabAnimation.PLUGINS' not in tabs
-    assert 'pluginsTab' not in tabs
+    assert 'TabAnimation.PLUGINS, R.string.OpenExteraPlugins' in tabs
+    assert 'INDEX_PLUGINS = 6' in tabs
+    assert 'TABS_COUNT = 5' in tabs
+    assert 'new app.regram.plugins.ui.PluginsActivity(true)' in tabs
+    assert 'page.setCurrentAccount(currentAccount)' in tabs
+    assert 'return getTabsCount() - 1;' in tabs
     assert 'presentFragment(new app.regram.plugins.ui.PluginsActivity())' in settings
 
 

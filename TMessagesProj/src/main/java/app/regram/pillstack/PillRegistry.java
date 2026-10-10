@@ -82,7 +82,8 @@ public class PillRegistry {
     }
 
     private static final Map<Integer, PillInfo> registry = new LinkedHashMap<>();
-    private static volatile boolean batchRegistration;
+    private static int transactionDepth;
+    private static boolean transactionDirty;
 
     static {
         beginTransaction();
@@ -131,13 +132,17 @@ public class PillRegistry {
     /** Отключает перестроение полосы до {@link #endTransaction()}. */
     @Keep
     public static void beginTransaction() {
-        batchRegistration = true;
+        synchronized (registry) { transactionDepth++; }
     }
 
     /** Включает перестроение обратно и один раз чинит + оповещает раскладку. */
     @Keep
     public static void endTransaction() {
-        batchRegistration = false;
+        synchronized (registry) {
+            if (transactionDepth == 0) return;
+            if (--transactionDepth != 0 || !transactionDirty) return;
+            transactionDirty = false;
+        }
         if (PillStackConfig.isConfigLoaded()) {
             PillStackConfig.sanitizePills();
             PillStackEvents.notifyLayoutChanged();
@@ -179,8 +184,11 @@ public class PillRegistry {
     }
 
     private static void invalidate() {
-        if (batchRegistration) {
-            return;
+        synchronized (registry) {
+            if (transactionDepth > 0) {
+                transactionDirty = true;
+                return;
+            }
         }
         PillStackConfig.sanitizePills();
         PillStackEvents.notifyLayoutChanged();

@@ -14,6 +14,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import xyz.nextalone.nagram.NaConfig;
 
@@ -34,7 +35,28 @@ public final class DeletedReplyQuote {
         }
     }
 
+    private static final HashSet<String> quotedGroups = new HashSet<>();
+
     private DeletedReplyQuote() {
+    }
+
+    private static String groupId(SendMessagesHelper.SendMessageParams params) {
+        if (params.params == null) {
+            return null;
+        }
+        String groupId = params.params.get("groupId");
+        return groupId == null || "0".equals(groupId) ? null : groupId;
+    }
+
+    private static synchronized boolean claimGroupQuote(String groupId, boolean last) {
+        if (groupId == null) {
+            return true;
+        }
+        boolean claimed = quotedGroups.add(groupId);
+        if (last) {
+            quotedGroups.remove(groupId);
+        }
+        return claimed;
     }
 
     public static void rewrite(int currentAccount, SendMessagesHelper.SendMessageParams params) {
@@ -49,12 +71,18 @@ public final class DeletedReplyQuote {
             return;
         }
         long selfId = UserConfig.getInstance(currentAccount).clientUserId;
-        if (!AyuMessagesController.getInstance()
+        if (!source.isAyuDeleted() && !AyuMessagesController.getInstance()
                 .isAyuDeletedMessageId(selfId, source.getDialogId(), source.getId())) {
             return;
         }
         Author author = resolveAuthor(currentAccount, source);
         if (author == null || TextUtils.isEmpty(author.name)) {
+            return;
+        }
+        String groupId = groupId(params);
+        if (!claimGroupQuote(groupId, groupId != null && params.params.containsKey("final"))) {
+            params.replyToMsg = params.replyToTopMsg;
+            params.replyQuote = null;
             return;
         }
         CharSequence quoted = replyQuote != null ? replyQuote.getText() : source.messageText;

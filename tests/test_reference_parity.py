@@ -428,3 +428,28 @@ def test_classes_the_catalogue_uses_exist_on_our_side():
     pytest.fail(
         f"классы, которые зовут минимум {MUST_EXIST_THRESHOLD} плагинов, "
         f"у нас не найдены: {len(new)}\n{lines}")
+
+
+DEX_SHIM = "com.exteragram.messenger.plugins.PluginsController"
+DEX_IMPL = "app.regram.plugins.PluginsController"
+NOT_DEX_SURFACE = frozenset((
+    "executePreRequestHook", "executePostRequestHook", "getWatchdog"))
+
+
+def test_shim_declares_controller_methods_for_dex():
+    reference = type_in(REFERENCE_ROOT, DEX_SHIM)
+    shim = javaapi.type_of(DEX_SHIM)
+    impl = javaapi.type_of(DEX_IMPL)
+    if reference is None or shim is None or impl is None:
+        pytest.skip("исходники контроллера плагинов не разобрались")
+    ref_methods, _, _, _ = public_surface(reference, True)
+    missing = []
+    for name, arities in sorted(ref_methods.items()):
+        if name in NOT_DEX_SURFACE:
+            continue
+        for arity in sorted(arities):
+            if arity in impl.method_arities(name) and arity not in shim.method_arities(name):
+                missing.append(f"{name}/{arity}")
+    assert not missing, (
+        "DEX-модули зовут эти методы на классе exteraGram, а он видит только свои "
+        "объявления, не наследника: " + ", ".join(missing))

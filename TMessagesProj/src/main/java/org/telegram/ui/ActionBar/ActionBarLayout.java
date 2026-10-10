@@ -4269,7 +4269,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
         // Кроссфейд NagramX рисует общий ActionBar поверх всего в draw(), а сами
         // фрагменты свой при этом не рисуют — и получалось, что экран уменьшался,
         // а шапка оставалась висеть на месте во всю ширину.
-        if (m3BackTransition()) {
+        if (m3BackTransition() || newBackTransitions()) {
             return false;
         }
         boolean crossfadeNoFragments = SharedConfig.animationsEnabled() && !isInPreviewMode() && (isSwipeInProgress() || isTransitionAnimationInProgress()) && currentAnimation == null;

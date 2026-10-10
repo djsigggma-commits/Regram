@@ -35,8 +35,13 @@ public class XiaomiUtilities {
 	public static final int OP_WIFI_CHANGE = 10001;
 	public static final int OP_WRITE_MMS = 10006;
 
+	private static Boolean miui;
+
 	public static boolean isMIUI() {
-		return !TextUtils.isEmpty(AndroidUtilities.getSystemProperty("ro.miui.ui.version.name"));
+		if (miui == null) {
+			miui = !TextUtils.isEmpty(AndroidUtilities.getSystemProperty("ro.miui.ui.version.name"));
+		}
+		return miui;
 	}
 
 	@SuppressWarnings("JavaReflectionMemberAccess")

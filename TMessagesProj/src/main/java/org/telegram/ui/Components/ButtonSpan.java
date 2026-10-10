@@ -105,6 +105,7 @@ public class ButtonSpan extends ReplacementSpan {
             if (layout == null) return null;
             final int line = layout.getLineForVertical(y);
             final Spanned spanned = (Spanned) getText();
+            final float scrolledX = x + getScrollX();
             final ButtonSpan[] spans = spanned.getSpans(layout.getLineStart(line), layout.getLineEnd(line), ButtonSpan.class);
             for (int i = 0; i < spans.length; ++i) {
                 final ButtonSpan span = spans[i];
@@ -115,7 +116,7 @@ public class ButtonSpan extends ReplacementSpan {
                     begin = end;
                     end = tmp;
                 }
-                if (x >= begin && x <= end) {
+                if (scrolledX >= begin && scrolledX <= end) {
                     return span;
                 }
             }

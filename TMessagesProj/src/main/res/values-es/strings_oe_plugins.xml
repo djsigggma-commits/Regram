@@ -150,7 +150,7 @@
     <string name="PluginsPinned">Fijado</string>
     <string name="PluginsUnpinned">Dejado de fijar</string>
     <string name="PluginSlowingDownTitle">El plugin ralentiza la interfaz</string>
-    <string name="PluginSlowingDownMessage">%1$s ocupa el hilo principal unos %2$d ms cada segundo. Por eso la aplicación deja de responder a los toques. ¿Desactivar el plugin y reiniciar?</string>
+    <string name="PluginSlowingDownMessage">%1$s ocupa el hilo principal unos %2$d ms cada segundo. Por eso la aplicación deja de responder a los toques. ¿Desactivar el plugin?</string>
     <string name="PluginsViewSource">Ver el código</string>
     <string name="PluginsAiReview">Revisión de IA</string>
     <string name="PluginsAiReviewRole">Revisas el código de un complemento de terceros para un cliente de Telegram. El formato de la respuesta es estricto. Primera línea: el veredicto en una palabra — SEGURO, SOSPECHOSO o PELIGROSO — y una frase explicando por qué. Después, los hallazgos, una línea corta por punto: qué hace el código y dónde. Justo después de cada hallazgo pon la parte larga dentro de &lt;details&gt;&lt;summary&gt;título corto&lt;/summary&gt; la explicación, la línea citada y el razonamiento &lt;/details&gt;. Todo lo que quede fuera de esas etiquetas debe leerse de un vistazo. Si no hay ninguno, dilo en una sola línea. No resumas el código, no des consejos generales, no inventes lo que no está en la fuente.</string>
@@ -174,4 +174,13 @@ Código:
     <string name="PluginGrantTrustedConfirm">%1$s recibirá el nivel de acceso «De confianza»: con él, el plugin puede cambiar el código de la app. ¿Conceder?</string>
     <string name="PluginsAiReviewToolsPrompt">Revisa este plugin de un cliente de Telegram en busca de cualquier cosa que pueda dañar al usuario: recopilación oculta de datos, envío de mensajes o archivos a terceros, robo de credenciales, código descargado en tiempo de ejecución.\n\nEscribe la respuesta en %2$s.\n\nPlugin: %1$s\n\nEl código fuente no se incluye aquí: léelo con las herramientas. Archivos: %3$s.\nDatos incrustados (cadenas base64 y archivos binarios): %4$s\n\nLee cada archivo hasta el final con read_source, por rangos, y decodifica cada bloque incrustado con decode_base64 para ver qué contiene realmente: código, DEX, bibliotecas nativas, URL, claves. Basa el veredicto solo en lo que realmente leíste y di qué partes no pudiste revisar.</string>
     <string name="PluginsSourceTrusted">Fuente de confianza</string>
+    <string name="PluginUnconsentedTitle">Plugin añadido sin permisos</string>
+    <string name="PluginsUnconsentedTitle">Plugins añadidos sin permisos</string>
+    <string name="PluginsUnconsentedMore">%1$s y %2$d más</string>
+    <string name="PluginsUnconsentedAction">Revisar</string>
+    <string name="PluginOverlayTitle">Mostrar sobre otras apps</string>
+    <string name="PluginOverlayText">%1$s quiere mostrar una ventana sobre otras apps. Permítelo en los ajustes del sistema e inténtalo de nuevo.</string>
+    <string name="PluginOverlayOpen">Abrir ajustes</string>
+    <string name="PluginsSafeModeEnabledNow">Modo seguro activado: todos los plugins están desactivados.</string>
+    <string name="PluginsSafeModeDisabledNow">Modo seguro desactivado: cargando los plugins.</string>
 </resources>

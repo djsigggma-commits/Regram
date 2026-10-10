@@ -14,6 +14,10 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.tgnet.tl.TL_stories;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 import tw.nekomimi.nekogram.NekoConfig;
 
 public class AyuGhostUtils {
@@ -21,6 +25,13 @@ public class AyuGhostUtils {
     private static final int OFFLINE_DELAY_MS = 1000;
 
     public static volatile boolean storyGhostSession;
+
+    private static final Set<TLObject> bypassed = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+    public static <T extends TLObject> T bypass(T request) {
+        bypassed.add(request);
+        return request;
+    }
 
     public static Long getDialogId(TLRPC.InputPeer peer) {
         long dialogId;
@@ -147,6 +158,9 @@ public class AyuGhostUtils {
     }
 
     public static InterceptResult interceptRequest(TLObject object, RequestDelegate onCompleteOrig) {
+        if (bypassed.remove(object)) {
+            return InterceptResult.Proceed(onCompleteOrig);
+        }
         Long dialogId = extractDialogId(object);
         boolean readExcluded = dialogId != null && AyuGhostPreferences.getGhostModeReadExclusion(dialogId);
         boolean typingExcluded = dialogId != null && AyuGhostPreferences.getGhostModeTypingExclusion(dialogId);

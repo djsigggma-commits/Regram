@@ -20,6 +20,17 @@ def _internal(name):
     return module
 
 
+_java = None
+
+
+def _java_module():
+    global _java
+    if _java is None:
+        import java
+        _java = java
+    return _java
+
+
 def find_class(name: str):
     """Java-класс по имени или None, если его нет или он плагину не положен.
 
@@ -27,6 +38,15 @@ def find_class(name: str):
     в каталоге). Поэтому отказ в разрешении выглядит для плагина так же, как
     отсутствующий класс, и обрабатывается его же кодом.
     """
+    try:
+        plain = _internal("plugin_loader").plain_java_class(name)
+    except Exception:
+        plain = False
+    if plain:
+        try:
+            return _java_module().jclass(name)
+        except Exception:
+            return None
     requested = name
     try:
         resolve = _internal("class_aliases").resolve

@@ -98,7 +98,7 @@ public class TypefaceHelper {
             case AndroidUtilities.TYPEFACE_RITALIC ->
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? Typeface.create(baseTypeface(), 400, true) : Typeface.create("sans-serif", Typeface.ITALIC);
             case AndroidUtilities.TYPEFACE_ROBOTO_MONO ->
-                    Typeface.MONOSPACE;
+                    AndroidUtilities.mono();
             default -> createTypefaceFromAsset(assetPath);
         };
     }
@@ -347,4 +347,38 @@ public class TypefaceHelper {
         return builder;
     }
 
+
+    private static Typeface lyricsTypeface;
+
+    public static Typeface lyricsTypeface() {
+        if (lyricsTypeface != null) {
+            return lyricsTypeface;
+        }
+        Typeface base = null;
+        for (String family : new String[]{"google-sans-display", "google-sans", "google-sans-text"}) {
+            final Typeface candidate = Typeface.create(family, Typeface.NORMAL);
+            if (rendersDifferently(candidate, Typeface.DEFAULT)) {
+                base = candidate;
+                break;
+            }
+        }
+        if (base == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            final File file = findGoogleSansFile();
+            if (file != null) {
+                try {
+                    base = Typeface.createFromFile(file);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                }
+            }
+        }
+        if (base == null) {
+            lyricsTypeface = AndroidUtilities.bold();
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            lyricsTypeface = Typeface.create(base, 700, false);
+        } else {
+            lyricsTypeface = Typeface.create(base, Typeface.BOLD);
+        }
+        return lyricsTypeface;
+    }
 }

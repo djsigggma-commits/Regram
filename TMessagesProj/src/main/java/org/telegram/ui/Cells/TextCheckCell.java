@@ -65,6 +65,7 @@ public class TextCheckCell extends FrameLayout {
     private boolean needDivider;
     private boolean isMultiline;
     private boolean wrapText;
+    private boolean wrapTitle;
     private int height = 50;
     private int animatedColorBackground;
     private float animationProgress;
@@ -186,21 +187,38 @@ public class TextCheckCell extends FrameLayout {
             final int fixed = AndroidUtilities.dp(detail
                     ? app.regram.appearance.M3ListItems.detailRowHeight(64)
                     : app.regram.appearance.M3ListItems.rowHeight(height));
-            // Название в neko-ячейках переносится без ограничения по строкам,
-            // а высота оставалась фиксированной — со второй строки текст резало.
-            final int wanted = wrapText
-                    ? Math.max(fixed, wrappedTitleHeight(MeasureSpec.getSize(widthMeasureSpec)))
-                    : fixed;
+            final int width = MeasureSpec.getSize(widthMeasureSpec);
+            int wanted = fixed;
+            if (detail) {
+                int valueTop = AndroidUtilities.dp(35);
+                if (wrapText) {
+                    final LayoutParams titleParams = (LayoutParams) textView.getLayoutParams();
+                    valueTop = Math.max(valueTop, titleParams.topMargin + measureTitle(width));
+                }
+                ((LayoutParams) valueTextView.getLayoutParams()).topMargin = valueTop;
+                wanted += valueTop - AndroidUtilities.dp(35);
+            } else if (wrapText) {
+                // Название в neko-ячейках переносится без ограничения по строкам,
+                // а высота оставалась фиксированной — со второй строки текст резало.
+                final int titleHeight = measureTitle(width);
+                if (textView.getLineCount() > 1) {
+                    wanted = Math.max(fixed, titleHeight + AndroidUtilities.dp(30));
+                }
+            }
             super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(wanted + (needDivider ? 3 : 0), MeasureSpec.EXACTLY));
         }
     }
 
-    private int wrappedTitleHeight(int parentWidth) {
+    private int measureTitle(int parentWidth) {
         final LayoutParams params = (LayoutParams) textView.getLayoutParams();
         final int available = Math.max(0, parentWidth - params.leftMargin - params.rightMargin);
         textView.measure(MeasureSpec.makeMeasureSpec(available, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        return textView.getMeasuredHeight() + AndroidUtilities.dp(30);
+        return textView.getMeasuredHeight();
+    }
+
+    public void setWrapTitle(boolean wrap) {
+        wrapTitle = wrap;
     }
 
     @Override
@@ -232,16 +250,18 @@ public class TextCheckCell extends FrameLayout {
     public void setTextAndCheck(CharSequence text, boolean checked, boolean divider, boolean isNekoCell) {
         AvatarSpan.checkSpansParent(text, this);
         textView.setText(text);
-        if (isNekoCell) {
+        if (isNekoCell || wrapTitle) {
             textView.setLines(0);
             textView.setMaxLines(0);
             textView.setSingleLine(false);
+            textView.setEllipsize(null);
         } else {
             textView.setLines(1);
             textView.setMaxLines(1);
             textView.setSingleLine(true);
+            textView.setEllipsize(TextUtils.TruncateAt.END);
         }
-        wrapText = isNekoCell;
+        wrapText = isNekoCell || wrapTitle;
         isMultiline = false;
         if (checkBox != null) {
             checkBox.setVisibility(View.VISIBLE);
@@ -332,7 +352,7 @@ public class TextCheckCell extends FrameLayout {
         }
         needDivider = divider;
         valueTextView.setVisibility(VISIBLE);
-        wrapText = false;
+        wrapText = wrapTitle && !multiline;
         isMultiline = multiline;
         if (multiline) {
             if (isNekoCell) {
@@ -359,12 +379,19 @@ public class TextCheckCell extends FrameLayout {
             valueTextView.setSingleLine(true);
             valueTextView.setEllipsize(TextUtils.TruncateAt.END);
             valueTextView.setPadding(0, 0, 0, 0);
-            // Высота ячейки здесь фиксированная (64dp), опустить подпись некуда,
-            // поэтому название держим в одну строку.
-            textView.setLines(1);
-            textView.setMaxLines(1);
-            textView.setSingleLine(true);
-            textView.setEllipsize(TextUtils.TruncateAt.END);
+            if (wrapTitle) {
+                textView.setLines(0);
+                textView.setMaxLines(Integer.MAX_VALUE);
+                textView.setSingleLine(false);
+                textView.setEllipsize(null);
+            } else {
+                // Высота ячейки здесь фиксированная (64dp), опустить подпись некуда,
+                // поэтому название держим в одну строку.
+                textView.setLines(1);
+                textView.setMaxLines(1);
+                textView.setSingleLine(true);
+                textView.setEllipsize(TextUtils.TruncateAt.END);
+            }
         }
         LayoutParams layoutParams = (LayoutParams) textView.getLayoutParams();
         layoutParams.height = LayoutParams.WRAP_CONTENT;

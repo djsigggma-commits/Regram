@@ -146,7 +146,7 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
     private void showTimeHint(ChatMessageCell cell) {
         if (cell == null || cell.timeLayout == null || cell.getMessageObject() == null ||
                 cell.getMessageObject().messageOwner == null ||
-                (NekoConfig.hideTimeForSticker.Bool() && cell.getMessageObject().isAnyKindOfSticker())
+                app.regram.chats.StickerTime.isHidden(cell.getMessageObject())
         ) {
             return;
         }

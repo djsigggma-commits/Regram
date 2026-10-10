@@ -524,6 +524,17 @@ class _ProxyInfo:
         }
 
 
+def _call_post_init(fn, peer, args):
+    try:
+        params = list(inspect.signature(fn).parameters.values())[1:]
+    except (TypeError, ValueError):
+        return fn(peer)
+    if any(p.kind == p.VAR_POSITIONAL for p in params):
+        return fn(peer, *args)
+    positional = [p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+    return fn(peer, *args[:len(positional)])
+
+
 def _info_for(cls):
     info = getattr(cls, "__extera_proxy_info__", None)
     if info is None:
@@ -643,7 +654,7 @@ class Base:
                 post = vars(k)["on_post_init"]
                 break
         if post is not None:
-            post(peer)
+            _call_post_init(post, peer, java_ctor_args)
         return peer
 
     @classmethod

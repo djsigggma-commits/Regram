@@ -59,6 +59,10 @@ public final class XposedHooks {
         return ensureInitialized();
     }
 
+    public static boolean isReady() {
+        return initAttempted && initOk;
+    }
+
     public static boolean isNativeHooksBroken() {
         SharedPreferences preferences = PluginsController.getInstance().getPreferences();
         return preferences != null
@@ -159,8 +163,9 @@ public final class XposedHooks {
         }
         try {
             XC_MethodHook hook = createHook(pluginId, handler, priority, filtersJson);
-            HookGate.prewarm((Member) member);
-            XC_MethodHook.Unhook unhook = XposedBridge.hookMethod((Member) member, hook);
+            Member target = PluginHookTargets.resolve((Member) member);
+            HookGate.prewarm(target);
+            XC_MethodHook.Unhook unhook = XposedBridge.hookMethod(target, hook);
             return register(pluginId, unhook);
         } catch (Throwable t) {
             FileLog.e("XposedHooks.hookMethod failed for plugin " + pluginId
@@ -252,6 +257,12 @@ public final class XposedHooks {
     }
 
     private static String register(String pluginId, XC_MethodHook.Unhook unhook) {
+        Object callback = unhook.getCallback();
+        if (callback instanceof PyMethodHook) {
+            ((PyMethodHook) callback).addTarget(unhook.getHookedMethod());
+        } else if (callback instanceof PyMethodReplacement) {
+            ((PyMethodReplacement) callback).addTarget(unhook.getHookedMethod());
+        }
         String id = UUID.randomUUID().toString();
         UNHOOKS.put(id, unhook);
         HOOK_OWNERS.put(id, pluginId);
@@ -403,10 +414,19 @@ public final class XposedHooks {
     private static volatile boolean hookBridgeResolved;
 
     /**
-     * base_plugin.dispatch_hook оборачивает MethodHookParam так, чтобы из Python
-     * работали обе формы: param.getResult()/setResult() и param.result. Если
-     * модуль почему-то недоступен, зовём обработчик напрямую — как раньше.
+     * base_plugin.bind_hook один раз связывает метод обработчика с обёрткой, которая
+     * отдаёт в Python MethodHookParam так, чтобы работали обе формы:
+     * param.getResult()/setResult() и param.result. Пустой метод MethodHook она не
+     * связывает вовсе. Если модуль почему-то недоступен, зовём метод обработчика напрямую.
      */
+    static PyObject bindHook(PyObject handler, String attr, int statId) {
+        PyObject bridge = hookBridge();
+        if (bridge == null) {
+            return handler.containsKey(attr) ? handler.get(attr) : null;
+        }
+        return bridge.callAttr("bind_hook", handler, attr, statId);
+    }
+
     private static PyObject hookBridge() {
         if (!hookBridgeResolved) {
             synchronized (XposedHooks.class) {
@@ -445,9 +465,14 @@ public final class XposedHooks {
      * захуканный метод приложения. Обёрнуто в notePluginEnter/notePluginExit
      * (атрибуция падений в watchdog).
      */
-    static PyResult callPython(String pluginId, PyObject handler, String attr,
-                               XC_MethodHook.MethodHookParam param) {
+    static PyResult callPython(String pluginId, PyObject callable,
+                               XC_MethodHook.MethodHookParam param, HookStats stats) {
+        app.regram.plugins.PythonThreadState.onCall();
         PluginsWatchdog watchdog = watchdog();
+        final boolean profiling = HookStats.enabled && stats != null;
+        final boolean main = profiling && HookStats.isMainThread();
+        final String blocker = main ? HookStats.findBlocker(watchdog) : null;
+        final long start = profiling ? System.nanoTime() : 0L;
         boolean entered = false;
         String previousRuntime = app.regram.plugins.PluginRuntime.enter(pluginId);
         try {
@@ -455,10 +480,7 @@ public final class XposedHooks {
                 watchdog.notePluginEnter(pluginId);
                 entered = true;
             }
-            PyObject bridge = hookBridge();
-            return PyResult.of(bridge != null
-                    ? bridge.callAttr("dispatch_hook", handler, attr, param)
-                    : handler.callAttr(attr, param));
+            return PyResult.of(callable.call(param));
         } catch (Throwable t) {
             reportError(pluginId, t);
             return PyResult.ERROR;
@@ -469,6 +491,9 @@ public final class XposedHooks {
                     watchdog.notePluginExit(pluginId);
                 } catch (Throwable ignored) {
                 }
+            }
+            if (profiling) {
+                stats.record(System.nanoTime() - start, main, blocker);
             }
         }
     }

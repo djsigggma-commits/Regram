@@ -153,6 +153,7 @@ public class SettingsRegistry {
         icons.put(OpenExteraSettingsActivity.class, R.drawable.msg_settings);
         icons.put(OpenExteraGeneralActivity.class, R.drawable.msg_media);
         icons.put(OpenExteraAppearanceActivity.class, R.drawable.msg_theme);
+        icons.put(app.regram.settings.NativeVisualSettingsActivity.class, R.drawable.msg_theme);
         icons.put(OpenExteraChatsActivity.class, R.drawable.msg_discussion);
         icons.put(OpenExteraOtherActivity.class, R.drawable.msg_fave);
         icons.put(OpenExteraAppNavigationActivity.class, R.drawable.msg_list);

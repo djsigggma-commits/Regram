@@ -152,7 +152,7 @@
     <string name="PluginsPinned">مثبّتة في الأعلى</string>
     <string name="PluginsUnpinned">أُلغي التثبيت في الأعلى</string>
     <string name="PluginSlowingDownTitle">الإضافة تبطّئ الواجهة</string>
-    <string name="PluginSlowingDownMessage">تشغل %1$s الخيط الرئيسي لنحو %2$d مللي ثانية كل ثانية، ولهذا يتوقف التطبيق عن الاستجابة للنقرات. تعطيل الإضافة وإعادة التشغيل؟</string>
+    <string name="PluginSlowingDownMessage">تشغل %1$s الخيط الرئيسي لنحو %2$d مللي ثانية كل ثانية، ولهذا يتوقف التطبيق عن الاستجابة للنقرات. تعطيل الإضافة؟</string>
     <string name="PluginsViewSource">عرض المصدر</string>
     <string name="PluginsAiReview">فحص بالذكاء الاصطناعي</string>
     <string name="PluginsAiReviewRole">أنت تراجع شيفرة إضافة خارجية لعميل Telegram. التزم بهذا الشكل في الإجابة. السطر الأول: الحكم بكلمة واحدة، آمن أو مشبوه أو خطير، وجملة واحدة توضح السبب. ثم النتائج، نتيجة في كل بند: سطر واحد قصير لكل منها يوضح ماذا تفعل الشيفرة وأين. مباشرة بعد كل نتيجة ضع الجزء الطويل داخل &lt;details&gt;&lt;summary&gt;عنوان قصير&lt;/summary&gt; الشرح والسطر المقتبس والاستدلال &lt;/details&gt;. اجعل كل ما هو خارج هذه الوسوم قصيرًا بما يكفي ليُقرأ بنظرة واحدة. إذا لم توجد نتائج، فقل ذلك في سطر واحد. لا تُعِد سرد الشيفرة، ولا تقدّم نصائح عامة، ولا تختلق ما ليس في المصدر.</string>
@@ -176,4 +176,13 @@
     <string name="PluginGrantTrustedConfirm">ستحصل %1$s على مستوى الوصول «موثوق»: وبه تستطيع الإضافة تغيير شيفرة التطبيق. منح؟</string>
     <string name="PluginsAiReviewToolsPrompt">راجع إضافة عميل Telegram هذه بحثًا عن أي شيء قد يضر المستخدم: جمع بيانات خفي، أو إرسال رسائل أو ملفات إلى أطراف ثالثة، أو سرقة بيانات الاعتماد، أو شيفرة تُنزَّل أثناء التشغيل.\n\nاكتب الإجابة باللغة %2$s.\n\nالإضافة: %1$s\n\nالمصدر غير مضمّن هنا، اقرأه بالأدوات. الملفات: %3$s.\nالبيانات المضمّنة (نصوص base64 وملفات ثنائية): %4$s\n\nاقرأ كل ملف حتى نهايته باستخدام read_source، نطاقًا تلو الآخر، وفك كل كتلة مضمّنة باستخدام decode_base64 لترى ما تحتويه فعلًا: شيفرة، DEX، مكتبات أصلية، روابط URL، مفاتيح. ابنِ الحكم فقط على ما قرأته فعلًا، واذكر الأجزاء التي لم تتمكن من فحصها.</string>
     <string name="PluginsSourceTrusted">مصدر موثوق</string>
+    <string name="PluginUnconsentedTitle">أُضيفت إضافة بلا أذونات</string>
+    <string name="PluginsUnconsentedTitle">أُضيفت إضافات بلا أذونات</string>
+    <string name="PluginsUnconsentedMore">%1$s و%2$d أخرى</string>
+    <string name="PluginsUnconsentedAction">مراجعة</string>
+    <string name="PluginOverlayTitle">الظهور فوق التطبيقات الأخرى</string>
+    <string name="PluginOverlayText">تريد %1$s عرض نافذة فوق التطبيقات الأخرى. اسمح بذلك في إعدادات النظام ثم حاول مرة أخرى.</string>
+    <string name="PluginOverlayOpen">فتح الإعدادات</string>
+    <string name="PluginsSafeModeEnabledNow">تم تفعيل الوضع الآمن، وأُوقفت جميع الإضافات.</string>
+    <string name="PluginsSafeModeDisabledNow">تم إيقاف الوضع الآمن، جارٍ تحميل الإضافات.</string>
 </resources>

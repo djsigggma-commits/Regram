@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="OEChatsHideTimeOnStickers">Ocultar la hora en los stickers</string>
+    <string name="OEChatsStickerTime">Hora en los stickers</string>
+    <string name="OEChatsStickerTimeSide">Al lado</string>
+    <string name="OEChatsStickerTimeHidden">Oculta</string>
     <string name="OEChatsReplies">Respuestas</string>
     <string name="OEChatsReplyColors">Colores de fondo</string>
     <string name="OEChatsReplyEmoji">Emojis</string>
@@ -27,7 +29,6 @@
     <string name="OEChatsPhoto">Fotos</string>
     <string name="OEChatsAlwaysSendInHD">Enviar siempre en HD</string>
     <string name="OEChatsHideCameraTile">Ocultar el recuadro de la cámara</string>
-    <string name="OEChatsHideCameraTileInfo">Se ocultará el recuadro de la cámara del menú de adjuntos.</string>
     <string name="OEChatsDoubleTapSeekDuration">Salto con doble toque</string>
     <string name="OEChatsPauseOnMinimize">Pausa automática</string>
     <string name="OEChatsPauseOnMinimizeInfo">Pausa la reproducción cuando se bloquea el dispositivo o la app pasa a segundo plano.</string>
@@ -37,7 +38,7 @@
     <string name="OEChatsStickersAndEmoji">Stickers y emojis</string>
     <string name="OEChatsDoubleTap">Doble toque</string>
     <string name="OEChatsMessages">Mensajes</string>
-    <string name="OEChatsVideos">Video y multimedia</string>
+    <string name="OEChatsVideos">Video</string>
     <string name="OEChatsUnlimited">Ilimitados</string>
     <string name="OEChatsUnlimitedStickers">Stickers</string>
     <string name="OEChatsUnlimitedGifs">GIFs</string>
@@ -58,7 +59,6 @@
     <string name="OEChatsHideReactionsChannels">Canales</string>
     <string name="OEChatsHideReactionsGroups">Grupos</string>
     <string name="OEChatsHideReactionsPrivate">Chats privados</string>
-    <string name="OEChatsHideReactionsInfo">Las reacciones se ocultarán de la interfaz en los tipos de chat seleccionados.</string>
     <string name="OEChatsQuickTransitions">Cambio rápido al deslizar</string>
     <string name="OEChatsQuickTransitionChannels">Canales</string>
     <string name="OEChatsQuickTransitionTopics">Temas</string>
@@ -120,6 +120,17 @@
     <string name="OEChatsAskWhenCalling">Llamar</string>
     <string name="OEChatsAskWhenRepeating">Repetir mensajes</string>
     <string name="OEChatsAskWhenBotCommands">Enviar comandos de bots</string>
+    <string name="OEChatsStripTracking">Quitar el rastreo de los enlaces</string>
+    <string name="OEChatsStripTrackingOnOpen">Al abrir enlaces</string>
+    <string name="OEChatsStripTrackingOnPaste">Al pegar enlaces</string>
+    <string name="OEChatsStripTrackingInfo">Quita de los enlaces parámetros de rastreo como utm_source y fbclid con el filtro AdGuard URL Tracking.</string>
+    <string name="OEChatsTrackingFilter">Filtro de rastreo</string>
+    <string name="OEChatsTrackingFilterValue">AdGuard, %1$s</string>
+    <string name="OEChatsTrackingFilterUpdate">Actualizar filtro</string>
+    <string name="OEChatsTrackingFilterRevert">Usar el filtro integrado</string>
+    <string name="OEChatsTrackingFilterUpdated">Filtro actualizado</string>
+    <string name="OEChatsTrackingFilterLatest">El filtro ya está actualizado</string>
+    <string name="OEChatsTrackingFilterFailed">No se pudo actualizar el filtro</string>
     <string name="OEChatsHdrPhotos">Fotos HDR</string>
     <string name="OEChatsHdrPhotosInfo">Muestra las fotos HDR con brillo completo. Desactívalo si las fotos se ven oscuras.</string>
     <string name="OEChatsTranslateInSheet">Ventana de traducción de Telegram</string>
@@ -131,4 +142,14 @@
     <string name="OEChatsInlineMathAnnouncement">Resultado: %1$s</string>
     <string name="OELocalPremiumInfo">Los emoji premium se envían como enlaces que exteraless y otros clientes compatibles muestran como emoji reales. Las demás funciones Premium solo funcionan en este dispositivo.</string>
     <string name="OELocalPremiumEmojiHint">No tienes **Telegram Premium**, así que este emoji se envía como enlace: solo lo verán los usuarios de **exteraless** y clientes compatibles.</string>
+    <string name="OEChatsSections">Secciones</string>
+    <string name="OEChatsMenus">Menús y botones</string>
+    <string name="OEChatsMenusInfo">Menús del chat, de los mensajes y del visor</string>
+    <string name="OEChatsMedia">Multimedia y cámara</string>
+    <string name="OEChatsMediaInfo">Cámara, fotos, videos y mensajes de voz</string>
+    <string name="OEChatsInputHeader">Campo de texto</string>
+    <string name="OEChatsButtonsHeader">Botones</string>
+    <string name="OEChatsMenusHeader">Menús</string>
+    <string name="OEChatsPlaybackHeader">Reproducción</string>
+    <string name="OEChatsVoiceHeader">Mensajes de voz</string>
 </resources>

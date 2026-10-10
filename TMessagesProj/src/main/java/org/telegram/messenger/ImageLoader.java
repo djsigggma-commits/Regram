@@ -2906,9 +2906,7 @@ public class ImageLoader {
                 }
                 int TAG = imageReceiver.getTag(type);
                 if (TAG != 0) {
-                    if (a == 0) {
-                        removeFromWaitingForThumb(TAG, imageReceiver);
-                    }
+                    removeFromWaitingForThumb(TAG, imageReceiver);
                     CacheImage ei = imageLoadingByTag.get(TAG);
                     if (ei != null) {
                         ei.removeImageReceiver(imageReceiver);

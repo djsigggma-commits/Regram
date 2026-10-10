@@ -84,7 +84,7 @@ public class AyuSavePreferences {
             return false;
         }
 
-        if (!saveDeletedForDialogKind(accountId, dialogId)) {
+        if (!saveDeletedForDialogKind(accountId, dialogId) || !saveInDialogFolder(accountId, dialogId)) {
             return false;
         }
 
@@ -97,15 +97,19 @@ public class AyuSavePreferences {
                 return !fromUser.bot || NaConfig.INSTANCE.getSaveDeletedMessageForBotUser().Bool();
             } else {
                 final MessagesStorage messagesStorage = MessagesStorage.getInstance(accountId);
-                final CountDownLatch countDownLatch = new CountDownLatch(1);
                 final TLRPC.User[] user = {null};
-                messagesStorage.getStorageQueue().postRunnable(() -> {
+                if (Thread.currentThread() == messagesStorage.getStorageQueue()) {
                     user[0] = messagesStorage.getUser(userId);
-                    countDownLatch.countDown();
-                });
-                try {
-                    countDownLatch.await();
-                } catch (Exception ignored) {
+                } else {
+                    final CountDownLatch countDownLatch = new CountDownLatch(1);
+                    messagesStorage.getStorageQueue().postRunnable(() -> {
+                        user[0] = messagesStorage.getUser(userId);
+                        countDownLatch.countDown();
+                    });
+                    try {
+                        countDownLatch.await();
+                    } catch (Exception ignored) {
+                    }
                 }
                 if (user[0] != null) {
                     return !user[0].bot || NaConfig.INSTANCE.getSaveDeletedMessageForBotUser().Bool();
@@ -132,6 +136,18 @@ public class AyuSavePreferences {
         return ChatObject.isChannelAndNotMegaGroup(chat)
                 ? NaConfig.INSTANCE.getSaveDeletedInChannels().Bool()
                 : NaConfig.INSTANCE.getSaveDeletedInGroups().Bool();
+    }
+
+    public static boolean saveInDialogFolder(int accountId, long dialogId) {
+        if (NaConfig.INSTANCE.getSaveInArchivedChats().Bool()) {
+            return true;
+        }
+        try {
+            TLRPC.Dialog dialog = MessagesController.getInstance(accountId).dialogs_dict.get(dialogId);
+            return dialog == null || dialog.folder_id != 1;
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     public static void setSaveDeletedExclusion(long chatId, boolean value) {

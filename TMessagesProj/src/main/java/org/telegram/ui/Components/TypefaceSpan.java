@@ -60,7 +60,7 @@ public class TypefaceSpan extends MetricAffectingSpan {
     }
 
     public boolean isMono() {
-        return typeface == Typeface.MONOSPACE;
+        return AndroidUtilities.isMono(typeface);
     }
 
     public boolean isBold() {

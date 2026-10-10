@@ -29,3 +29,20 @@ Validation: `python3 -m pytest -q tests` (157 passed, 32 skipped, 27 subtests). 
 - The HTTP HTML reader no longer reads beyond its 24 KiB prefix limit on the final chunk.
 
 Validation in this checkout: `python3 -m pytest -q tests/test_nowplaying_debloat.py tests/test_performance_debloat.py tests/test_regressions.py` (21 passed, 1 skipped). Full suite: 161 passed, 32 skipped, 26 subtests passed; three pre-existing failures (missing alias targets, branding overlays, RecyclerListView invariant). Android compilation could not start: `TMessagesProj_Modules/media/core_settings.gradle` is missing (uninitialized submodule). No APK was produced or device performance measured.
+
+## Pass after the 12.10.6-beta14 update
+
+Changes in the current 1.0.2 source tree:
+
+- The upstream cached-proxy-ping controller no longer schedules ten-second wakeups while the app is backgrounded or there is no active proxy. Foreground and proxy-setting events restart it; repeated initialization cannot add duplicate listeners. The separate opt-in active-probe controller retains its timeout, stale-result guards and existing settings.
+- Ordinary builds no longer allocate `HookStats` counters for every registered Python hook/replacement. Bindings without a profiling ID skip the diagnostic import and extra Python dispatch frame, while retaining parameter conversion, filters, error handling, permissions and watchdogs. Explicit `-PdebugTools=true` builds keep profiling support.
+- Online lyrics fetches for the same track share one in-flight job. Subscriber lists are removed before notification; a failing subscriber does not block the others. Negative lookups use a 128-entry cache and expire after ten minutes. Network/disk lyrics reads reject payloads exceeding 2 MiB instead of growing an unbounded buffer. Explicit fetches can still retry missing lyrics.
+- Cover colour requests are grouped by key instead of repeatedly scanning/removing a shared list. Quantization runs on a dedicated serial executor, not Telegram's shared queue. Owned sample bitmaps and temporary hardware-to-software copies are explicitly recycled; the image loader's original bitmap is never recycled here.
+- Immutable MD3 player palettes use a 32-entry seed/dark-mode cache. Colour interpolation reuses the two input arrays instead of allocating copies every frame. The path cache for player icons is bounded to 64 entries.
+- Removed the unreachable startup debug runnable, unused private legacy AI setter (the migration reader remains), obsolete unused location-picker method in pill settings, associated imports, and a duplicated keep rule. The working weather settings screen remains intact.
+
+No messages, account data, features, bundled plugins, themes, licenses, JNI APIs or reflection-accessible plugin classes were deleted. Broad R8 keep rules and `-dontoptimize` were not relaxed blindly: Xposed hooks, Python and JNI access members which appear unreachable to a static shrinker. Release builds already enable code/resource shrinking.
+
+Validation: **239 passed, 33 skipped, 27 subtests passed** (`python3 -m pytest tests -q`). New tests include both direct-Java and wrapped Python hook-parameter paths. Java/Kotlin syntax and Python AST checks pass. APK compilation and device performance measurements were not performed: the SDK, build Python 3.11, credentials/configuration and submodule contents are still unavailable. The older compilation/APK results above describe earlier checkouts, not this update. A subsequent signed arm64 release build including this pass and call/startup fixes succeeded; see [BUILD_RELEASE_1.0.2.md](BUILD_RELEASE_1.0.2.md). This does not constitute an on-device performance test.
+
+Backup before this pass: `../Regram-before-optimization.tar.gz`. For further optimization, capture Perfetto CPU/frame/memory traces with the actual phone, enabled plugins and exact stutter scenario; source checks do not establish an FPS or battery improvement.

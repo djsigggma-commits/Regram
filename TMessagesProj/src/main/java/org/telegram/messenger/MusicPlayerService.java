@@ -203,6 +203,7 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
                         if (AudioPlayerAlert.instance != null) {
                             AudioPlayerAlert.instance.updateRepeatButton();
                         }
+                        app.regram.player.PlayerSheet.onModesChanged();
                     } else if (NOTIFY_SHUFFLE.equals(action)) {
                         if (SharedConfig.shuffleMusic) {
                             MediaController.getInstance().setPlaybackOrderType(0);
@@ -213,6 +214,7 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
                         if (AudioPlayerAlert.instance != null) {
                             AudioPlayerAlert.instance.updateRepeatButton();
                         }
+                        app.regram.player.PlayerSheet.onModesChanged();
                     }
                     MessageObject messageObject = MediaController.getInstance().getPlayingMessageObject();
                     if (messageObject != null) {
@@ -272,10 +274,29 @@ public class MusicPlayerService extends Service implements NotificationCenter.No
         return START_STICKY;
     }
 
+    private String artworkPath;
+    private Bitmap artworkBig;
+    private Bitmap artworkSmall;
+
     private Bitmap loadArtworkFromUrl(String artworkUrl, boolean big, boolean tryLoad) {
         File path = ImageLoader.getHttpFilePath(artworkUrl, "jpg");
         if (path.exists()) {
-            return ImageLoader.loadBitmap(path.getAbsolutePath(), null, big ? 600 : 100, big ? 600 : 100, false);
+            final String absolutePath = path.getAbsolutePath();
+            if (!absolutePath.equals(artworkPath)) {
+                artworkPath = absolutePath;
+                artworkBig = null;
+                artworkSmall = null;
+            }
+            Bitmap bitmap = big ? artworkBig : artworkSmall;
+            if (bitmap == null || bitmap.isRecycled()) {
+                bitmap = ImageLoader.loadBitmap(absolutePath, null, big ? 600 : 100, big ? 600 : 100, false);
+                if (big) {
+                    artworkBig = bitmap;
+                } else {
+                    artworkSmall = bitmap;
+                }
+            }
+            return bitmap;
         }
         if (tryLoad) {
             loadingFilePath = path.getAbsolutePath();

@@ -556,7 +556,7 @@ public class ChatListItemAnimator extends DefaultItemAnimator {
                 }
 
                 if (group == null && params.wasDraw) {
-                    boolean isOut = chatMessageCell.getMessageObject().isOutOwner();
+                    boolean isOut = chatMessageCell.getMessageObject().isOutOwnerForLayout();
                     boolean widthChanged = (isOut && params.lastDrawingBackgroundRect.left != chatMessageCell.getBackgroundDrawableLeft()) ||
                             (!isOut && params.lastDrawingBackgroundRect.right != chatMessageCell.getBackgroundDrawableRight());
                     if (widthChanged ||

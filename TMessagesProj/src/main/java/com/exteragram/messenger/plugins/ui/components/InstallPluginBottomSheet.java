@@ -16,7 +16,7 @@ public abstract class InstallPluginBottomSheet extends BottomSheet {
         super(context, needFocus);
     }
 
-    public void applyButtonState() {
+    public void applyButtonState(boolean animated) {
     }
 
     public static final class PluginInstallParams {

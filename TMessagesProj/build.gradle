@@ -145,14 +145,12 @@ android {
 
     // Целевые ABI. Ограничение живёт в ndk.abiFilters — этого требует Chaquopy;
     // см. комментарий у splits ниже.
-    // 32-битных ABI в списке нет намеренно: Chaquopy собирает Python 3.12 только
-    // под arm64-v8a и x86_64, и на armeabi-v7a конфигурация падает ещё до сборки
-    // («Python 3.12 is not available for the ABI»). Вернуть их можно только вместе
-    // с откатом Python до 3.11 — тогда та же минорная версия понадобится и на
-    // машине сборки, включая CI.
+    // Python 3.11 supports all four ABIs; the build Python must also be 3.11.
+    // Keep the default two-ABI build for compatibility with existing builds;
+    // NATIVE_TARGET=universal explicitly packages all supported ABIs.
     def targetAbis
     if (nativeTarget == 'universal') {
-        targetAbis = ['arm64-v8a', 'x86_64']
+        targetAbis = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
     } else if (nativeTarget == 'SKIP') {
         targetAbis = ['arm64-v8a']
     } else if (!nativeTarget.isBlank()) {
@@ -169,9 +167,9 @@ android {
     //     («Conflicting configuration ... cannot be present when splits abi
     //     filters are set»).
     // Поэтому раздельные APK получаются не сплитами, а отдельной сборкой на
-    // каждый ABI: NATIVE_TARGET=arm64-v8a, затем NATIVE_TARGET=x86_64.
-    // Пустой NATIVE_TARGET даёт ОДИН APK с обоими ABI (~+51 МБ на второй
-    // libtmessages.so) — о чём ниже предупреждение в лог.
+    // каждый ABI: NATIVE_TARGET=arm64-v8a, x86_64, armeabi-v7a или x86.
+    // NATIVE_TARGET=universal включает все четыре ABI. Пустой NATIVE_TARGET
+    // по-прежнему даёт ОДИН APK с arm64-v8a и x86_64.
     splits {
         abi {
             enable = false
@@ -248,6 +246,7 @@ android {
         buildConfigField 'int', 'APP_ID', appId
         buildConfigField 'String', 'APP_HASH', '"' + appHash + '"'
         buildConfigField 'long', 'BUILD_TIMESTAMP', buildTimestamp + 'L'
+        buildConfigField 'boolean', 'DEBUG_TOOLS', String.valueOf(project.findProperty('debugTools') == 'true')
 
         externalNativeBuild {
             cmake {
@@ -354,6 +353,77 @@ androidComponents {
     }
 }
 
+def chaquopyPythonVersion = '3.11'
+def chaquopySourceDir = file('chaquopy')
+def chaquopyRuntimeDir = layout.buildDirectory.dir('chaquopy/runtime').get().asFile
+def chaquopyTarget = com.chaquo.python.internal.Common.PYTHON_VERSIONS.find { it.key.startsWith("${chaquopyPythonVersion}.") }
+def chaquopyAbis = android.defaultConfig.ndk.abiFilters.sort(false)
+
+def chaquopyRuntimeTasks = chaquopyAbis.collect { String abi ->
+    tasks.register("buildChaquopyRuntime${abi.split(/[-_]/)*.capitalize().join()}", Exec) {
+        def targetZip = configurations.detachedConfiguration(dependencies.create(
+                "com.chaquo.python:target:${chaquopyTarget.key}-${chaquopyTarget.value}:${abi}@zip"))
+        def outputDir = new File(chaquopyRuntimeDir, abi)
+        inputs.files(fileTree(chaquopySourceDir) {
+            include 'exteraless/build.sh'
+            include 'product/runtime/CMakeLists.txt'
+            include 'product/runtime/src/main/c/**'
+            include 'product/runtime/src/main/python/**/*.pyx'
+            include 'product/runtime/src/main/python/**/*.pxi'
+            include 'product/runtime/src/main/python/**/*.pxd'
+        }).withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.files(targetZip).withPathSensitivity(PathSensitivity.NAME_ONLY)
+        outputs.dir(outputDir)
+        commandLine 'bash', new File(chaquopySourceDir, 'exteraless/build.sh').path
+        environment('ABI', abi)
+        environment('OUT', outputDir.path)
+        environment('WORKSPACE', layout.buildDirectory.dir('chaquopy/work').get().asFile.path)
+        environment('PYTHON', chaquopyBuildPython ?: 'python3')
+        environment('PYTHON_VERSION', chaquopyPythonVersion)
+        doFirst {
+            if (!new File(chaquopySourceDir, 'product/runtime').isDirectory()) {
+                throw new GradleException('Chaquopy sources are missing, run: git submodule update --init TMessagesProj/chaquopy')
+            }
+            environment('NDK', androidComponents.sdkComponents.ndkDirectory.get().asFile.path)
+            environment('PYTHON_TARGET_ZIP', targetZip.singleFile.path)
+        }
+    }
+}
+
+def overrideChaquopyRuntime = { task, String fileName, Closure<File> targetFor ->
+    task.doLast {
+        chaquopyAbis.each { String abi ->
+            def target = targetFor(task.outputDir.get().asFile, abi)
+            if (target.isDirectory()) {
+                copy {
+                    from new File(chaquopyRuntimeDir, "$abi/$fileName")
+                    into target
+                }
+            }
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name ==~ /generate\w+PythonMiscAssets|generate\w+PythonJniLibs/) {
+        task.inputs.files(chaquopyRuntimeTasks)
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.each { task ->
+        if (task.name ==~ /generate\w+PythonMiscAssets/) {
+            overrideChaquopyRuntime(task, 'chaquopy.so') { File out, String abi ->
+                new File(out, "chaquopy/bootstrap-native/$abi/java")
+            }
+        } else if (task.name ==~ /generate\w+PythonJniLibs/) {
+            overrideChaquopyRuntime(task, 'libchaquopy_java.so') { File out, String abi ->
+                new File(out, abi)
+            }
+        }
+    }
+}
+
 configurations.configureEach {
     exclude group: 'androidx.recyclerview', module: 'recyclerview'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
@@ -369,6 +439,7 @@ dependencies {
     implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
     implementation 'androidx.mediarouter:mediarouter:1.8.1'
     implementation 'com.google.zxing:core:3.5.4'
+    implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'androidx.sharetarget:sharetarget:1.2.0'
     implementation 'androidx.interpolator:interpolator:1.0.0'
     implementation 'androidx.webkit:webkit:1.14.0'

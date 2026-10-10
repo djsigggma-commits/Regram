@@ -7,6 +7,8 @@ import android.graphics.RectF;
 import android.os.SystemClock;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
+import org.telegram.messenger.Utilities;
 
 /**
  * Эмуляция Material 3 CircularProgressIndicator: дуга-индикатор, дорожка (track) под ней
@@ -37,6 +39,19 @@ public class M3CircularProgress {
             return STYLE_LEGACY;
         }
         return style;
+    }
+
+    public static void prewarm() {
+        if (!AppearanceConfig.newLoadingStyle()) {
+            return;
+        }
+        Utilities.globalQueue.postRunnable(() -> {
+            try {
+                Class.forName("com.google.android.material.loadingindicator.LoadingIndicatorDrawingDelegate");
+            } catch (Throwable t) {
+                FileLog.e(t);
+            }
+        });
     }
 
     /** Стиль, который считается здесь; стиль 1 рисует LoadingIndicator. */

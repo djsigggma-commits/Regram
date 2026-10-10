@@ -231,8 +231,9 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -272,6 +273,33 @@ public class AndroidUtilities {
 
     public static Typeface regular() {
         return getTypeface(TYPEFACE_ROBOTO_REGULAR);
+    }
+
+    private static volatile Typeface monoTypeface;
+
+    public static Typeface mono() {
+        Typeface typeface = monoTypeface;
+        if (typeface == null) {
+            typeface = Typeface.MONOSPACE;
+            try {
+                Paint paint = new Paint();
+                paint.setTextSize(100);
+                paint.setTypeface(Typeface.MONOSPACE);
+                float narrow = paint.measureText("iiii");
+                float wide = paint.measureText("WWWW");
+                if (wide <= 0 || Math.abs(wide - narrow) / wide > 0.02f) {
+                    typeface = TypefaceHelper.createTypefaceFromAsset(TYPEFACE_ROBOTO_MONO);
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+            monoTypeface = typeface;
+        }
+        return typeface;
+    }
+
+    public static boolean isMono(Typeface typeface) {
+        return typeface != null && (typeface == Typeface.MONOSPACE || typeface == mono());
     }
 
     public static Typeface bold() {
@@ -1360,8 +1388,20 @@ public class AndroidUtilities {
         return doSafe(runnable, 200);
     }
 
+    private static ExecutorService doSafeExecutor;
+
+    private static synchronized ExecutorService getDoSafeExecutor() {
+        if (doSafeExecutor == null) {
+            doSafeExecutor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 30, TimeUnit.SECONDS, new SynchronousQueue<>(), runnable -> {
+                final Thread thread = new Thread(runnable, "doSafe");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
+        return doSafeExecutor;
+    }
+
     public static boolean doSafe(Utilities.Callback0Return<Boolean> runnable, int timeout) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         Callable<Boolean> task = () -> {
             try {
                 return runnable.run();
@@ -1373,16 +1413,15 @@ public class AndroidUtilities {
         boolean success = false;
         Future<Boolean> future = null;
         try {
-            future = executor.submit(task);
+            future = getDoSafeExecutor().submit(task);
             success = future.get(timeout, TimeUnit.MILLISECONDS);
-        } catch (TimeoutException ex) {
-            if (future != null) {
-                future.cancel(true);
-            }
+        } catch (TimeoutException ignored) {
         } catch (Exception ex) {
             FileLog.e(ex);
         } finally {
-            executor.shutdownNow();
+            if (future != null) {
+                future.cancel(true);
+            }
         }
         return success;
     }

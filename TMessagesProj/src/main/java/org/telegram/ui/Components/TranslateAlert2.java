@@ -121,6 +121,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
     private Utilities.CallbackReturn<URLSpan, Boolean> onLinkPress;
     private boolean firstTranslation = true;
     private final boolean nekoProviders = app.regram.chats.ChatsConfig.translateInSheet.Bool();
+    private int sheetProvider = tw.nekomimi.nekogram.NekoConfig.translationProvider.Int();
 
     public TranslateAlert2(
         Context context,
@@ -316,7 +317,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
         }
 
         if (nekoProviders && reqRichMessage == null && !reqSum
-                && tw.nekomimi.nekogram.NekoConfig.translationProvider.Int() != tw.nekomimi.nekogram.translate.Translator.providerTelegram) {
+                && sheetProvider != tw.nekomimi.nekogram.translate.Translator.providerTelegram) {
             translateWithProvider();
             return;
         }
@@ -494,10 +495,13 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
     }
 
     private void onProviderSelected(int provider) {
-        if (tw.nekomimi.nekogram.NekoConfig.translationProvider.Int() == provider) {
+        if (sheetProvider == provider) {
             return;
         }
-        tw.nekomimi.nekogram.NekoConfig.translationProvider.setConfigInt(provider);
+        sheetProvider = provider;
+        if (provider != tw.nekomimi.nekogram.translate.Translator.providerTelegram || org.telegram.messenger.UserConfig.getInstance(currentAccount).isPremium()) {
+            tw.nekomimi.nekogram.NekoConfig.translationProvider.setConfigInt(provider);
+        }
         headerView.titleTextView.setText(tw.nekomimi.nekogram.settings.NekoTranslatorSettingsActivity.getProviderName(provider));
         adapter.updateMainView(reqRichMessage != null ? richLoadingPreviewView : loadingTextView);
         translate();
@@ -1281,7 +1285,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
             titleTextView.setPivotX(0);
             titleTextView.setPivotY(0);
             if (nekoProviders) {
-                titleTextView.setText(tw.nekomimi.nekogram.settings.NekoTranslatorSettingsActivity.getProviderName(tw.nekomimi.nekogram.NekoConfig.translationProvider.Int()));
+                titleTextView.setText(tw.nekomimi.nekogram.settings.NekoTranslatorSettingsActivity.getProviderName(sheetProvider));
                 titleTextView.setSingleLine(true);
                 titleTextView.setEllipsize(TextUtils.TruncateAt.END);
                 Drawable arrow = ContextCompat.getDrawable(context, R.drawable.ic_arrow_drop_down);

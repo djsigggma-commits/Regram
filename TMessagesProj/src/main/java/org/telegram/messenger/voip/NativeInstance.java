@@ -61,11 +61,17 @@ public class NativeInstance {
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("create new tgvoip instance, version " + version);
         }
+        if (encryptionKey == null || encryptionKey.value == null || encryptionKey.value.length != 256) {
+            throw new IllegalArgumentException("VoIP encryption key must contain 256 bytes");
+        }
         NativeInstance instance = new NativeInstance();
         instance.persistentStateFilePath = path;
         instance.audioLevelsCallback = audioLevelsCallback;
         float aspectRatio = Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y) / (float) Math.max(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y);
         instance.nativePtr = makeNativeInstance(version, instance, config, path, endpoints, proxy, networkType, encryptionKey, remoteSink, videoCapturer, aspectRatio);
+        if (instance.nativePtr == 0) {
+            throw new IllegalStateException("VoIP engine creation failed for version " + version);
+        }
         return instance;
     }
 
@@ -143,6 +149,7 @@ public class NativeInstance {
         if (isGroup && uids != null && uids.length == 0) {
             return;
         }
+        if (audioLevelsCallback == null || levels == null || (!isGroup && levels.length < 2)) return;
         AndroidUtilities.runOnUIThread(() -> audioLevelsCallback.run(uids, levels, voice));
     }
 

@@ -36,7 +36,7 @@ public final class AyuDeletedDialogs {
         if (!DialogObject.isUserDialog(dialogId) || dialogId == UserConfig.getInstance(account).getClientUserId()) {
             return false;
         }
-        if (AyuSavePreferences.getSaveDeletedExclusion(dialogId)) {
+        if (AyuSavePreferences.getSaveDeletedExclusion(dialogId) || !AyuSavePreferences.saveInDialogFolder(account, dialogId)) {
             return false;
         }
         final TLRPC.User user = MessagesController.getInstance(account).getUser(dialogId);

@@ -4400,7 +4400,8 @@ public class NotificationsController extends BaseController implements Notificat
         try {
             SharedPreferences preferences = getAccountInstance().getNotificationsSettings();
             boolean isReactionPush = lastMessageObject != null && lastMessageObject.isReactionPush;
-            int notifyOverride = getNotifyOverride(preferences, dialogId, topicId);
+            final long overrideDialogId = lastMessageObject != null && lastMessageObject.messageOwner != null && lastMessageObject.messageOwner.mentioned ? lastMessageObject.getFromChatId() : dialogId;
+            int notifyOverride = getNotifyOverride(preferences, overrideDialogId, topicId);
             boolean value;
             if (notifyOverride == -1) {
                 value = isGlobalNotificationsEnabled(dialogId, isChannel, isReactionPush, isReactionPush);
@@ -5563,7 +5564,7 @@ public class NotificationsController extends BaseController implements Notificat
                         personName = senderName[0];
                     }
 
-                    if (person == null || !TextUtils.equals(person.getName(), personName)) {
+                    if (person == null || !TextUtils.equals(person.getName(), personName) || person.getIcon() == null) {
                         Person.Builder personBuilder = new Person.Builder().setName(personName);
                         if (preview[0] && !DialogObject.isEncryptedDialog(dialogId) && Build.VERSION.SDK_INT >= 28) {
                             File avatar = null;
@@ -5937,7 +5938,7 @@ public class NotificationsController extends BaseController implements Notificat
             FileLog.d("showExtraNotifications: holders.add " + dialogId);
             holders.add(new NotificationHolder(internalId, dialogId, dialogKey.story, topicId, name, user, chat, builder));
             wearNotificationsIds.put(dialogId, internalId);
-            signatures.put(internalId, NotificationsHelper.computeNotificationSignature(channelId, name, dialogKey.story ? null : messageObjects, dialogKey.story ? storyPushMessages.size() : 0, maxId, waitingForPasscode, avatarBitmap != null));
+            signatures.put(internalId, NotificationsHelper.computeNotificationSignature(channelId, name, dialogKey.story ? null : messageObjects, dialogKey.story ? storyPushMessages.size() : 0, maxId, waitingForPasscode, avatarBitmap != null || avatarFile != null && avatarFile.exists()));
         }
 
         if (useSummaryNotification) {

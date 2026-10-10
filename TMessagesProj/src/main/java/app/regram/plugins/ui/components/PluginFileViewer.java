@@ -24,7 +24,7 @@ import app.regram.utils.MarkdownUtils;
 
 public final class PluginFileViewer {
 
-    static final long MAX_SIZE = 512 * 1024;
+    static final long MAX_SIZE = 2 * 1024 * 1024;
     private static final int CHUNK_SIZE = 8192;
 
     private PluginFileViewer() {

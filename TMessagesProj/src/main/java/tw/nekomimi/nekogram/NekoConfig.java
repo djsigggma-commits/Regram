@@ -144,6 +144,28 @@ public class NekoConfig {
     public static ConfigItem regramHideHashtagSuggestions = addConfig("RegramHideHashtagSuggestions", configTypeBool, false);
     public static ConfigItem regramDisableGeneralTopicSwipe = addConfig("RegramDisableGeneralTopicSwipe", configTypeBool, false);
 
+    // Native MonoColor UI / AllLeft. Masters are opt-in; child defaults match the plugins.
+    public static ConfigItem regramMonoColor = addConfig("RegramMonoColor", configTypeBool, false);
+    public static ConfigItem regramMonoSource = addConfig("RegramMonoSource", configTypeInt, 0);
+    public static ConfigItem regramMonoCustomColor = addConfig("RegramMonoCustomColor", configTypeInt, 0xff4faede);
+    public static ConfigItem regramMonoGradient = addConfig("RegramMonoGradient", configTypeBool, false);
+    public static ConfigItem regramMonoAvatars = addConfig("RegramMonoAvatars", configTypeBool, true);
+    public static ConfigItem regramMonoStories = addConfig("RegramMonoStories", configTypeBool, true);
+    public static ConfigItem regramMonoNames = addConfig("RegramMonoNames", configTypeBool, true);
+    public static ConfigItem regramMonoDialogs = addConfig("RegramMonoDialogs", configTypeBool, true);
+    public static ConfigItem regramMonoProfiles = addConfig("RegramMonoProfiles", configTypeBool, true);
+    public static ConfigItem regramAllLeft = addConfig("RegramAllLeft", configTypeBool, false);
+    public static ConfigItem regramAllLeftPrivate = addConfig("RegramAllLeftPrivate", configTypeBool, false);
+    public static ConfigItem regramAllLeftStatus = addConfig("RegramAllLeftStatus", configTypeBool, true);
+    public static ConfigItem regramMentionAvatars = addConfig("RegramMentionAvatars", configTypeBool, false);
+    public static ConfigItem regramMentionPosition = addConfig("RegramMentionPosition", configTypeInt, 0);
+    public static ConfigItem regramMentionSize = addConfig("RegramMentionSize", configTypeInt, 1);
+    public static ConfigItem regramMentionChats = addConfig("RegramMentionChats", configTypeBool, true);
+    public static ConfigItem regramMentionBots = addConfig("RegramMentionBots", configTypeBool, true);
+    public static ConfigItem regramPlayerColor = addConfig("RegramPlayerColor", configTypeBool, false);
+    public static ConfigItem regramPlayerColorPreset = addConfig("RegramPlayerColorPreset", configTypeInt, 2);
+    public static ConfigItem regramPlayerColorHex = addConfig("RegramPlayerColorHex", configTypeString, "#E91E63");
+
     public static ConfigItem translationProvider = addConfig("translationProvider", configTypeInt, 1);
     public static ConfigItem translateToLang = addConfig("TransToLang", configTypeString, ""); // "" -> translate to current language (MessageTrans.kt & Translator.kt)
     public static ConfigItem translateInputLang = addConfig("TransInputToLang", configTypeString, "en");

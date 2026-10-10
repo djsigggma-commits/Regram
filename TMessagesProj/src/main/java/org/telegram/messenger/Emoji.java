@@ -1077,7 +1077,7 @@ public class Emoji {
             stringBuilder.append("=");
             stringBuilder.append(entry.getValue());
         }
-        preferences.edit().putString("emojis2", stringBuilder.toString()).commit();
+        preferences.edit().putString("emojis2", stringBuilder.toString()).apply();
     }
 
     public static void clearRecentEmoji() {

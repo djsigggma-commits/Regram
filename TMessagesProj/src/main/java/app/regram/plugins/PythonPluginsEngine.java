@@ -8,6 +8,7 @@ import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.Components.UItem;
 
@@ -16,6 +17,8 @@ import app.regram.plugins.models.CustomSetting;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import app.regram.debug.PluginToggleTrace;
 
 /**
  * Python-рантайм движка плагинов (Chaquopy, CPython 3.12).
@@ -96,6 +99,13 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
         }
     }
 
+    public String debugPythonStacks() {
+        if (!started || loader == null) {
+            return null;
+        }
+        return loader.callAttr("debug_python_stacks").toJava(String.class);
+    }
+
     public interface StartCallback {
         void onStarted(boolean ok);
     }
@@ -109,14 +119,21 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
             return;
         }
         executor.execute(() -> {
+            // Several callers can enqueue startup before the first task finishes.
+            if (started || startFailed) {
+                if (callback != null) callback.onStarted(started);
+                return;
+            }
             try {
                 if (!Python.isStarted()) {
                     long t0 = System.currentTimeMillis();
                     Python.start(new AndroidPlatform(appContext));
                     FileLog.d("PluginsEngine: Python started in " + (System.currentTimeMillis() - t0) + " ms");
                 }
+                Python.getInstance().getModule("sys").callAttr("setswitchinterval", 0.001);
                 loader = Python.getInstance().getModule("extera_utils.plugin_loader");
                 started = true;
+                // UI thread states are pinned lazily by onCall(), not while startup plugins hold the GIL.
                 // Dev-сервер (порт 42690) — только в developer mode; реализован в plugin_loader.
                 if (PluginsController.getInstance().isDeveloperMode()) {
                     try {
@@ -152,6 +169,9 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
     }
 
     public void setUnsafeMode(boolean value) {
+        if (PluginSinkGate.refuseFromPlugin("setUnsafeMode", false)) {
+            return;
+        }
         if (!started) {
             return;
         }
@@ -192,6 +212,9 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
 
     /** Забыть наблюдения плагина (удаление плагина, сброс профиля). */
     public void forgetAudit(String pluginId) {
+        if (PluginSinkGate.refuseFromPlugin("forgetAudit", false)) {
+            return;
+        }
         PluginAuditJournal.forget(pluginId);
         if (!started) {
             return;
@@ -225,6 +248,9 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
 
     /** Загрузить плагин (импорт модуля, инстанс BasePlugin, on_plugin_load). Синхронно. */
     public String loadPlugin(Plugin plugin) {
+        if (PluginSinkGate.refuseFromPlugin("loadPlugin", true)) {
+            return "{\"ok\":false,\"error\":\"not allowed\"}";
+        }
         dropSettingsJson(plugin.id);
         if (!started) {
             return "{\"ok\":false,\"error\":\"engine not started\"}";
@@ -237,8 +263,15 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
         PluginsWatchdog watchdog = PluginsController.getInstance().getWatchdog();
         // Загрузка — единственный заход, который пишется в маркер сразу.
         watchdog.notePluginEnter(plugin.id, true);
+        final PluginToggleTrace trace = PluginToggleTrace.current();
         try {
+            if (trace != null) {
+                trace.beforePython();
+            }
             String result = loader.callAttr("load_plugin", plugin.path, plugin.id).toJava(String.class);
+            if (trace != null) {
+                trace.afterPython(result);
+            }
             watchdog.notePluginExit(plugin.id);
             rememberInstance(plugin.id);
             return result;
@@ -283,6 +316,9 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
 
     /** Выгрузить плагин (on_plugin_unload + очистка). Синхронно. */
     public void unload(Plugin plugin) {
+        if (PluginSinkGate.refuseFromPlugin("unload", true)) {
+            return;
+        }
         if (plugin == null) {
             return;
         }
@@ -297,6 +333,9 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
     private final java.util.concurrent.ConcurrentHashMap<String, Plugin> unloadingPlugins = new java.util.concurrent.ConcurrentHashMap<>();
 
     public void unloadPlugin(String pluginId) {
+        if (PluginSinkGate.refuseForeign(pluginId, "unloadPlugin")) {
+            return;
+        }
         if (pluginId == null) {
             return;
         }
@@ -313,8 +352,15 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
         }
         PluginsWatchdog watchdog = PluginsController.getInstance().getWatchdog();
         watchdog.notePluginEnter(plugin.id);
+        final PluginToggleTrace trace = PluginToggleTrace.current();
         try {
-            loader.callAttr("unload_plugin", plugin.id);
+            if (trace != null) {
+                trace.beforePython();
+            }
+            PyObject result = loader.callAttr("unload_plugin", plugin.id);
+            if (trace != null) {
+                trace.afterPython(result == null ? null : result.toString());
+            }
         } catch (Throwable t) {
             FileLog.e("PluginsEngine: unload failed for " + plugin.id, t);
         } finally {
@@ -329,6 +375,9 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
     /** Полная деинсталляция на Python-стороне: pip-зависимости (refcount),
      *  вычистка elyx-экстракций. Звать ПОСЛЕ unloadPlugin. */
     public void uninstallPlugin(String pluginId) {
+        if (PluginSinkGate.refuseFromPlugin("uninstallPlugin", true)) {
+            return;
+        }
         if (!started) {
             return;
         }

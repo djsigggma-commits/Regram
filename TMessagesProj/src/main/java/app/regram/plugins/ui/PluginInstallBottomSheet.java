@@ -1,5 +1,6 @@
 package app.regram.plugins.ui;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.LocaleController.getString;
 
 import android.app.Activity;
@@ -7,8 +8,10 @@ import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.text.TextUtils;
+import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,11 +26,10 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BulletinFactory;
-import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkSpanDrawable;
+import org.telegram.ui.Components.Switch;
 import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ import java.util.Map;
 
 import app.regram.ai.AiController;
 import app.regram.ai.ui.AiSettingsActivity;
+import app.regram.player.PlayerColors;
 import app.regram.plugins.Plugin;
 import app.regram.plugins.PluginCapabilityScan;
 import app.regram.plugins.PluginPermissions;
@@ -70,10 +73,8 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
     private boolean enableAfterInstall = true;
     private final com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet.PluginInstallParams params;
     private final Plugin plugin;
-    private final ButtonWithCounterView button;
-    private final LinearLayout headerView;
-    private final LinearLayout bottomContainer;
-    private ImageView openIn;
+    private final PlayerColors colors;
+    private ScrollView scroll;
 
     public PluginInstallBottomSheet(Activity activity, File file,
                                     com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet.PluginInstallParams params,
@@ -82,8 +83,11 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
         super(activity, false);
         this.params = params;
         this.plugin = plugin;
+        this.colors = PlayerColors.fromSeed(Theme.getColor(Theme.key_featuredStickers_addButton),
+                Theme.isCurrentThemeDark());
         setApplyBottomPadding(false);
         setApplyTopPadding(false);
+        fixNavigationBar(colors.surfaceLow);
 
         final Context context = activity;
         final List<String> permissions = PluginCapabilityScan.ordered(capabilities);
@@ -91,53 +95,93 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
 
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(24), 0, dp(24), dp(BAR_HEIGHT + 8));
 
-        headerView = new LinearLayout(context);
-        headerView.setOrientation(LinearLayout.VERTICAL);
-        content.addView(headerView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        View handle = new View(context);
+        GradientDrawable handleBg = new GradientDrawable();
+        handleBg.setCornerRadius(dp(2));
+        handleBg.setColor(ColorUtils.setAlphaComponent(colors.onSurfaceVariant, 0x73));
+        handle.setBackground(handleBg);
+        content.addView(handle, LayoutHelper.createLinear(32, 4, Gravity.CENTER_HORIZONTAL, 0, 14, 0, 0));
 
-        headerView.addView(createIcon(context, plugin),
-                LayoutHelper.createLinear(72, 72, Gravity.CENTER_HORIZONTAL, 0, 22, 0, 0));
+        LinearLayout header = new LinearLayout(context);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        content.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 22, 0, 0));
+
+        header.addView(createIcon(context, plugin, colors), LayoutHelper.createLinear(64, 64, Gravity.CENTER_VERTICAL));
+
+        LinearLayout titles = new LinearLayout(context);
+        titles.setOrientation(LinearLayout.VERTICAL);
+        header.addView(titles, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL, 16, 0, 0, 0));
 
         TextView name = new TextView(context);
-        name.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        name.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
         name.setTypeface(AndroidUtilities.bold());
-        name.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
-        name.setGravity(Gravity.CENTER);
+        name.setTextColor(colors.onSurface);
+        name.setMaxLines(2);
+        name.setEllipsize(TextUtils.TruncateAt.END);
         name.setText(plugin != null ? plugin.getDisplayName() : file.getName());
-        headerView.addView(name, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                LayoutHelper.WRAP_CONTENT, 40, 14, 40, 0));
+        titles.addView(name, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         LinkSpanDrawable.LinksTextView subtitle = new LinkSpanDrawable.LinksTextView(context);
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        subtitle.setTextColor(Theme.getColor(Theme.key_dialogTextGray2));
-        subtitle.setLinkTextColor(Theme.getColor(Theme.key_dialogTextLink));
-        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setTextColor(colors.onSurfaceVariant);
+        subtitle.setLinkTextColor(colors.primary);
         subtitle.setText(com.exteragram.messenger.utils.text.LocaleUtils.formatWithUsernames(buildSubtitle(plugin),
                 org.telegram.ui.LaunchActivity.getSafeLastFragment(), this::dismiss));
-        headerView.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                LayoutHelper.WRAP_CONTENT, 21, 4, 21, 0));
-
-        if (params != null && params.getTrusted()) {
-            headerView.addView(createTrustedBadge(context), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT,
-                    LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 12, 0, 0));
-        }
+        titles.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
 
         if (plugin != null && !TextUtils.isEmpty(plugin.description)) {
-            LinkSpanDrawable.LinksTextView description =
-                    new LinkSpanDrawable.LinksTextView(context);
+            LinkSpanDrawable.LinksTextView description = new LinkSpanDrawable.LinksTextView(context);
             description.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            description.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
-            description.setGravity(Gravity.CENTER);
-            description.setText(com.exteragram.messenger.utils.text.LocaleUtils
-                    .fullyFormatText(plugin.description));
+            description.setLineSpacing(dp(2), 1f);
+            description.setTextColor(colors.onSurfaceVariant);
+            description.setLinkTextColor(colors.primary);
+            description.setText(com.exteragram.messenger.utils.text.LocaleUtils.fullyFormatText(plugin.description));
             content.addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                    LayoutHelper.WRAP_CONTENT, 21, 18, 21, 0));
+                    LayoutHelper.WRAP_CONTENT, 0, 16, 0, 0));
         }
+
+        LinearLayout chips = new LinearLayout(context);
+        chips.setOrientation(LinearLayout.HORIZONTAL);
+        if (PluginFileViewer.canOpen(file)) {
+            TextView source = createChip(context, R.drawable.baseline_code_24, getString(R.string.PluginsViewSource));
+            source.setOnClickListener(v -> {
+                BaseFragment fragment = LaunchActivity.getLastFragment();
+                if (fragment != null) {
+                    PluginFileViewer.open(fragment, file, plugin == null ? null : plugin.name);
+                }
+            });
+            chips.addView(source, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, 0, 0, 8, 0));
+        }
+        if (PluginAiReview.canReview(file)) {
+            TextView review = createChip(context, R.drawable.input_ai_star, getString(R.string.PluginsAiReview));
+            review.setOnClickListener(v -> {
+                if (!AiController.canUseAI() && !PluginAiReview.isCached(file)) {
+                    BulletinFactory.of(container, resourcesProvider).createSimpleBulletin(
+                            R.raw.chats_infotip, getString(R.string.OEAiNotConfigured),
+                            getString(R.string.Settings), this::openAiSettings).show();
+                    return;
+                }
+                PluginAiReview.review(context, resourcesProvider, file, plugin, capabilities);
+            });
+            chips.addView(review, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36));
+        }
+        if (chips.getChildCount() > 0) {
+            content.addView(chips, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, 0, 16, 0, 0));
+        }
+
+        TextView section = new TextView(context);
+        section.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        section.setTypeface(AndroidUtilities.bold());
+        section.setTextColor(colors.primary);
+        section.setText(getString(R.string.PluginPermissions));
+        content.addView(section, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 28, 4, 0));
 
         TextView note = new TextView(context);
         note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        note.setTextColor(Theme.getColor(Theme.key_dialogTextGray2));
+        note.setTextColor(colors.onSurfaceVariant);
         note.setText(getString(plugin == null || TextUtils.isEmpty(plugin.id)
                 ? R.string.PluginsInstallUnknownConfirm
                 : obfuscated
@@ -145,95 +189,180 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
                     : permissions.isEmpty()
                         ? R.string.PluginsInstallNothingFound
                         : R.string.PluginsInstallScanned));
-        content.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                LayoutHelper.WRAP_CONTENT, 21, 20, 21, permissions.isEmpty() ? 0 : 6));
+        content.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 4, 4, 0));
 
         if (obfuscated) {
-            content.addView(createObfuscationWarning(context,
-                            PluginCapabilityScan.obfuscationEvidence(capabilities)),
-                    LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                            LayoutHelper.WRAP_CONTENT, 21, 12, 21, permissions.isEmpty() ? 0 : 6));
+            content.addView(createMd3Warning(context, PluginCapabilityScan.obfuscationEvidence(capabilities)),
+                    LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
         }
 
-        for (int i = 0; i < permissions.size(); i++) {
-            final String permission = permissions.get(i);
-            PluginPermissionCell cell = new PluginPermissionCell(context,
-                    PluginPermissionCell.TYPE_CHECKBOX);
-            cell.set(permission,
-                    PluginPermissionsActivity.shortTitleOf(permission),
-                    PluginPermissionsActivity.infoOf(permission),
-                    PluginCapabilityScan.evidenceOf(capabilities, permission),
-                    i < permissions.size() - 1);
-            cell.setChecked(!obfuscated && !PluginPermissions.isDangerous(permission), false);
-            cell.setOnToggle(() -> cell.setChecked(!cell.isChecked(), true));
-            cells.add(cell);
-            content.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT,
-                    LayoutHelper.WRAP_CONTENT));
+        PluginCapabilityScan.DexInfo dex = PluginCapabilityScan.dexInfo(capabilities);
+        if (dex != null) {
+            content.addView(createDexCard(context, dex),
+                    LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
         }
 
-        button = new ButtonWithCounterView(context, true, null);
+        if (!permissions.isEmpty()) {
+            LinearLayout group = createCard(context);
+            group.setPadding(0, dp(6), 0, dp(6));
+            for (String permission : permissions) {
+                PluginPermissionCell cell = new PluginPermissionCell(context, PluginPermissionCell.TYPE_SWITCH);
+                cell.set(permission,
+                        PluginPermissionsActivity.shortTitleOf(permission),
+                        PluginPermissionsActivity.infoOf(permission),
+                        PluginCapabilityScan.evidenceOf(capabilities, permission),
+                        false);
+                cell.applyColors(colors.onSurface, colors.onSurfaceVariant, colors.onSurfaceVariant,
+                        ColorUtils.setAlphaComponent(colors.onSurfaceVariant, 0x1A));
+                cell.setChecked(!obfuscated && !PluginPermissions.isDangerous(permission), false);
+                cell.setOnToggle(() -> cell.setChecked(!cell.isChecked(), true));
+                cell.setBackground(Theme.createSelectorDrawable(ColorUtils.setAlphaComponent(colors.onSurface, 0x14), 2));
+                cells.add(cell);
+                group.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+            }
+            content.addView(group, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
+        }
+
+        content.addView(createEnableAfterInstall(context),
+                LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
+
+        scroll = new ScrollView(context);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.addView(content);
+
         final boolean update = plugin != null && !TextUtils.isEmpty(plugin.id)
                 && app.regram.plugins.PluginsController.getInstance().getPlugin(plugin.id) != null;
-        button.setText(getString(update ? R.string.PluginsUpdateAction : R.string.PluginsInstallAction), false);
+        TextView button = new TextView(context);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        button.setTypeface(AndroidUtilities.bold());
+        button.setTextColor(colors.onPrimary);
+        button.setGravity(Gravity.CENTER);
+        button.setText(getString(update ? R.string.PluginsUpdateAction : R.string.PluginsInstallAction));
+        button.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(28), colors.primary,
+                ColorUtils.blendARGB(colors.primary, colors.onPrimary, 0.16f)));
         button.setOnClickListener(v -> {
             dismiss();
             if (delegate != null) {
                 delegate.onInstall(checkedPermissions(), enableAfterInstall);
             }
         });
-        bottomContainer = new LinearLayout(context);
-        bottomContainer.setOrientation(LinearLayout.VERTICAL);
-        content.addView(bottomContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
-        bottomContainer.addView(button, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48,
-                16, permissions.isEmpty() ? 20 : 14, 16, 10));
+        FrameLayout bar = new FrameLayout(context);
+        bar.setBackgroundColor(colors.surfaceLow);
+        bar.addView(button, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 56, Gravity.TOP, 24, 12, 24, 16));
 
-        bottomContainer.addView(createEnableAfterInstall(context),
-                LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT,
-                        Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
-
-        if (PluginAiReview.canReview(file)) {
-            bottomContainer.addView(createAiReview(context, file, plugin, capabilities),
-                    LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT,
-                            LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 16));
-        }
-
-        ScrollView scroll = new ScrollView(context);
-        scroll.addView(content);
-
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(colors.surfaceLow);
+        background.setCornerRadii(new float[]{dp(28), dp(28), dp(28), dp(28), 0, 0, 0, 0});
         FrameLayout root = new FrameLayout(context);
-        root.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
-                LayoutHelper.WRAP_CONTENT));
-        if (PluginFileViewer.canOpen(file)) {
-            openIn = createSourceButton(context, file, plugin);
-            root.addView(openIn, LayoutHelper.createFrame(40, 40, Gravity.RIGHT | Gravity.TOP, 0, 10, 10, 0));
-        }
-        setCustomView(root);
-        applyButtonState();
+        root.setBackground(background);
+        root.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        root.addView(bar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, BAR_HEIGHT, Gravity.BOTTOM));
+        containerView = root;
+        applyButtonState(false);
     }
 
-    private android.view.View createAiReview(Context context, File file, Plugin plugin,
-                                             Map<String, List<String>> capabilities) {
-        TextView view = new TextView(context);
-        view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        view.setTypeface(AndroidUtilities.bold());
-        view.setTextColor(Theme.getColor(Theme.key_dialogTextBlue));
-        view.setGravity(Gravity.CENTER);
-        view.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(7),
-                AndroidUtilities.dp(14), AndroidUtilities.dp(7));
-        view.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(14),
-                Theme.multAlpha(Theme.getColor(Theme.key_dialogTextBlue), 0.10f)));
-        view.setText("\u2726  " + getString(R.string.PluginsAiReview));
-        view.setOnClickListener(v -> {
-            if (!AiController.canUseAI() && !PluginAiReview.isCached(file)) {
-                BulletinFactory.of(container, resourcesProvider).createSimpleBulletin(
-                        R.raw.chats_infotip, getString(R.string.OEAiNotConfigured),
-                        getString(R.string.Settings), this::openAiSettings).show();
-                return;
+    private static final int BAR_HEIGHT = 84;
+
+    @Override
+    protected boolean canDismissWithSwipe() {
+        return scroll == null || !scroll.canScrollVertically(-1);
+    }
+
+    private LinearLayout createCard(Context context) {
+        LinearLayout card = new LinearLayout(context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackground(Theme.createRoundRectDrawable(dp(24), colors.surfaceContainer));
+        card.setClipToOutline(true);
+        return card;
+    }
+
+    private TextView createChip(Context context, int iconRes, CharSequence text) {
+        TextView chip = new TextView(context);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        chip.setTypeface(AndroidUtilities.bold());
+        chip.setTextColor(colors.onSecondaryContainer);
+        chip.setGravity(Gravity.CENTER_VERTICAL);
+        chip.setSingleLine(true);
+        chip.setText(text);
+        chip.setPadding(dp(iconRes != 0 ? 12 : 16), 0, dp(16), 0);
+        if (iconRes != 0) {
+            android.graphics.drawable.Drawable icon = context.getResources().getDrawable(iconRes).mutate();
+            icon.setColorFilter(new PorterDuffColorFilter(colors.onSecondaryContainer, PorterDuff.Mode.SRC_IN));
+            icon.setBounds(0, 0, dp(18), dp(18));
+            chip.setCompoundDrawables(icon, null, null, null);
+            chip.setCompoundDrawablePadding(dp(8));
+        }
+        chip.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(18), colors.secondaryContainer,
+                ColorUtils.blendARGB(colors.secondaryContainer, colors.onSecondaryContainer, 0.12f)));
+        return chip;
+    }
+
+    private View createMd3Warning(Context context, List<String> evidence) {
+        final int error = Theme.getColor(Theme.key_text_RedBold);
+        LinearLayout box = new LinearLayout(context);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(16), dp(14), dp(16), dp(14));
+        box.setBackground(Theme.createRoundRectDrawable(dp(20), ColorUtils.blendARGB(colors.surfaceLow, error, 0.14f)));
+
+        TextView title = new TextView(context);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        title.setTypeface(AndroidUtilities.bold());
+        title.setTextColor(error);
+        title.setText(getString(R.string.PluginsObfuscated));
+        box.addView(title, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        TextView info = new TextView(context);
+        info.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        info.setTextColor(colors.onSurface);
+        info.setText(getString(R.string.PluginsObfuscatedInfo));
+        box.addView(info, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
+
+        if (evidence != null && !evidence.isEmpty()) {
+            TextView signs = new TextView(context);
+            signs.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            signs.setTextColor(colors.onSurfaceVariant);
+            signs.setText(LocaleController.formatString(R.string.PluginsObfuscatedEvidence, TextUtils.join(", ", evidence)));
+            box.addView(signs, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
+        }
+        return box;
+    }
+
+    private View createDexCard(Context context, PluginCapabilityScan.DexInfo dex) {
+        final int accent = dex.loaded ? Theme.getColor(Theme.key_text_RedBold) : colors.onSurfaceVariant;
+        LinearLayout box = new LinearLayout(context);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(16), dp(14), dp(16), dp(14));
+        box.setBackground(Theme.createRoundRectDrawable(dp(20), dex.loaded
+                ? ColorUtils.blendARGB(colors.surfaceLow, accent, 0.10f)
+                : colors.surfaceContainer));
+
+        TextView title = new TextView(context);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        title.setTypeface(AndroidUtilities.bold());
+        title.setTextColor(dex.loaded ? accent : colors.onSurface);
+        title.setText(getString(R.string.PluginsDexTitle));
+        box.addView(title, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        TextView info = new TextView(context);
+        info.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        info.setTextColor(colors.onSurface);
+        info.setText(LocaleController.formatString(dex.loaded ? R.string.PluginsDexLoaded : R.string.PluginsDexUnused,
+                AndroidUtilities.formatFileSize(dex.size)));
+        box.addView(info, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
+
+        if (!dex.classes.isEmpty()) {
+            String names = TextUtils.join(", ", dex.classes);
+            if (dex.moreClasses > 0) {
+                names += " +" + dex.moreClasses;
             }
-            PluginAiReview.review(context, resourcesProvider, file, plugin, capabilities);
-        });
-        return view;
+            TextView classes = new TextView(context);
+            classes.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            classes.setTextColor(colors.onSurfaceVariant);
+            classes.setText(LocaleController.formatString(R.string.PluginsDexClasses, names));
+            box.addView(classes, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
+        }
+        return box;
     }
 
     private void openAiSettings() {
@@ -242,45 +371,6 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
         if (fragment != null) {
             fragment.presentFragment(new AiSettingsActivity());
         }
-    }
-
-    private android.view.View createTrustedBadge(Context context) {
-        final int color = Theme.getColor(Theme.key_windowBackgroundWhiteGreenText);
-        LinearLayout badge = new LinearLayout(context);
-        badge.setOrientation(LinearLayout.HORIZONTAL);
-        badge.setGravity(Gravity.CENTER);
-        badge.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(20), AndroidUtilities.dp(20),
-                androidx.core.graphics.ColorUtils.compositeColors(AndroidUtilities.multiplyAlphaComponent(color, 0.1f),
-                        Theme.getColor(Theme.key_windowBackgroundWhite))));
-        badge.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(6), AndroidUtilities.dp(16), AndroidUtilities.dp(6));
-        ImageView icon = new ImageView(context);
-        icon.setImageResource(R.drawable.trusted_mini);
-        icon.setColorFilter(new android.graphics.PorterDuffColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN));
-        badge.addView(icon, LayoutHelper.createLinear(14, 14, Gravity.CENTER_VERTICAL, 0, 0, 6, 0));
-        TextView text = new TextView(context);
-        text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        text.setTextColor(color);
-        text.setText(getString(R.string.PluginsSourceTrusted));
-        badge.addView(text);
-        return badge;
-    }
-
-    private ImageView createSourceButton(Context context, File file, Plugin plugin) {
-        ImageView button = new ImageView(context);
-        button.setScaleType(ImageView.ScaleType.CENTER);
-        button.setImageResource(R.drawable.msg_view_file);
-        button.setColorFilter(new PorterDuffColorFilter(
-                Theme.getColor(Theme.key_dialogTextGray2), PorterDuff.Mode.SRC_IN));
-        button.setBackground(Theme.createSelectorDrawable(
-                Theme.getColor(Theme.key_listSelector), 1));
-        button.setContentDescription(getString(R.string.PluginsViewSource));
-        button.setOnClickListener(v -> {
-            BaseFragment fragment = LaunchActivity.getLastFragment();
-            if (fragment != null) {
-                PluginFileViewer.open(fragment, file, plugin == null ? null : plugin.name);
-            }
-        });
-        return button;
     }
 
     /**
@@ -339,21 +429,25 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
      * появляется позже остального листа — это нормально и лучше, чем держать
      * лист закрытым до её приезда.
      */
-    private static android.view.View createIcon(Context context, Plugin plugin) {
+    private static android.view.View createIcon(Context context, Plugin plugin, PlayerColors colors) {
         FrameLayout frame = new FrameLayout(context);
+        frame.setBackground(Theme.createRoundRectDrawable(dp(20), colors.primaryContainer));
         org.telegram.ui.Components.BackupImageView image =
                 new org.telegram.ui.Components.BackupImageView(context);
         ImageView fallback = new ImageView(context);
         fallback.setScaleType(ImageView.ScaleType.FIT_CENTER);
         fallback.setImageResource(R.drawable.msg_plugins);
-        fallback.setColorFilter(new PorterDuffColorFilter(
-                Theme.getColor(Theme.key_windowBackgroundWhiteBlueIcon), PorterDuff.Mode.SRC_IN));
-        frame.addView(fallback, LayoutHelper.createFrame(56, 56, Gravity.CENTER));
-        frame.addView(image, LayoutHelper.createFrame(72, 72, Gravity.CENTER));
+        fallback.setColorFilter(new PorterDuffColorFilter(colors.onPrimaryContainer, PorterDuff.Mode.SRC_IN));
+        frame.addView(fallback, LayoutHelper.createFrame(36, 36, Gravity.CENTER));
+        image.setRoundRadius(dp(20));
+        frame.addView(image, LayoutHelper.createFrame(64, 64, Gravity.CENTER));
         image.setVisibility(android.view.View.GONE);
         // Наш значок стоит до тех пор, пока не приедет иконка плагина: она
         // может и не приехать, а пустое место вместо неё — хуже заглушки.
-        PluginIcons.apply(image, plugin, () -> fallback.setVisibility(android.view.View.GONE));
+        PluginIcons.apply(image, plugin, () -> {
+            fallback.setVisibility(android.view.View.GONE);
+            frame.setBackground(null);
+        });
         return frame;
     }
 
@@ -371,30 +465,28 @@ public class PluginInstallBottomSheet extends com.exteragram.messenger.plugins.u
     }
 
     private android.view.View createEnableAfterInstall(Context context) {
-        LinearLayout row = new LinearLayout(context);
+        LinearLayout row = createCard(context);
+        row.setClipToOutline(false);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-
-        CheckBox2 checkBox = new CheckBox2(context, 21);
-        checkBox.setColor(Theme.key_checkbox, Theme.key_checkboxDisabled, Theme.key_checkboxCheck);
-        checkBox.setDrawUnchecked(true);
-        checkBox.setDrawBackgroundAsArc(10);
-        checkBox.setChecked(enableAfterInstall, false);
-        row.addView(checkBox, LayoutHelper.createLinear(21, 21, Gravity.CENTER_VERTICAL, 0, 0, 8, 0));
+        row.setPadding(dp(20), dp(14), 0, dp(14));
 
         TextView text = new TextView(context);
-        text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        text.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        text.setTextColor(colors.onSurface);
         text.setText(getString(R.string.PluginsEnableAfterInstallation));
-        row.addView(text, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT,
-                LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
+        row.addView(text, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, Gravity.CENTER_VERTICAL));
 
-        row.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(6),
-                AndroidUtilities.dp(10), AndroidUtilities.dp(6));
-        row.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 2));
+        Switch toggle = new Switch(context);
+        toggle.setColors(Theme.key_switchTrack, Theme.key_switchTrackChecked,
+                Theme.key_windowBackgroundWhite, Theme.key_windowBackgroundWhite);
+        toggle.setChecked(enableAfterInstall, false);
+        row.addView(toggle, LayoutHelper.createLinear(37, 40, Gravity.CENTER_VERTICAL, 12, 0, 21, 0));
+
+        row.setForeground(Theme.createSelectorDrawable(ColorUtils.setAlphaComponent(colors.onSurface, 0x14), 2));
         row.setOnClickListener(v -> {
             enableAfterInstall = !enableAfterInstall;
-            checkBox.setChecked(enableAfterInstall, true);
+            toggle.setChecked(enableAfterInstall, true);
         });
         return row;
     }

@@ -10,7 +10,6 @@
 -keep class org.telegram.messenger.camera.* { *; }
 -keep class org.telegram.messenger.secretmedia.* { *; }
 -keep class org.telegram.messenger.support.* { *; }
--keep class org.telegram.messenger.support.* { *; }
 -keep class org.telegram.messenger.time.* { *; }
 -keep class org.telegram.messenger.video.* { *; }
 -keep class org.telegram.messenger.voip.* { *; }
@@ -22,6 +21,8 @@
 -keep class org.telegram.ui.ActionBar.* { *; }
 -keep class org.telegram.ui.Stories.recorder.FfmpegAudioWaveformLoader { *; }
 -keep class androidx.mediarouter.app.MediaRouteButton { *; }
+# Loaded/registered by class and method name from libtmessages JNI_OnLoad.
+-keep class androidx.media3.decoder.ffmpeg.** { *; }
 -keep class org.telegram.messenger.AnimatedFileDrawableStream { <methods>; }
 -keep class org.telegram.SQLite.SQLiteException { <methods>; }
 -keep class org.telegram.tgnet.ConnectionsManager { <methods>; }
@@ -211,6 +212,28 @@
 -keepclassmembers class org.telegram.tgnet.** { *; }
 -keepclassmembers class org.telegram.messenger.MessageObject { *; }
 -keepclassmembers class org.telegram.messenger.SendMessagesHelper { *; }
+-keepclassmembers class org.telegram.messenger.BuildVars { *; }
+
+# Совместимость с тяжёлыми Python/Dex-плагинами каталога (в т.ч. Custom Profile
+# 1.9): их встроенный dex ищет профильные UI-классы, ячейки и поля через строки
+# и reflection. Для R8 это выглядит как мёртвый код, поэтому release-сборка
+# должна сохранить классы и члены, иначе плагин загружается, но не может
+# встроиться в профиль/настройки/пикер эмодзи.
+-keep class org.telegram.ui.** { *; }
+-keep class org.telegram.messenger.ImageLocation { *; }
+-keep class org.telegram.messenger.ImageReceiver { *; }
+-keep class org.telegram.messenger.MessagesController$PeerColor { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_document { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_peerUser { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_username { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_messageMediaDocument { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_messages_sendMessage { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_messageActionStarGift { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_documentAttributeAudio { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_emojiStatusCollectible { *; }
+-keep class org.telegram.tgnet.TLRPC$TL_documentAttributeFilename { *; }
+-keep class org.telegram.tgnet.tl.TL_fragment$TL_collectibleInfo { *; }
+-keep class org.telegram.tgnet.tl.TL_fragment$TL_getCollectibleInfo { *; }
 
 -keep class org.vosk.** { *; }
 -keep class com.sun.jna.** { *; }

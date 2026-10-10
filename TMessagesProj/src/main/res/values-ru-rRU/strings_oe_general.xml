@@ -28,6 +28,8 @@
 
     <!-- Download Speed Boost -->
     <string name="OEGeneralSpeedHeader">Ускорение загрузки</string>
+    <string name="OEGeneralNetworkSpeedHeader">Сеть и загрузка</string>
+    <string name="OEGeneralBackupHeader">Резервная копия</string>
     <string name="OEGeneralSpeedOff">Выкл.</string>
     <string name="OEGeneralSpeedFast">Быстро</string>
     <string name="OEGeneralSpeedUltra">Ультра</string>
@@ -103,6 +105,8 @@
     <string name="OEGeneralGoogleHeader">Google</string>
     <string name="OEGeneralCrashReports">Отчёты о сбоях</string>
     <string name="OEGeneralCrashReportsInfo">Отправляет стек падений в Firebase Crashlytics, чтобы их чинили без ручных баг-репортов. По умолчанию выключено, и пока выключено, с устройства ничего не уходит.</string>
+    <string name="OEGeneralContentCapture">Доступ системы к тексту на экране</string>
+    <string name="OEGeneralContentCaptureInfo">Нужен для Live Translate на Pixel и системных подсказок. Пока выключено, система не видит текст чатов, а списки листаются плавнее.</string>
     <string name="OEGeneralMapsHeader">Карты</string>
     <string name="OEGeneralUseOsmMapInfo">Выбор места и трансляции геопозиции рисуются тайлами OpenStreetMap вместо Google Maps. Превью локаций в сообщениях по-прежнему приходят с серверов Telegram.</string>
     <string name="OEGeneralMapProvider">Провайдер карт</string>
@@ -155,6 +159,11 @@
     <string name="OEGeneralLastFmStageUpload">Загружаю трек…</string>
     <string name="OEGeneralLastFmStageSave">Сохраняю в профиль…</string>
     <string name="OEAyuSaveReadDate">Сохранять дату прочтения</string>
+    <string name="OEAyuGhostHeader">Призрак</string>
+    <string name="OEAyuSavingHeader">Сохранение</string>
+    <string name="OEAyuDeletedHeader">Удалённые в чате</string>
+    <string name="OEAyuOtherHeader">Прочее</string>
+    <string name="OEAyuDangerHeader">Опасная зона</string>
     <string name="OEAyuSaveReadDateInfo">Запоминает, когда ваши сообщения прочитали и прослушали. Время видно в меню сообщения, если Telegram его не показывает.</string>
     <string name="OEAyuPlayedTodayAt">прослушано в %s</string>
     <string name="OEAyuPlayedYesterdayAt">прослушано вчера в %s</string>
@@ -176,4 +185,28 @@
     <string name="OEUserLookupNotFound">Пользователь %1$d не найден</string>
     <string name="OEUpdateTitle">Доступно обновление</string>
     <string name="OEUpdateDownloadProgress">%1$s из %2$s</string>
+    <string name="OEAyuSaveInArchived">Сохранять в архивных чатах</string>
+    <string name="OEAyuSaveInArchivedInfo">Удалённые и изменённые сообщения из чатов в архиве тоже сохраняются.</string>
+    <string name="OEAyuDatabaseExport">Экспорт базы</string>
+    <string name="OEAyuDatabaseImport">Импорт базы</string>
+    <string name="OEAyuDatabaseImportInfo">Удалённые и изменённые сообщения из файла добавятся к уже сохранённым. Подходят выгрузки exteraless и AyuGram. Медиа из другого приложения могут не открыться.</string>
+    <string name="OEAyuDatabaseImportDone">Добавлено сообщений: %1$d</string>
+    <string name="OEAyuDatabaseImportFailed">Не удалось импортировать файл</string>
+    <string name="OEAyuRegexReversed">Обратный</string>
+    <string name="OEAyuRegexReversedInfo">Скрывать сообщения, которые не совпадают с выражением</string>
+    <string name="OEUpdaterChecking">Проверяем обновления…</string>
+    <string name="OEUpdaterLatest">У вас последняя версия</string>
+    <string name="OEUpdaterAvailable">Доступна версия %1$s</string>
+    <string name="OEUpdaterFailedInfo">Проверьте подключение и попробуйте ещё раз</string>
+    <string name="OEUpdaterCheckedJustNow">Проверено только что</string>
+    <string name="OEUpdaterCheckedAt">Проверено %1$s</string>
+    <string name="OEUpdaterCheckAgain">Проверить снова</string>
+    <string name="OEUpdaterChannel">Автопроверка</string>
+    <string name="OEUpdaterChannelOff">Выкл</string>
+    <string name="OEUpdaterChannelStable">Релизы</string>
+    <string name="OEUpdaterChannelBeta">Бета</string>
+    <string name="OEUpdaterChannelOffInfo">Обновления проверяются, только когда вы нажимаете на логотип.</string>
+    <string name="OEUpdaterChannelStableInfo">Раз в 6 часов проверяются новые релизы на GitHub.</string>
+    <string name="OEUpdaterChannelBetaInfo">Ещё и пре-релизы с GitHub — раньше, чем они станут релизами.</string>
+    <string name="OEUpdaterAllReleases">Все релизы на GitHub</string>
 </resources>

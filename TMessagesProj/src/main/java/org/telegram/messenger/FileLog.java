@@ -560,6 +560,17 @@ public class FileLog {
 
     }
 
+    private static String tagOf(Throwable callSite) {
+        for (StackTraceElement element : callSite.getStackTrace()) {
+            final String className = element.getClassName();
+            if (!FileLog.class.getName().equals(className)) {
+                final int lastDotIndex = className.lastIndexOf('.');
+                return lastDotIndex != -1 ? className.substring(lastDotIndex + 1) : className;
+            }
+        }
+        return "tmessages";
+    }
+
     private static String mkMessage(Throwable e) {
         String message = e.getMessage();
         if (message != null) return e.getClass().getSimpleName() + ": " + message;
@@ -578,21 +589,29 @@ public class FileLog {
             return;
         }
         ensureInitied();
-        String tag = mkTag();
-        Log.d(tag, message);
-        if (getInstance().streamWriter != null) {
-            getInstance().logQueue.postRunnable(() -> {
-                try {
-                    getInstance().streamWriter.write(getInstance().dateFormat.format(System.currentTimeMillis()) + " D/" + tag + ": " + message + "\n");
-                    getInstance().streamWriter.flush();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    if (AndroidUtilities.isENOSPC(e)) {
-                        LaunchActivity.checkFreeDiscSpaceStatic(1);
-                    }
-                }
-            });
+        final Throwable callSite = new Throwable();
+        final long time = System.currentTimeMillis();
+        final DispatchQueue queue = getInstance().logQueue;
+        if (queue == null) {
+            Log.d(tagOf(callSite), message);
+            return;
         }
+        queue.postRunnable(() -> {
+            String tag = tagOf(callSite);
+            Log.d(tag, message);
+            if (getInstance().streamWriter == null) {
+                return;
+            }
+            try {
+                getInstance().streamWriter.write(getInstance().dateFormat.format(time) + " D/" + tag + ": " + message + "\n");
+                getInstance().streamWriter.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (AndroidUtilities.isENOSPC(e)) {
+                    LaunchActivity.checkFreeDiscSpaceStatic(1);
+                }
+            }
+        });
     }
 
     public static void w(final String message) {
@@ -600,18 +619,26 @@ public class FileLog {
             return;
         }
         ensureInitied();
-        String tag = mkTag();
-        Log.w(tag, message);
-        if (getInstance().streamWriter != null) {
-            getInstance().logQueue.postRunnable(() -> {
-                try {
-                    getInstance().streamWriter.write(getInstance().dateFormat.format(System.currentTimeMillis()) + " W/" + tag + ": " + message + "\n");
-                    getInstance().streamWriter.flush();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+        final Throwable callSite = new Throwable();
+        final long time = System.currentTimeMillis();
+        final DispatchQueue queue = getInstance().logQueue;
+        if (queue == null) {
+            Log.w(tagOf(callSite), message);
+            return;
         }
+        queue.postRunnable(() -> {
+            String tag = tagOf(callSite);
+            Log.w(tag, message);
+            if (getInstance().streamWriter == null) {
+                return;
+            }
+            try {
+                getInstance().streamWriter.write(getInstance().dateFormat.format(time) + " W/" + tag + ": " + message + "\n");
+                getInstance().streamWriter.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void cleanupLogs() {

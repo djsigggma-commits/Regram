@@ -1285,8 +1285,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             if (account == UserConfig.selectedAccount && isOpen) {
                 refreshContents();
             }
-        } else if (id == NotificationCenter.proxySettingsChanged || id == NotificationCenter.didUpdateConnectionState
-                || id == NotificationCenter.proxyPingUpdated) {
+        } else if (id == NotificationCenter.proxySettingsChanged || id == NotificationCenter.proxyPingUpdated || id == NotificationCenter.didUpdateConnectionState) {
             headerView.updateProxyStatus();
         } else if (id == NotificationCenter.appDidLogout) {
             refreshAccountViews(account, true);

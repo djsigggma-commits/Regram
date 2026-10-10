@@ -31,6 +31,8 @@
 
     <!-- Download Speed Boost -->
     <string name="OEGeneralSpeedHeader">Download Speed Boost</string>
+    <string name="OEGeneralNetworkSpeedHeader">Network and downloads</string>
+    <string name="OEGeneralBackupHeader">Backup</string>
     <string name="OEGeneralSpeedOff">Off</string>
     <string name="OEGeneralSpeedFast">Fast</string>
     <string name="OEGeneralSpeedUltra">Ultra</string>
@@ -105,6 +107,8 @@
     <string name="OEGeneralGoogleHeader">Google</string>
     <string name="OEGeneralCrashReports">Crash reports</string>
     <string name="OEGeneralCrashReportsInfo">Sends crash stack traces to Firebase Crashlytics so failures can be fixed without a manual report. Off by default; nothing leaves the device while it is off.</string>
+    <string name="OEGeneralContentCapture">Share screen content with Android</string>
+    <string name="OEGeneralContentCaptureInfo">Needed for Pixel Live Translate and system on-screen suggestions. While off, the system does not see chat text and lists scroll smoother.</string>
     <string name="OEGeneralMapsHeader">Maps</string>
     <string name="OEGeneralUseOsmMapInfo">Draws the location picker and live locations with OpenStreetMap tiles instead of Google Maps. Location previews inside messages still come from Telegram servers.</string>
     <string name="OEGeneralMapProvider">Map provider</string>
@@ -158,6 +162,11 @@
     <string name="OEGeneralLastFmStageUpload">Uploading track…</string>
     <string name="OEGeneralLastFmStageSave">Saving to profile…</string>
     <string name="OEAyuSaveReadDate">Save Read Date</string>
+    <string name="OEAyuGhostHeader">Ghost</string>
+    <string name="OEAyuSavingHeader">Saving</string>
+    <string name="OEAyuDeletedHeader">Deleted messages in chat</string>
+    <string name="OEAyuOtherHeader">Other</string>
+    <string name="OEAyuDangerHeader">Danger zone</string>
     <string name="OEAyuSaveReadDateInfo">Remembers when your messages were read and listened to. Shown in the message menu when Telegram doesn\'t provide the time.</string>
     <string name="OEAyuPlayedTodayAt">listened at %s</string>
     <string name="OEAyuPlayedYesterdayAt">listened yesterday at %s</string>
@@ -179,4 +188,28 @@
     <string name="OEUserLookupNotFound">User %1$d not found</string>
     <string name="OEUpdateTitle">Update available</string>
     <string name="OEUpdateDownloadProgress">%1$s of %2$s</string>
+    <string name="OEAyuSaveInArchived">Save in archived chats</string>
+    <string name="OEAyuSaveInArchivedInfo">Deleted and edited messages from chats in the archive are saved too.</string>
+    <string name="OEAyuDatabaseExport">Export database</string>
+    <string name="OEAyuDatabaseImport">Import database</string>
+    <string name="OEAyuDatabaseImportInfo">Deleted and edited messages from this file will be added to the ones already saved. Exports from exteraless and AyuGram are supported. Media from another app may be unavailable.</string>
+    <string name="OEAyuDatabaseImportDone">Messages added: %1$d</string>
+    <string name="OEAyuDatabaseImportFailed">Couldn\'t import this file</string>
+    <string name="OEAyuRegexReversed">Reversed</string>
+    <string name="OEAyuRegexReversedInfo">Hide messages that don\'t match the expression</string>
+    <string name="OEUpdaterChecking">Checking for updates…</string>
+    <string name="OEUpdaterLatest">You have the latest version</string>
+    <string name="OEUpdaterAvailable">Version %1$s is available</string>
+    <string name="OEUpdaterFailedInfo">Check your connection and try again</string>
+    <string name="OEUpdaterCheckedJustNow">Checked just now</string>
+    <string name="OEUpdaterCheckedAt">Checked %1$s</string>
+    <string name="OEUpdaterCheckAgain">Check again</string>
+    <string name="OEUpdaterChannel">Automatic check</string>
+    <string name="OEUpdaterChannelOff">Off</string>
+    <string name="OEUpdaterChannelStable">Releases</string>
+    <string name="OEUpdaterChannelBeta">Beta</string>
+    <string name="OEUpdaterChannelOffInfo">Updates are checked only when you tap the logo.</string>
+    <string name="OEUpdaterChannelStableInfo">New releases on GitHub are checked every 6 hours.</string>
+    <string name="OEUpdaterChannelBetaInfo">Also offers GitHub pre-releases before they become releases.</string>
+    <string name="OEUpdaterAllReleases">All releases on GitHub</string>
 </resources>

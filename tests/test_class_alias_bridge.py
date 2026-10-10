@@ -55,13 +55,21 @@ def test_java_prefix_table_matches_python(python_aliases):
 
 def test_every_alias_target_exists_in_our_tree(python_aliases):
     missing = []
+    unavailable_media = []
+    media_root = os.path.join(corpus.REPO, "TMessagesProj_Modules", "media")
+    media_available = os.path.isdir(os.path.join(media_root, "libraries", "common", "src"))
     for target in sorted(set(python_aliases._EXACT.values())):
         if target == "org.telegram.messenger.R" or corpus.find_java_source(target):
+            continue
+        if target.startswith("androidx.media3.") and not media_available:
+            unavailable_media.append(target)
             continue
         missing.append(target)
     assert not missing, (
         "алиас ведёт в несуществующий класс: " + ", ".join(missing) +
         ("" if corpus.MODULE_ROOTS else "; сабмодули не выкачаны"))
+    if unavailable_media:
+        pytest.skip("media submodule unavailable: " + ", ".join(unavailable_media))
 
 
 def test_legacy_package_name_still_resolves(python_aliases):

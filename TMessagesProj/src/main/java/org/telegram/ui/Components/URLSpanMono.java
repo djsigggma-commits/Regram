@@ -48,7 +48,7 @@ public class URLSpanMono extends MetricAffectingSpan {
         if (style != null) {
             style.applyStyle(p);
         } else {
-            p.setTypeface(Typeface.MONOSPACE);
+            p.setTypeface(AndroidUtilities.mono());
         }
     }
 
@@ -61,7 +61,7 @@ public class URLSpanMono extends MetricAffectingSpan {
         if (style != null) {
             style.applyStyle(p);
         } else {
-            p.setTypeface(Typeface.MONOSPACE);
+            p.setTypeface(AndroidUtilities.mono());
             p.setUnderlineText(false);
         }
     }

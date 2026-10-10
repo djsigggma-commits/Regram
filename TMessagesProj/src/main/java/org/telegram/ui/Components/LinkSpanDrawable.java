@@ -614,6 +614,7 @@ public class LinkSpanDrawable<S extends CharacterStyle> {
                 return null;
             }
             x -= getPaddingLeft();
+            x += getScrollX();
             y -= getTextPaddingTop();
             final int line = textLayout.getLineForVertical(y);
             final int off = textLayout.getOffsetForHorizontal(line, x);

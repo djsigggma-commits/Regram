@@ -23,7 +23,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarLayout;
-import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.CheckBoxCell;
@@ -39,7 +38,6 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextRadioCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.BlurredRecyclerView;
-import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.FlickerLoadingView;
 import org.telegram.ui.Components.LayoutHelper;
@@ -129,6 +127,7 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
         itemAnimator.setSupportsChangeAnimations(false);
         itemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
         itemAnimator.setDelayAnimations(false);
+        itemAnimator.setSupportsChangeAnimations(false);
         listView.setItemAnimator(itemAnimator);
         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
@@ -144,10 +143,7 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
             var holder = listView.findViewHolderForAdapterPosition(position);
             var key = getKey();
             if (key != null && holder != null && listAdapter.isEnabled(holder) && rowMapReverse.containsKey(position)) {
-                showDialog(new AlertDialog.Builder(context).setItems(new CharSequence[]{getString(R.string.CopyLink)}, (dialogInterface, i) -> {
-                    AndroidUtilities.addToClipboard(String.format(Locale.getDefault(), "https://%s/%s?r=%s", getMessagesController().linkPrefix, tw.nekomimi.nekogram.helpers.SettingsHelper.linkPathFor(getKey()), rowMapReverse.get(position)));
-                    BulletinFactory.of(BaseNekoSettingsActivity.this).createCopyLinkBulletin().show();
-                }).create());
+                app.regram.settings.utils.SettingsRowMenu.show(this, view, String.format(Locale.getDefault(), "https://%s/%s?r=%s", getMessagesController().linkPrefix, tw.nekomimi.nekogram.helpers.SettingsHelper.linkPathFor(getKey()), rowMapReverse.get(position)));
                 return true;
             }
             return false;
@@ -538,6 +534,7 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
                     break;
                 case TYPE_CHECK:
                     view = new TextCheckCell(mContext, resourcesProvider);
+                    ((TextCheckCell) view).setWrapTitle(true);
                     view.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
                     break;
                 case TYPE_HEADER: {

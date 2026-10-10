@@ -1635,7 +1635,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
             this.initialTab = TAB_BOT_PREVIEWS;
         } else if (userInfo != null && userInfo.bot_info != null && userInfo.bot_info.has_preview_medias) {
             this.initialTab = TAB_STORIES;
-        } else if (main_tab instanceof TLRPC.TL_profileTabPosts && (userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available || isStoriesView())) {
+        } else if (main_tab instanceof TLRPC.TL_profileTabPosts && !NaConfig.INSTANCE.getDisableStories().Bool() && (userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available || isStoriesView())) {
             this.initialTab = TAB_STORIES;
         } else if (main_tab instanceof TLRPC.TL_profileTabGifts && (userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0 && !NaConfig.INSTANCE.getPreferCommonGroupsTab().Bool())) {
             this.initialTab = TAB_GIFTS;
@@ -5028,7 +5028,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
     }
 
     protected void onSelectedTabChanged() {
-        boolean pollerEnabled = isStoriesView() || isArchivedOnlyStoriesView();
+        boolean pollerEnabled = !NaConfig.INSTANCE.getDisableStories().Bool() && (isStoriesView() || isArchivedOnlyStoriesView());
         if (archivedStoriesAdapter.poller != null) {
             archivedStoriesAdapter.poller.start(pollerEnabled && getClosestTab() == TAB_ARCHIVED_STORIES);
         }

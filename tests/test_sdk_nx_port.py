@@ -1,3 +1,4 @@
+import _thread
 import ast
 import builtins
 import contextlib
@@ -5,6 +6,7 @@ import importlib.util
 import json
 import re
 import sys
+import threading
 import types
 from pathlib import Path
 
@@ -192,6 +194,47 @@ def test_loaded_plugin_instance_carries_its_metadata(loader, monkeypatch, tmp_pa
     assert instance.requirements == []
 
 
+def test_plugin_instance_is_enabled_until_unloaded(loader, monkeypatch, tmp_path):
+    plugin = tmp_path / 'flag_plugin.py'
+    plugin.write_text(
+        '__id__ = "flag_plugin"\n'
+        '__name__ = "Flag"\n'
+        '\n'
+        'from base_plugin import BasePlugin\n'
+        '\n'
+        '\n'
+        'class FlagPlugin(BasePlugin):\n'
+        '    pass\n')
+    own = tmp_path / 'own_flag_plugin.py'
+    own.write_text(
+        '__id__ = "own_flag_plugin"\n'
+        '__name__ = "Own flag"\n'
+        '\n'
+        'from base_plugin import BasePlugin\n'
+        '\n'
+        '\n'
+        'class OwnFlagPlugin(BasePlugin):\n'
+        '    def on_plugin_load(self):\n'
+        '        self.enabled = "custom"\n')
+    for name in ('flag_plugin', 'own_flag_plugin'):
+        monkeypatch.setitem(sys.modules, name, None)
+        monkeypatch.delitem(sys.modules, name)
+    monkeypatch.setattr(sys, 'path', [*sys.path])
+    monkeypatch.setattr(loader, '_install_sandbox', lambda: None)
+    monkeypatch.setattr(loader, '_plugins_dir_path', lambda: str(tmp_path))
+    for path, plugin_id in ((plugin, 'flag_plugin'), (own, 'own_flag_plugin')):
+        result = json.loads(loader.load_plugin(str(path), plugin_id))
+        assert result['ok'], result['error']
+    instance = loader.plugins['flag_plugin'].instance
+    own_instance = loader.plugins['own_flag_plugin'].instance
+    assert instance.enabled is True
+    assert own_instance.enabled == 'custom'
+    loader.unload_plugin('flag_plugin')
+    loader.unload_plugin('own_flag_plugin')
+    assert instance.enabled is False
+    assert own_instance.enabled == 'custom'
+
+
 def test_base_hook_built_from_callbacks_exposes_hook_methods(sdk):
     seen = []
     before_only = sdk.base.BaseHook(None, before=lambda param: seen.append(('before', param)),
@@ -212,6 +255,100 @@ def test_base_hook_built_from_callbacks_exposes_hook_methods(sdk):
     hook = Subclassed('m')
     assert hook.marker == 'm'
     assert hook.before_hooked_method('x') is None
+
+
+def test_bind_hook_skips_sides_left_to_method_hook(sdk):
+    seen = []
+
+    class AfterOnly(sdk.base.MethodHook):
+        def after_hooked_method(self, param):
+            seen.append(param.result)
+
+    hook = AfterOnly()
+    assert sdk.base.bind_hook(hook, 'before_hooked_method') is None
+    after = sdk.base.bind_hook(hook, 'after_hooked_method', 7)
+    after(types.SimpleNamespace(getResult=lambda: 'r'))
+    assert seen == ['r']
+
+    functional = sdk.base.BaseHook(before=lambda param: seen.append('before'))
+    sdk.base.bind_hook(functional, 'before_hooked_method')(object())
+    assert seen[-1] == 'before'
+    assert sdk.base.bind_hook(functional, 'after_hooked_method') is None
+    assert sdk.base.bind_hook(sdk.base.MethodReplacement(), 'replace_hooked_method') is not None
+
+    profile = sys.modules['extera_utils.hook_profile']
+    profile.start()
+    try:
+        after(types.SimpleNamespace(getResult=lambda: 'p'))
+        assert json.loads(profile.snapshot())['hooks']['7'][0] == 1
+    finally:
+        profile.stop()
+
+
+@pytest.mark.parametrize('direct', [False, True])
+def test_production_hook_binding_skips_profiler_and_preserves_params(sdk, monkeypatch, direct):
+    seen = []
+
+    class Hook(sdk.base.MethodHook):
+        def before_hooked_method(self, param):
+            seen.append(param)
+            return 42
+
+    def forbidden_import(name):
+        raise AssertionError('production binding imported ' + name)
+
+    monkeypatch.setattr(sdk.base, '_internal', forbidden_import)
+    monkeypatch.setattr(sdk.base, '_direct_params', lambda: direct)
+    hook = Hook()
+    bound = sdk.base.bind_hook(hook, 'before_hooked_method', -1)
+    param = types.SimpleNamespace(getResult=lambda: 'result')
+    assert bound(param) == 42
+    if direct:
+        assert bound.__self__ is hook
+        assert seen == [param]
+    else:
+        assert seen[0].result == 'result'
+
+
+def test_tuple_hook_lists_methods_of_the_java_class(sdk, monkeypatch):
+    seen = []
+
+    class JavaClass:
+        def getDeclaredMethods(self):
+            seen.append('getDeclaredMethods')
+            return []
+
+    class ChatMessageCell:
+        @staticmethod
+        def getClass():
+            return JavaClass()
+
+    java = types.ModuleType('java')
+    java.jclass = lambda name: JavaClass
+    monkeypatch.setitem(sys.modules, 'java', java)
+    hook_utils = load_module(monkeypatch, 'hook_utils')
+    monkeypatch.setattr(hook_utils, '_class_type', None)
+    plugin = sdk.base.BasePlugin()
+    assert plugin.hook_method((ChatMessageCell, 'drawBackgroundInternal'), lambda param: None) is None
+    assert seen == ['getDeclaredMethods']
+
+
+def test_thread_state_pin_keeps_only_foreign_thread_states(sdk, monkeypatch):
+    state = load_module(monkeypatch, 'extera_utils.thread_state')
+    assert state.pin() is True
+    assert state._ensure is None
+
+    results = []
+    done = threading.Event()
+
+    def foreign():
+        results.append(state.pin())
+        done.set()
+
+    _thread.start_new_thread(foreign, ())
+    assert done.wait(5)
+    assert results == [True]
+    assert callable(state._ensure)
 
 
 def test_first_sdk_import_and_permission_lookup_do_not_reenter(loader, monkeypatch, tmp_path):
@@ -452,6 +589,14 @@ def test_progress_style_keeps_the_current_dialog_builder(sdk, monkeypatch):
     assert created == [(context, 3, provider)]
     with pytest.raises(TypeError):
         alert.AlertDialogBuilder(context, alert_type=2, progress_style=3)
+
+
+def test_dialog_buttons_do_not_require_a_listener(sdk, monkeypatch):
+    import inspect
+    alert = load_module(monkeypatch, 'ui.alert')
+    for name in ('set_positive_button', 'set_negative_button', 'set_neutral_button'):
+        parameter = inspect.signature(getattr(alert.AlertDialogBuilder, name)).parameters['listener']
+        assert parameter.default is None
 
 
 def test_text_setting_has_both_eight_argument_layouts():
@@ -1092,3 +1237,288 @@ def test_custom_sub_page_rows_keep_their_identity_across_rebuilds(sdk, loader, m
     after = json.loads(loader.get_settings_json('test_plugin'))
     assert [row['row_id'] for row in before] == [row['row_id'] for row in after]
     assert before[0]['row_id'] != before[1]['row_id']
+
+
+class _Callable:
+
+    def __init__(self, fn):
+        self.fn = fn
+
+    def __call__(self, *args):
+        return self.fn(*args)
+
+
+class _JavaMethodStub:
+
+    def __init__(self, fn, static=False):
+        self.fn = fn
+        self.static = static
+
+    def __get__(self, obj, owner):
+        if obj is None:
+            return _Callable(lambda *args: self.fn(None, *args))
+        if self.static:
+            def through_instance(*args):
+                raise TypeError('static method called through an instance')
+            return _Callable(through_instance)
+        return _Callable(lambda *args: self.fn(obj, *args))
+
+
+def _fake_java_class(loader):
+    class FakeJava:
+        getPluginsDir = _JavaMethodStub(lambda self: '/plugins')
+        isEnabled = _JavaMethodStub(lambda self: True)
+        getEngines = _JavaMethodStub(lambda self: {'python': 'engine'}, static=True)
+
+        def getPythonOnly(self):
+            return 'python'
+
+    FakeJava.__getattr__ = loader._java_getattr(None)
+    return FakeJava
+
+
+def test_plugin_reads_java_getters_as_fields(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: 'some_plugin')
+    obj = _fake_java_class(loader)()
+    assert obj.pluginsDir == '/plugins'
+    assert obj.enabled is True
+    assert obj.engines == {'python': 'engine'}
+    for name in ('pythonOnly', 'missing', '_hidden'):
+        with pytest.raises(AttributeError):
+            getattr(obj, name)
+
+
+def test_sdk_keeps_stock_java_attribute_lookup(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: None)
+    obj = _fake_java_class(loader)()
+    with pytest.raises(AttributeError):
+        obj.pluginsDir
+    assert getattr(obj, 'enabled', None) is None
+
+
+def _fake_reflecting_root(loader, members):
+    reflected = []
+
+    class Root:
+        def __getattribute__(self, name):
+            cls = type(self)
+            if not (name[:2] == '__' or name in cls.__dict__):
+                reflected.append(name)
+                member = members.get(name)
+                if member is not None:
+                    type.__setattr__(cls, name, member)
+            return object.__getattribute__(self, name)
+
+        def __setattr__(self, name, value):
+            cls = type(self)
+            if not (name[:2] == '__' or name in cls.__dict__):
+                reflected.append(name)
+            object.__setattr__(self, name, value)
+
+    type.__setattr__(Root, '__getattr__', loader._java_getattr(None))
+    type.__setattr__(Root, '__setattr__', loader._java_setattr(Root.__dict__['__setattr__']))
+    return Root, reflected
+
+
+def test_proxy_instance_attribute_is_reflected_once(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: None)
+    root, reflected = _fake_reflecting_root(loader, {})
+
+    class Listener(root):
+        def run(self):
+            self.calls += 1
+
+    listener = Listener()
+    listener.calls = 0
+    for _ in range(5):
+        listener.run()
+    assert listener.calls == 5
+    assert reflected.count('calls') == 1
+    assert Listener().__dict__ == {}
+    with pytest.raises(AttributeError):
+        Listener().calls
+
+
+def test_missing_java_attribute_is_reflected_once(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: None)
+    root, reflected = _fake_reflecting_root(loader, {})
+
+    class View(root):
+        pass
+
+    view = View()
+    for _ in range(3):
+        assert getattr(view, 'missing', None) is None
+        assert not hasattr(view, 'missing')
+    assert reflected.count('missing') == 1
+    with pytest.raises(AttributeError):
+        View.missing
+    assert getattr(view, '__missing__', None) is None
+    assert '__missing__' not in View.__dict__
+    assert View.mro()[0] is View
+
+
+def test_absent_marker_yields_to_later_class_attributes(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: None)
+    root, reflected = _fake_reflecting_root(loader, {})
+
+    class View(root):
+        pass
+
+    view = View()
+    assert getattr(view, 'helper', None) is None
+    type.__setattr__(root, 'helper', lambda self: 'patched')
+    assert view.helper() == 'patched'
+    assert View.helper(view) == 'patched'
+
+
+def test_getter_fields_survive_absent_markers(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: 'some_plugin')
+    members = {'getText': _JavaMethodStub(lambda self: 'hello')}
+    root, reflected = _fake_reflecting_root(loader, members)
+
+    class TextView(root):
+        pass
+
+    view = TextView()
+    for _ in range(3):
+        assert view.text == 'hello'
+        assert getattr(view, 'hint', None) is None
+    assert reflected.count('text') == 1
+    assert reflected.count('getText') == 1
+    assert reflected.count('getHint') == 1
+    assert reflected.count('isHint') == 1
+
+
+def test_repeated_java_from_import_is_served_from_cache(loader, monkeypatch):
+    calls = []
+
+    def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
+        calls.append((name, tuple(fromlist or ())))
+        module = types.ModuleType("<java import hook>")
+        for item in fromlist or ():
+            setattr(module, item, f"{name}.{item}")
+        return module
+
+    monkeypatch.setattr(loader, '_original_import', fake_import)
+    monkeypatch.setattr(loader, '_java_from_imports', {})
+    first = loader._sandboxed_import('org.telegram.messenger', fromlist=('AndroidUtilities',))
+    second = loader._sandboxed_import('org.telegram.messenger', fromlist=('AndroidUtilities',))
+    assert second is first
+    assert first.AndroidUtilities == 'org.telegram.messenger.AndroidUtilities'
+    assert calls.count(('org.telegram.messenger', ('AndroidUtilities',))) == 1
+
+    for _ in range(2):
+        loader._sandboxed_import('org.telegram.messenger', fromlist=('SendMessagesHelper',))
+    assert calls.count(('org.telegram.messenger', ('SendMessagesHelper',))) == 2
+
+
+def test_new_proxy_class_methods_are_guarded(loader, monkeypatch):
+    class ProxyClass(type):
+        pass
+
+    class _Class:
+        def __init__(self, interface, methods):
+            self._interface = interface
+            self._methods = methods
+
+        def isInterface(self):
+            return self._interface
+
+        def getName(self):
+            return 'java.util.Comparator'
+
+        def getMethods(self):
+            return self._methods
+
+    class _Method:
+        def __init__(self, name, returns):
+            self._name, self._returns = name, returns
+
+        def getName(self):
+            return self._name
+
+        def getReturnType(self):
+            return types.SimpleNamespace(getName=lambda: self._returns)
+
+    comparator_class = _Class(True, [_Method('compare', 'int')])
+
+    class Comparator:
+        _chaquopy_j_klass = object()
+
+        @staticmethod
+        def getClass():
+            return comparator_class
+
+    chaquopy = types.ModuleType('java.chaquopy')
+    chaquopy.ProxyClass = ProxyClass
+    monkeypatch.setitem(sys.modules, 'java.chaquopy', chaquopy)
+    monkeypatch.setattr(loader, '_proxy_class_type', None)
+    monkeypatch.setattr(loader, '_proxy_defaults_cache', {})
+
+    def compare(self, a, b):
+        raise ValueError('plugin bug')
+
+    proxy = ProxyClass('Listener', (Comparator,), {'compare': compare})
+    plain = type('Plain', (Comparator,), {'compare': compare})
+    loader._guard_new_proxy_class(proxy)
+    loader._guard_new_proxy_class(plain)
+
+    assert proxy.compare(proxy, 1, 2) == 0
+    with pytest.raises(ValueError):
+        plain.compare(plain, 1, 2)
+
+
+def test_set_unsafe_mode_is_refused_from_plugin_code(loader, monkeypatch):
+    monkeypatch.setattr(loader, 'plugin_frame_owner', lambda: 'evil')
+    monkeypatch.setattr(loader, '_unsafe_mode', False)
+    loader.set_unsafe_mode(True)
+    assert loader._unsafe_mode is False
+
+
+def test_unsafe_mode_true_is_confirmed_by_java(loader, monkeypatch):
+    class Bridge:
+        @staticmethod
+        def isUnsafeMode():
+            return False
+
+    monkeypatch.setattr(loader, '_permissions', lambda: Bridge)
+    monkeypatch.setattr(loader, '_unsafe_mode', True)
+    assert loader.unsafe_mode() is False
+
+
+def test_least_trusted_owner_wins_when_plugins_share_the_stack(loader, monkeypatch):
+    class Bridge:
+        @staticmethod
+        def hasPermission(owner, perm):
+            return owner == 'trusted'
+
+    monkeypatch.setattr(loader, '_permissions', lambda: Bridge)
+    assert loader._least_trusted(['trusted', 'isolated']) == 'isolated'
+    assert loader._least_trusted(['isolated', 'trusted']) == 'isolated'
+
+
+def test_plain_class_fast_path_skips_gated_and_aliased_names(loader):
+    assert loader.plain_java_class('java.util.ArrayList')
+    assert not loader.plain_java_class('org.telegram.messenger.SendMessagesHelper')
+    assert not loader.plain_java_class('de.robv.android.xposed.XposedBridge')
+    assert not loader.plain_java_class('app.regram.plugins.PluginPermissions')
+    assert not loader.plain_java_class('com.exteragram.messenger.plugins.models.PluginItemFactory')
+    assert not loader.plain_java_class(None)
+
+
+def test_plain_import_fast_path_skips_internal_gated_and_java_roots(loader):
+    assert loader._plain_import('json')
+    assert not loader._plain_import('extera_utils')
+    assert not loader._plain_import('extera_utils.plugin_loader')
+    assert not loader._plain_import('socket')
+    assert not loader._plain_import('java')
+    assert not loader._plain_import('app.regram.plugins')
+
+
+def test_cached_internal_import_still_refused_for_plugins(loader, monkeypatch):
+    monkeypatch.setattr(loader, '_direct_plugin_caller', lambda: 'evil')
+    monkeypatch.setattr(loader, '_unsafe_mode', False)
+    monkeypatch.setattr(loader, '_original_import', lambda *a, **k: sys.modules['json'], raising=False)
+    with pytest.raises(ImportError):
+        loader._sandboxed_import('extera_utils.plugin_loader')

@@ -74,6 +74,7 @@ import java.util.Locale;
 
 import xyz.nextalone.nagram.NaConfig;
 import tw.nekomimi.nekogram.helpers.MessageHelper;
+import tw.nekomimi.nekogram.NekoConfig;
 
 public class ProfileSearchCell extends BaseCell implements NotificationCenter.NotificationCenterDelegate, Theme.Colorable {
 
@@ -532,7 +533,9 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
         }
         nameString = AndroidUtilities.replaceNewLines(nameString);
         if (TextUtils.isEmpty(nameString)) {
-            if (user != null && !TextUtils.isEmpty(user.phone)) {
+            if (NekoConfig.hidePhone.Bool()) {
+                nameString = getString(R.string.MobileHidden);
+            } else if (user != null && !TextUtils.isEmpty(user.phone)) {
                 nameString = PhoneFormat.getInstance().format("+" + user.phone);
             } else {
                 nameString = getString(R.string.HiddenName);

@@ -35,7 +35,27 @@
     <string name="AppIconMono" translatable="false">Mono</string>
     <string name="AppIconNothing" translatable="false">Nothing</string>
     <string name="AppIconPlus" translatable="false">Plus</string>
-    <string name="OpenExteraPreferences">re:gram Preferences</string>    <string name="OpenExteraDesignSection">Design</string>
+    <string name="AppIconsSelect">Select</string>
+    <string name="AppIconsKeep">Keep this one</string>
+    <string name="AppIconInfoExteraless"><!-- сюда подпись --></string>
+    <string name="AppIconInfoBlueprint"><!-- сюда подпись --></string>
+    <string name="AppIconInfoRed"><!-- сюда подпись --></string>
+    <string name="AppIconInfoNya"><!-- сюда подпись --></string>
+    <string name="AppIconInfoAyu"><!-- сюда подпись --></string>
+    <string name="AppIconInfoQuack"><!-- сюда подпись --></string>
+    <string name="AppIconInfoGo"><!-- сюда подпись --></string>
+    <string name="AppIconInfoHand"><!-- сюда подпись --></string>
+    <string name="AppIconInfoMono"><!-- сюда подпись --></string>
+    <string name="AppIconInfoNothing"><!-- сюда подпись --></string>
+    <string name="AppIconInfoPlus"><!-- сюда подпись --></string>
+    <string name="AppIconInfoTelegram"><!-- сюда подпись --></string>
+    <string name="AppIconInfoVintage"><!-- сюда подпись --></string>
+    <string name="AppIconInfoAqua"><!-- сюда подпись --></string>
+    <string name="AppIconInfoPremium"><!-- сюда подпись --></string>
+    <string name="AppIconInfoTurbo"><!-- сюда подпись --></string>
+    <string name="AppIconInfoNox"><!-- сюда подпись --></string>
+    <string name="OpenExteraPreferences">re:gram Preferences</string>
+    <string name="OpenExteraDesignSection">Design</string>
     <string name="OpenExteraDesigner">Icons and design</string>
     <string name="OpenExteraDesignStudio">Design studio</string>
     <string name="OEDownloadEmojiPacks">Download emoji packs</string>
@@ -57,4 +77,20 @@
     <string name="MainTabsHideCallsSettings">Hide Calls tab</string>
     <string name="MainTabsHideProfile">Hide Profile tab</string>
     <string name="OEBotWebViewUpdate">Update WebView</string>
+    <string name="OEProfilerStart">Start jank profiler</string>
+    <string name="OEProfilerStop">Stop profiler and share report</string>
+    <string name="OEProfilerStarted">Profiler is running. Use the app as usual, then stop it here.</string>
+    <string name="OEProfilerShareLast">Share last profiler report</string>
+    <string name="OEEnergyProfilerStart">Start energy profiler</string>
+    <string name="OEEnergyProfilerStop">Stop energy profiler and share report</string>
+    <string name="OEEnergyProfilerStarted">Energy profiler is running, also in the background and after restarts. Use the phone as usual for a few hours, then stop it here.</string>
+    <string name="OEEnergyProfilerShareCurrent">Share energy report so far</string>
+    <string name="OEEnergyProfilerShareLast">Share last energy report</string>
+    <string name="OEPluginToggleLogShare">Share plugin toggle log</string>
+    <string name="OEProfileIdDate">Registration and join date</string>
+    <string name="OEProfileAccountCreated">**%1$s** joined Telegram %2$s</string>
+    <string name="OEProfileJoinedChat">You joined **%1$s** on %2$s</string>
+    <string name="OEProfileJoinedChannel">You subscribed to **%1$s** on %2$s</string>
+    <string name="OEProfileChatCreated">**%1$s** was created on %2$s</string>
+    <string name="OEProfileJoinDateUnknown">Join date is unavailable</string>
 </resources>

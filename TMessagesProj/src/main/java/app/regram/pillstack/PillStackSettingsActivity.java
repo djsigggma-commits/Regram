@@ -9,9 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
-import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCell;
@@ -19,7 +17,6 @@ import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.BulletinFactory;
-import org.telegram.ui.LocationActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -241,21 +238,6 @@ public class PillStackSettingsActivity extends BaseNekoSettingsActivity {
         if (listAdapter != null) {
             listAdapter.notifyDataSetChanged();
         }
-    }
-
-    private void openLocationPicker() {
-        LocationActivity fragment = new LocationActivity(LocationActivity.LOCATION_TYPE_SEND);
-        fragment.setDelegate((location, live, notify, scheduleDate, payStars) -> {
-            if (location != null && location.geo != null) {
-                String address = location instanceof TLRPC.TL_messageMediaVenue
-                        ? ((TLRPC.TL_messageMediaVenue) location).address
-                        : null;
-                PillStackConfig.setCustomWeatherLocation(location.geo.lat, location.geo._long, address);
-                PillStackEvents.notifySettingsChanged(PillType.WEATHER.id);
-                AndroidUtilities.runOnUIThread(this::updateRowsAndNotify);
-            }
-        });
-        presentFragment(fragment);
     }
 
     private String getWeatherLocationValue() {

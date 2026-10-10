@@ -96,6 +96,16 @@ public final class Instance {
         instance = null;
     }
 
+    public static String selectVersion(List<String> negotiated) {
+        if (negotiated != null) {
+            List<String> supported = Arrays.asList(NativeInstance.getAllVersions());
+            for (String version : negotiated) {
+                if (version != null && supported.contains(version)) return version;
+            }
+        }
+        throw new IllegalArgumentException("No supported negotiated VoIP version");
+    }
+
     public static NativeInstance makeInstance(String version, Config config, String persistentStateFilePath, Endpoint[] endpoints, Proxy proxy, int networkType, EncryptionKey encryptionKey, VideoSink remoteSink, long videoCapturer, NativeInstance.AudioLevelsCallback audioLevelsCallback) {
         if (!"2.4.4".equals(version)) {
             ContextUtils.initialize(ApplicationLoader.applicationContext);

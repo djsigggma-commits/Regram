@@ -101,6 +101,8 @@
     <string name="OEAppearanceTitleTextCustom">Свой текст</string>
     <string name="OEAppearanceGlassMessageMenuInfo">Меню сообщения и панель реакций становятся матовым стеклом.</string>
     <string name="OEAppearanceGlassMessageMenuBlurOff">Стеклянным меню нужно размытие, а оно сейчас выключено.</string>
+    <string name="OEAppearancePowerSaverActive">При заряде ниже %1$d%% работает энергосбережение, и размытие с анимациями на паузе. Настройка сохранена и вернётся, когда зарядишь телефон.</string>
+    <string name="OEAppearancePowerSaverSettings">Энергосбережение</string>
     <string name="OEBottomNavigationBarMode">Нижняя панель навигации</string>
     <string name="OEBottomNavigationModeShow">Показывать</string>
     <string name="OEBottomNavigationModeHide">Скрывать</string>
@@ -131,4 +133,8 @@
     <string name="OEProfileMusicUseOfficialInfo">Показывать трек под аватаркой, как в официальном клиенте?</string>
     <string name="OEProfileMusicUseCard">Карточкой</string>
     <string name="OEProfileMusicUseCardInfo">Показывать трек карточкой под шапкой профиля?</string>
+    <string name="OEAppearanceHiding">Скрытие элементов</string>
+    <string name="OEAppearanceHidingInfo">Истории, кнопки, вкладки и AI-функции</string>
+    <string name="OEAppearanceHidingInChats">В чатах</string>
+    <string name="OEAppearanceHidingAiPremium">AI и Premium</string>
 </resources>

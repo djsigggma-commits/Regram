@@ -35,8 +35,15 @@ public class PillStackEvents {
         listeners.remove(listener);
     }
 
+    private static int layoutVersion;
+
+    public static int getLayoutVersion() {
+        return layoutVersion;
+    }
+
     public static void notifyLayoutChanged() {
         AndroidUtilities.runOnUIThread(() -> {
+            layoutVersion++;
             org.telegram.messenger.NotificationCenter.getGlobalInstance().postNotificationName(
                     org.telegram.messenger.NotificationCenter.pillStackLayoutChanged);
             for (Listener listener : new ArrayList<>(listeners)) {

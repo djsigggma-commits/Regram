@@ -14,6 +14,7 @@ import com.chaquo.python.Python;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.mvel2.MVEL;
+import org.mvel2.optimizers.OptimizerFactory;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 
@@ -71,6 +72,10 @@ import dalvik.system.InMemoryDexClassLoader;
  * Повторный (pluginId + sha256(spec)) → кэш, класс не перегенерируется.
  */
 public final class ClassProxyFactory {
+
+    static {
+        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
+    }
 
     private static final String TAG = "ClassProxyFactory";
     private static final String GENERATED_PACKAGE = "app.regram.plugins.proxy.";

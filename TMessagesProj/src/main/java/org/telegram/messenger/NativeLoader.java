@@ -68,14 +68,13 @@ public class NativeLoader {
             }
             stream = zipFile.getInputStream(entry);
 
-            OutputStream out = new FileOutputStream(destLocalFile);
-            byte[] buf = new byte[4096];
-            int len;
-            while ((len = stream.read(buf)) > 0) {
-                Thread.yield();
-                out.write(buf, 0, len);
+            try (OutputStream out = new FileOutputStream(destLocalFile)) {
+                byte[] buf = new byte[64 * 1024];
+                int len;
+                while ((len = stream.read(buf)) != -1) {
+                    out.write(buf, 0, len);
+                }
             }
-            out.close();
 
             destLocalFile.setReadable(true, false);
             destLocalFile.setExecutable(true, false);
@@ -87,7 +86,7 @@ public class NativeLoader {
             } catch (Error e) {
                 FileLog.e(e);
             }
-            return true;
+            return nativeLoaded;
         } catch (Exception e) {
             FileLog.e(e);
         } finally {
@@ -147,7 +146,10 @@ public class NativeLoader {
             File destDir = new File(context.getFilesDir(), "lib");
             destDir.mkdirs();
 
-            File destLocalFile = new File(destDir, LOCALE_LIB_SO_NAME);
+            // LIB_VERSION is shared across app releases. Never load a cached .so from an older APK.
+            File apk = new File(context.getApplicationInfo().sourceDir);
+            String cacheName = apk.length() + "_" + apk.lastModified() + "_" + LOCALE_LIB_SO_NAME;
+            File destLocalFile = new File(destDir, cacheName);
             if (destLocalFile.exists()) {
                 try {
                     if (BuildVars.LOGS_ENABLED) {

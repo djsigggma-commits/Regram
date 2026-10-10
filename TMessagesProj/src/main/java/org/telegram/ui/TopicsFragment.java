@@ -2932,6 +2932,18 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
 
     private class Adapter extends AdapterWithDiffUtils {
 
+        private final android.util.SparseArray<MessageObject> topMessages = new android.util.SparseArray<>();
+
+        private MessageObject topMessageObject(TLRPC.TL_forumTopic topic, TLRPC.Message tlMessage) {
+            MessageObject cached = topMessages.get(topic.id);
+            if (cached != null && cached.messageOwner == tlMessage) {
+                return cached;
+            }
+            MessageObject messageObject = new MessageObject(currentAccount, tlMessage, false, false);
+            topMessages.put(topic.id, messageObject);
+            return messageObject;
+        }
+
         @Override
         public int getItemViewType(int position) {
             if (position == getItemCount() - 1) {
@@ -3021,7 +3033,7 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
                 int newId = topic.id;
                 boolean animated = oldId == newId && dialogCell.position == position && animatedUpdateEnabled;
                 if (tlMessage != null) {
-                    MessageObject messageObject = new MessageObject(currentAccount, tlMessage, false, false);
+                    MessageObject messageObject = topMessageObject(topic, tlMessage);
                     if (getMessagesController().isMonoForum(-chatId)) {
                         dialogCell.isMonoForumTopicDialog = true;
                         dialogCell.drawAvatar = true;
@@ -3747,32 +3759,36 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
 //                req.offset_id = 0;
 //                req.offset_peer = new TLRPC.TL_inputPeerEmpty();
 //            }
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
-                if (searchString.equals(this.searchString)) {
-                    int oldRowCount = rowCount;
-                    messagesIsLoading = false;
-                    isLoading = false;
-                    if (response instanceof TLRPC.messages_Messages) {
-                        TLRPC.messages_Messages messages = (TLRPC.messages_Messages) response;
-
-                        for (int i = 0; i < messages.messages.size(); i++) {
-                            TLRPC.Message message = messages.messages.get(i);
-                            MessageObject messageObject = new MessageObject(currentAccount, message, false, false);
-                            messageObject.setQuery(searchString);
-                            searchResultMessages.add(messageObject);
-                        }
-                        updateRows();
-                        canLoadMore = searchResultMessages.size() < messages.count && !messages.messages.isEmpty();
-                    } else {
-                        canLoadMore = false;
+            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> {
+                final ArrayList<MessageObject> loaded = new ArrayList<>();
+                if (response instanceof TLRPC.messages_Messages) {
+                    for (TLRPC.Message message : ((TLRPC.messages_Messages) response).messages) {
+                        MessageObject messageObject = new MessageObject(currentAccount, message, false, false);
+                        messageObject.setQuery(searchString);
+                        loaded.add(messageObject);
                     }
-
-                    if (rowCount == 0) {
-                        emptyView.showProgress(isLoading, true);
-                    }
-                    itemsEnterAnimator.showItemsAnimated(oldRowCount);
                 }
-            }));
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (searchString.equals(this.searchString)) {
+                        int oldRowCount = rowCount;
+                        messagesIsLoading = false;
+                        isLoading = false;
+                        if (response instanceof TLRPC.messages_Messages) {
+                            TLRPC.messages_Messages messages = (TLRPC.messages_Messages) response;
+                            searchResultMessages.addAll(loaded);
+                            updateRows();
+                            canLoadMore = searchResultMessages.size() < messages.count && !messages.messages.isEmpty();
+                        } else {
+                            canLoadMore = false;
+                        }
+
+                        if (rowCount == 0) {
+                            emptyView.showProgress(isLoading, true);
+                        }
+                        itemsEnterAnimator.showItemsAnimated(oldRowCount);
+                    }
+                });
+            });
         }
 
         private void updateRows() {

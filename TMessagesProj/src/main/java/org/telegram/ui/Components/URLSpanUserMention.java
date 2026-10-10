@@ -29,6 +29,11 @@ public class URLSpanUserMention extends URLSpanNoUnderline {
     }
 
     @Override
+    public TextStyleSpan.TextStyleRun getTextStyleRun() {
+        return style;
+    }
+
+    @Override
     public void onClick(View widget) {
         super.onClick(widget);
     }

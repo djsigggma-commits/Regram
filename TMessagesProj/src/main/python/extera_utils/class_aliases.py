@@ -115,6 +115,8 @@ _EXACT = {
         "androidx.media3.common.PlaybackParameters",
     "com.google.android.exoplayer2.C":
         "androidx.media3.common.C",
+    "org.telegram.ui.Gifts.ProfileGiftsContainer$SelectGiftsBottomSheet":
+        "org.telegram.ui.Gifts.SelectGiftsBottomSheet",
 }
 
 _PREFIXES = (
@@ -157,11 +159,11 @@ def resolve(name):
 
 
 def _resolve_uncached(name):
-    if not _under_root(name):
-        return name
     exact = _EXACT.get(name)
     if exact is not None:
         return exact
+    if not _under_root(name):
+        return name
     outer, sep, nested = name.partition("$")
     exact = _EXACT.get(outer)
     if exact is not None:
@@ -536,6 +538,21 @@ def substitute(name):
         return getattr(_importlib.import_module(module), attr, None)
     except Exception:
         return None
+
+
+_plain_cache = {}
+
+
+def is_plain(name):
+    cached = _plain_cache.get(name)
+    if cached is not None:
+        return cached
+    plain = (isinstance(name, str) and resolve(name) == name
+             and name not in _PYTHON_SUBSTITUTES and name not in _WRAP_RESULT
+             and _field_shape(name) is None)
+    if len(_plain_cache) < 4096:
+        _plain_cache[name] = plain
+    return plain
 
 
 def is_alias(name):

@@ -91,6 +91,9 @@ class RegramIntegrationTests(unittest.TestCase):
     def test_every_port_has_persistence_ui_and_call_site(self):
         config = (JAVA / "tw/nekomimi/nekogram/NekoConfig.java").read_text()
         options = re.findall(r'ConfigItem (regram\w+) = addConfig\("(Regram\w+)", configTypeBool, false\)', config)
+        # Native visual controls have their own policy/UI tests (array-backed settings).
+        native_visual = {"regramMonoColor", "regramMonoGradient", "regramAllLeft", "regramAllLeftPrivate", "regramMentionAvatars", "regramPlayerColor"}
+        options = [(field, key) for field, key in options if field not in native_visual]
         self.assertEqual(len(options), 10)
         destinations = {
             "regramDisableBrowserCollapse": "OpenExteraGeneralActivity",

@@ -90,7 +90,7 @@ public class TextStyleSpan extends MetricAffectingSpan {
                 return AndroidUtilities.getTypeface("fonts/mw_bold.ttf");
             }
             if ((flags & FLAG_STYLE_MONO) != 0 || (flags & FLAG_STYLE_CODE) != 0) {
-                return Typeface.MONOSPACE;
+                return AndroidUtilities.mono();
             } else if ((flags & FLAG_STYLE_BOLD) != 0 && (flags & FLAG_STYLE_ITALIC) != 0) {
                 return AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM_ITALIC);
             } else if ((flags & FLAG_STYLE_BOLD) != 0) {
@@ -168,7 +168,7 @@ public class TextStyleSpan extends MetricAffectingSpan {
     }
 
     public boolean isMono() {
-        return style.getTypeface() == Typeface.MONOSPACE;
+        return AndroidUtilities.isMono(style.getTypeface());
     }
 
     public boolean isBold() {

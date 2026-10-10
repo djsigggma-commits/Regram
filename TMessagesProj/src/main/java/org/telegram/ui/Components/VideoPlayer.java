@@ -433,7 +433,7 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 break;
             default:
                 if (progressiveMediaSourceFactory == null) {
-                    progressiveMediaSourceFactory = new ProgressiveMediaSource.Factory(mediaDataSourceFactory);
+                    progressiveMediaSourceFactory = new ProgressiveMediaSource.Factory(mediaDataSourceFactory, new app.regram.player.SeekableFragmentsExtractorsFactory());
                 }
                 mediaSource = progressiveMediaSourceFactory.createMediaSource(mediaItem);
                 break;
@@ -1460,6 +1460,19 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         return player != null;
     }
 
+    public void releasePlayerDeferred(long delay) {
+        final ExoPlayer exoPlayer = player;
+        if (exoPlayer != null) {
+            player = null;
+            exoPlayer.removeAnalyticsListener(this);
+            exoPlayer.removeListener(this);
+            exoPlayer.removeVideoListener(this);
+            exoPlayer.stop();
+            AndroidUtilities.runOnUIThread(exoPlayer::release, delay);
+        }
+        releasePlayer(true);
+    }
+
     public void releasePlayer(boolean async) {
         activePlayers.remove(playerId);
         if (player != null) {
@@ -1596,6 +1609,14 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         try {
             if (player != null) {
                 player.setPlaybackParameters(new PlaybackParameters(speed, speed > 1.0f ? 0.98f : 1.0f));
+            }
+        } catch (Exception ignore) {}
+    }
+
+    public void setPlaybackSpeed(float speed, float pitch) {
+        try {
+            if (player != null) {
+                player.setPlaybackParameters(new PlaybackParameters(speed, pitch));
             }
         } catch (Exception ignore) {}
     }

@@ -1,9 +1,7 @@
 package app.regram.plugins;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 
 import java.util.ArrayList;
@@ -71,7 +69,7 @@ public final class PluginPermissions {
      * регистрации хуков, но hookMethod плагин может звать в цикле — иначе лог зальёт.
      */
     private static final Set<String> LOGGED_DENIALS = ConcurrentHashMap.newKeySet();
-    /** Один раз на плагин пишем, что он работает в режиме совместимости. */
+    /** Один раз на плагин пишем, что у него нет записи о согласии. */
     private static final Set<String> LOGGED_LEGACY = ConcurrentHashMap.newKeySet();
     /**
      * Эффективные разрешения пересчитываются только после изменения прав.
@@ -138,22 +136,12 @@ public final class PluginPermissions {
     }
 
     private static SharedPreferences prefs() {
-        SharedPreferences p = PluginsController.getInstance().getPreferences();
-        if (p != null) {
-            return p;
-        }
-        // PluginPermissions могут дёрнуть до PluginsController.init (например из
-        // ранней инициализации движка) — тогда открываем тот же файл сами.
-        Context ctx = ApplicationLoader.applicationContext;
-        if (ctx == null) {
-            return null;
-        }
-        return ctx.getSharedPreferences(PluginsConstants.PREFS_NAME, Context.MODE_PRIVATE);
+        return PluginGrantStore.get();
     }
 
     /**
-     * Есть ли в prefs запись о согласии. Отличать «нет записи» (плагин установлен ДО
-     * появления модели — режим совместимости) от пустой записи (пользователь снял всё).
+     * Есть ли запись о согласии. Отличать «нет записи» (плагин попал в каталог мимо
+     * листа установки и ещё не разобран) от пустой записи (пользователь снял всё).
      */
     public static boolean hasRecord(String pluginId) {
         SharedPreferences p = prefs();
@@ -182,9 +170,12 @@ public final class PluginPermissions {
 
     /**
      * Записать согласие пользователя. Запись появляется всегда, даже пустая — именно
-     * её наличие отличает установленный при модели плагин от старого.
+     * её наличие отличает разобранный плагин от попавшего в каталог мимо согласия.
      */
     public static void setGranted(String pluginId, Collection<String> perms) {
+        if (PluginSinkGate.refuseFromPlugin("setGranted", false)) {
+            return;
+        }
         SharedPreferences p = prefs();
         if (p == null || pluginId == null) {
             return;
@@ -221,6 +212,9 @@ public final class PluginPermissions {
 
     /** Стереть запись (вызывается при удалении плагина). */
     public static void clear(String pluginId) {
+        if (PluginSinkGate.refuseFromPlugin("clearGrants", true)) {
+            return;
+        }
         SharedPreferences p = prefs();
         if (p == null || pluginId == null) {
             return;
@@ -236,15 +230,11 @@ public final class PluginPermissions {
     // ---------- эффективные разрешения ----------
 
     /**
-     * Что плагин имеет на самом деле, с учётом режима совместимости.
+     * Что плагин имеет на самом деле, с учётом уровня доступа.
      *
-     * Три случая:
-     *  1. запись в prefs есть — она и есть ответ (плюс {@link #UI});
-     *  2. записи нет, плагин объявил {@code __permissions__} — считаем объявленное
-     *     согласованным (плагин лежал в каталоге до появления модели);
-     *  3. записи нет и объявления нет — старый плагин, написанный до модели вовсе.
-     *     Даём всё: иначе обновление приложения молча ломает то, что работало.
-     *     Свежая установка сюда не попадает — диалог согласия пишет запись всегда.
+     * Запись о согласии есть — она и есть ответ (плюс {@link #UI}). Записи нет —
+     * плагин попал в каталог мимо листа установки (импорт, другой плагин, файл
+     * из старой версии): только {@link #UI}, пока пользователь не выдаст сам.
      */
     public static List<String> getEffective(String pluginId) {
         if (pluginId == null) {
@@ -290,29 +280,11 @@ public final class PluginPermissions {
             }
             return stored;
         }
-        Plugin plugin = PluginsController.getInstance().getPlugin(pluginId);
-        if (plugin == null) {
-            // Такого плагина в реестре нет. Раньше сюда попадала ветка
-            // совместимости и выдавала ALL — а значит, проверку обходил любой
-            // вызов с выдуманным id: hookMethod("nosuch", ...) получал hooks.
-            // Незнакомому id не даём ничего сверх ui.
-            if (pluginId != null && LOGGED_LEGACY.add("?" + pluginId)) {
-                FileLog.w("PluginPermissions: unknown plugin id " + pluginId
-                        + ", granting nothing but ui");
-            }
-            return new ArrayList<>(Collections.singletonList(UI));
-        }
-        if (plugin.permissionsDeclared) {
-            Set<String> out = new LinkedHashSet<>();
-            out.add(UI);
-            out.addAll(sanitize(plugin.permissions));
-            return new ArrayList<>(out);
-        }
         if (pluginId != null && LOGGED_LEGACY.add(pluginId)) {
-            FileLog.d("PluginPermissions: " + pluginId
-                    + " installed before the permission model, granting all (legacy compat)");
+            FileLog.w("PluginPermissions: no consent record for " + pluginId
+                    + ", granting nothing but ui");
         }
-        return new ArrayList<>(ALL);
+        return new ArrayList<>(Collections.singletonList(UI));
     }
 
     /** Разрешения, о которых плагин просит при установке (объявленные минус {@link #UI}). */

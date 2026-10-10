@@ -1,5 +1,7 @@
 package app.regram.plugins;
 
+import com.exteragram.messenger.utils.AppUtils;
+
 import org.telegram.messenger.FileLog;
 
 /**
@@ -50,6 +52,7 @@ public final class PythonBridge {
     public static void log(String pluginId, String message) {
         FileLog.d("[plugin:" + pluginId + "] " + message);
         PluginLog.append(pluginId, "I", message);
+        AppUtils.logPlugin(message);
     }
 
     public static void logStream(String pluginId, String level, String message) {
@@ -94,6 +97,10 @@ public final class PythonBridge {
 
     public static boolean checkPermission(String pluginId, String permission, String what) {
         return PluginPermissions.check(pluginId, permission, what);
+    }
+
+    public static void noteOverlayDenied(String pluginId) {
+        PluginDenialNotice.noteOverlay(pluginId);
     }
 
     public static boolean isUnsafeMode() {

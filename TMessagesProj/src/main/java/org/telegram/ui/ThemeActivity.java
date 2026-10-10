@@ -84,6 +84,7 @@ import org.telegram.ui.Cells.ChatListCell;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Components.ItemOptions;
+import app.regram.appicons.AppIconEntryCell;
 import app.regram.appearance.AppearanceConfig;
 import org.telegram.ui.Cells.NotificationsCheckCell;
 import org.telegram.ui.Cells.RadioButtonCell;
@@ -2513,7 +2514,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     view = new RadioButtonCell(mContext);
                     break;
                 case TYPE_APP_ICON:
-                    view = new AppIconsSelectorCell(mContext, ThemeActivity.this, currentAccount);
+                    view = new AppIconEntryCell(mContext, ThemeActivity.this);
                     break;
                 case TYPE_CHOOSE_COLOR:
                     view = new PeerColorActivity.ChangeNameColorCell(currentAccount, 0, mContext, getResourceProvider());

@@ -97,7 +97,7 @@ public class TranscribeHelper {
             return;
         }
         final app.regram.settings.OpenExteraChatsActivity activity =
-                new app.regram.settings.OpenExteraChatsActivity();
+                new app.regram.settings.OpenExteraChatsActivity(app.regram.settings.OpenExteraChatsActivity.SCREEN_MEDIA);
         fragment.presentFragment(activity);
         AndroidUtilities.runOnUIThread(() -> activity.scrollToRow("transcribeProvider", () -> {}));
     }

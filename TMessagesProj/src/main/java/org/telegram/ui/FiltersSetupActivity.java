@@ -1184,7 +1184,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
         }
 
         private void resetDefaultPosition() {
-            if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium()) {
+            if (UserConfig.getInstance(UserConfig.selectedAccount).isPremiumOrLocal()) {
                 return;
             }
             ArrayList<MessagesController.DialogFilter> filters = getMessagesController().getDialogFilters();

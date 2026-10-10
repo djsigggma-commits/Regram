@@ -274,6 +274,8 @@ namespace tgvoip {
 
 extern "C" {
 int tgvoipOnJNILoad(JavaVM *vm, JNIEnv *env) {
+    // Publish the VM before any class lookup/registration can fail.
+    sharedJVM = vm;
     jclass controller = env->FindClass(TGVOIP_PACKAGE_PATH "/VoIPController");
     if (env->ExceptionCheck()) {
         env->ExceptionClear(); // is returning NULL from FindClass not enough?
@@ -294,7 +296,6 @@ int tgvoipOnJNILoad(JavaVM *vm, JNIEnv *env) {
     audioRecordInstanceFld = env->GetFieldID(audioRecordJNI, "nativeInst", "J");
     audioTrackInstanceFld = env->GetFieldID(audioTrackJNI, "nativeInst", "J");
 
-    env->GetJavaVM(&sharedJVM);
     if (!AudioInputAndroid::jniClass) {
         jclass cls = env->FindClass(TGVOIP_PACKAGE_PATH "/AudioRecordJNI");
 		DEBUG_REF("AudioRecordJNI");

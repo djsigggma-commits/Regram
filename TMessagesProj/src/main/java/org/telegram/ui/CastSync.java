@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import org.telegram.messenger.MediaController;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,15 +44,75 @@ public class CastSync {
         return context;
     }
 
+    private static volatile CastContext sharedCastContext;
+    private static boolean castContextRequested;
+    private static final ArrayList<Utilities.Callback<CastContext>> castContextCallbacks = new ArrayList<>();
+
+    public static void getCastContext(Utilities.Callback<CastContext> callback) {
+        final CastContext castContext = castContext();
+        if (castContext != null) {
+            callback.run(castContext);
+            return;
+        }
+        castContextCallbacks.add(callback);
+        requestCastContext();
+    }
+
+    private static CastContext castContext() {
+        if (sharedCastContext == null && Looper.myLooper() == Looper.getMainLooper()) {
+            try {
+                sharedCastContext = CastContext.getSharedInstance();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        }
+        return sharedCastContext;
+    }
+
+    private static void requestCastContext() {
+        final Context context = getContext();
+        if (castContextRequested || context == null) return;
+        castContextRequested = true;
+        Looper.getMainLooper().getQueue().addIdleHandler(() -> {
+            loadCastContext(context);
+            return false;
+        });
+    }
+
+    private static void loadCastContext(Context context) {
+        try {
+            CastContext.getSharedInstance(context, command -> Utilities.globalQueue.postRunnable(command))
+                .addOnSuccessListener(result -> {
+                    sharedCastContext = result;
+                    check(type);
+                    final ArrayList<Utilities.Callback<CastContext>> callbacks = new ArrayList<>(castContextCallbacks);
+                    castContextCallbacks.clear();
+                    for (Utilities.Callback<CastContext> callback : callbacks) {
+                        callback.run(result);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    castContextRequested = false;
+                    castContextCallbacks.clear();
+                    FileLog.e(e);
+                });
+        } catch (Exception e) {
+            castContextRequested = false;
+            castContextCallbacks.clear();
+            FileLog.e(e);
+        }
+    }
+
     private static boolean listened;
     public static void check(int type) {
         CastSync.type = type;
         if (listened) return;
         try {
-            final Context context = getContext();
-            if (context == null) return;
-            final CastContext castContext = CastContext.getSharedInstance(getContext());
-            if (castContext == null) return;
+            final CastContext castContext = castContext();
+            if (castContext == null) {
+                requestCastContext();
+                return;
+            }
             castContext.getSessionManager().addSessionManagerListener(new SessionManagerListener<CastSession>() {
                 @Override
                 public void onSessionEnded(@NonNull CastSession session, int i) {
@@ -134,10 +196,8 @@ public class CastSync {
     }
 
     public static void stop() {
-        final Context context = getContext();
-        if (context == null) return;
         try {
-            final CastContext castContext = CastContext.getSharedInstance(getContext());
+            final CastContext castContext = castContext();
             if (castContext == null) return;
             castContext.getSessionManager().endCurrentSession(true);
         } catch (Exception e) {
@@ -146,10 +206,8 @@ public class CastSync {
     }
 
     public static boolean isActive() {
-        final Context context = getContext();
-        if (context == null) return false;
         try {
-            final CastContext castContext = CastContext.getSharedInstance(getContext());
+            final CastContext castContext = castContext();
             if (castContext == null) return false;
             final CastSession castSession = castContext.getSessionManager().getCurrentCastSession();
             return castSession != null && (castSession.isConnecting() || castSession.isConnected());
@@ -160,10 +218,8 @@ public class CastSync {
     }
 
     public static RemoteMediaClient getClient() {
-        final Context context = getContext();
-        if (context == null) return null;
         try {
-            final CastContext castContext = CastContext.getSharedInstance(getContext());
+            final CastContext castContext = castContext();
             if (castContext == null) return null;
             final CastSession castSession = castContext.getSessionManager().getCurrentCastSession();
             if (castSession != null && castSession.isConnected()) {

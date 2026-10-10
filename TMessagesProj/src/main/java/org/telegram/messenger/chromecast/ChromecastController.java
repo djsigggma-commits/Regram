@@ -48,6 +48,13 @@ public class ChromecastController implements SessionManagerListener<CastSession>
         return state.getClient() != null;
     }
 
+    public static boolean isCastingActive() {
+        if (Instance == null && !CastSync.isActive()) {
+            return false;
+        }
+        return getInstance().isCasting();
+    }
+
     public void setCurrentMediaAndCastIfNeeded(ChromecastMediaVariations newMedia) {
         Log.d(CAST_CONTROLLER, "set current media");
         ChromecastMediaVariations currentMedia = state.getMedia();

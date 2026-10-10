@@ -48,6 +48,14 @@ public class AvatarSpan extends ReplacementSpan {
 
     public boolean needDrawShadow = true;
 
+    public void clearParent(View owner) {
+        if (parent == owner) setParent(null);
+    }
+
+    public void setLoadOnlyWhenAttached(boolean value) {
+        imageReceiver.setAllowLoadingOnAttachedOnly(value);
+    }
+
     public void setSize(float sz) {
         // openExtera: сток просил радиус во всю сторону, из-за чего глобальное масштабирование
         // в ImageReceiver держало спан круглым до середины слайдера. exteraGram считает радиус от

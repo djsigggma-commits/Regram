@@ -269,7 +269,7 @@ public class ViewPagerFixed extends FrameLayout {
                 if (viewPages[1] != null) {
                     swapViews();
                     viewsByType.put(viewTypes[1], viewPages[1]);
-                    removeView(viewPages[1]);
+                    removePage(viewPages[1]);
                     setTranslationX(viewPages[0], 0);
                     viewPages[1] = null;
                 }
@@ -335,7 +335,7 @@ public class ViewPagerFixed extends FrameLayout {
                     if (viewPages[1] != null) {
                         swapViews();
                         viewsByType.put(viewTypes[1], viewPages[1]);
-                        removeView(viewPages[1]);
+                        removePage(viewPages[1]);
                         setTranslationX(viewPages[0], 0);
                         viewPages[1] = null;
                     }
@@ -472,7 +472,7 @@ public class ViewPagerFixed extends FrameLayout {
             } else {
                 viewsByType.put(viewTypes[index], viewPages[index]);
                 viewPages[index].setVisibility(View.GONE);
-                removeView(viewPages[index]);
+                removePage(viewPages[index]);
                 viewTypes[index] = adapter.getItemViewType(adapterPosition);
                 View v = viewsByType.get(viewTypes[index]);
                 if (v == null) {
@@ -787,7 +787,7 @@ public class ViewPagerFixed extends FrameLayout {
                             }
 
                             viewsByType.put(viewTypes[1], viewPages[1]);
-                            removeView(viewPages[1]);
+                            removePage(viewPages[1]);
                             viewPages[1].setVisibility(View.GONE);
                             viewPages[1] = null;
                         }
@@ -889,7 +889,7 @@ public class ViewPagerFixed extends FrameLayout {
         }
         if (viewPages[1] != null) {
             viewsByType.put(viewTypes[1], viewPages[1]);
-            removeView(viewPages[1]);
+            removePage(viewPages[1]);
             viewPages[1] = null;
         }
         if (currentPosition != position) {
@@ -913,7 +913,7 @@ public class ViewPagerFixed extends FrameLayout {
             updateViewForIndex(0);
             if (viewPages[1] != null) {
                 viewsByType.put(viewTypes[1], viewPages[1]);
-                removeView(viewPages[1]);
+                removePage(viewPages[1]);
                 viewPages[1] = null;
             }
             setTranslationX(viewPages[0], 0);
@@ -947,7 +947,7 @@ public class ViewPagerFixed extends FrameLayout {
             tabsAnimation = null;
         }
         if (viewPages[1] != null) {
-            removeView(viewPages[1]);
+            removePage(viewPages[1]);
             viewPages[1] = null;
         }
         viewPages[1] = viewPages[0];
@@ -956,11 +956,11 @@ public class ViewPagerFixed extends FrameLayout {
         boolean toRight = true;
         if (adapter.getItemCount() == 0) {
             if (viewPages[1] != null) {
-                removeView(viewPages[1]);
+                removePage(viewPages[1]);
                 viewPages[1] = null;
             }
             if (viewPages[0] != null) {
-                removeView(viewPages[0]);
+                removePage(viewPages[0]);
                 viewPages[0] = null;
             }
             return;
@@ -1030,7 +1030,7 @@ public class ViewPagerFixed extends FrameLayout {
                 public void onAnimationEnd(Animator animator) {
                     tabsAnimation = null;
                     if (viewPages[1] != null) {
-                        removeView(viewPages[1]);
+                        removePage(viewPages[1]);
                         viewPages[1] = null;
                     }
                     tabsAnimationInProgress = false;
@@ -1049,7 +1049,7 @@ public class ViewPagerFixed extends FrameLayout {
 
         } else {
             if (viewPages[1] != null) {
-                removeView(viewPages[1]);
+                removePage(viewPages[1]);
                 viewPages[1] = null;
             }
         }
@@ -1215,7 +1215,7 @@ public class ViewPagerFixed extends FrameLayout {
                         }
 
                         viewsByType.put(viewTypes[1], viewPages[1]);
-                        removeView(viewPages[1]);
+                        removePage(viewPages[1]);
                         viewPages[1].setVisibility(View.GONE);
                         viewPages[1] = null;
                     }
@@ -1244,6 +1244,27 @@ public class ViewPagerFixed extends FrameLayout {
         if (velocityTracker != null) {
             velocityTracker.recycle();
             velocityTracker = null;
+        }
+    }
+
+
+    private void removePage(View page) {
+        endItemAnimations(page);
+        removeView(page);
+    }
+
+    private static void endItemAnimations(View view) {
+        if (view instanceof RecyclerView) {
+            RecyclerView.ItemAnimator animator = ((RecyclerView) view).getItemAnimator();
+            if (animator != null) {
+                animator.endAnimations();
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = group.getChildCount() - 1; i >= 0; i--) {
+                endItemAnimations(group.getChildAt(i));
+            }
         }
     }
 

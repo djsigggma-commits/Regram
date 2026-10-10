@@ -382,10 +382,12 @@ public class AvatarDrawable extends Drawable {
     }
 
     public int getColor() {
+        if (app.regram.appearance.MonoColor.avatars()) return app.regram.appearance.MonoColor.avatarColor(false);
         return needApplyColorAccent ? Theme.changeColorAccent(color) : color;
     }
 
     public int getColor2() {
+        if (app.regram.appearance.MonoColor.avatars()) return app.regram.appearance.MonoColor.avatarColor(true);
         return needApplyColorAccent ? Theme.changeColorAccent(color2) : color2;
     }
 
@@ -567,10 +569,11 @@ public class AvatarDrawable extends Drawable {
         int size = bounds.width();
         namePaint.setColor(ColorUtils.setAlphaComponent(getThemedColor(Theme.key_avatar_text), alpha));
         Paint backgroundPaint = Theme.avatar_backgroundPaint;
-        if (hasAdvancedGradient && advancedGradient != null) {
+        final boolean monoAvatar = app.regram.appearance.MonoColor.avatars();
+        if (hasAdvancedGradient && advancedGradient != null && !monoAvatar) {
             advancedGradient.setBounds(bounds.left, bounds.top, bounds.left + size, bounds.top + size);
             backgroundPaint = advancedGradient.paint;
-        } else if (hasGradient) {
+        } else if (hasGradient || monoAvatar) {
             int color = ColorUtils.setAlphaComponent(getColor(), alpha);
             int color2 = ColorUtils.setAlphaComponent(getColor2(), alpha);
             if (gradient == null || gradientBottom != bounds.height() || gradientColor1 != color || gradientColor2 != color2) {

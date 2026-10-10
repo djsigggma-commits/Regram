@@ -193,6 +193,24 @@ public class MainTabsLayout extends AnimatedLinearLayout {
             }
         }
 
+        if (MainTabsUiHelper.isMaterial3NavigationBar() && visibleChildCount > 0) {
+            final float share = (float) maxTotalWidthForTabs / visibleChildCount;
+            boolean fitsEqually = true;
+            for (int a = 0, N = getChildCount(); a < N; a++) {
+                if (isViewVisible(getChildAt(a)) && tabsTextWidth[a] + tabPadding * 2 > share) {
+                    fitsEqually = false;
+                    break;
+                }
+            }
+            if (fitsEqually) {
+                for (int a = 0, N = getChildCount(); a < N; a++) {
+                    if (isViewVisible(getChildAt(a))) {
+                        tabsTextWidthWithMargin[a] = share;
+                    }
+                }
+            }
+        }
+
         int l = 0;
         for (int a = 0, N = getChildCount(); a < N; a++) {
             if (!isViewVisible(getChildAt(a))) {

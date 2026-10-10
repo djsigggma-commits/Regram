@@ -2,6 +2,7 @@ package app.regram.plugins.xposed;
 
 import com.chaquo.python.PyObject;
 
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.FileLog;
 
 import java.lang.reflect.Method;
@@ -23,7 +24,8 @@ import de.robv.android.xposed.XC_MethodHook;
 public class PyMethodReplacement extends XC_MethodHook {
 
     private final String pluginId;
-    private final PyObject handler;
+    private final PyObject replaceCall;
+    private final HookStats stats;
     private final List<HookFilter> beforeFilters;
 
     public PyMethodReplacement(String pluginId, PyObject handler) {
@@ -38,17 +40,26 @@ public class PyMethodReplacement extends XC_MethodHook {
                         List<HookFilter> beforeFilters) {
         super(priority);
         this.pluginId = pluginId;
-        this.handler = handler;
+        final int statId = BuildConfig.DEBUG_TOOLS ? HookStats.nextId() : -1;
+        this.replaceCall = handler != null
+                ? XposedHooks.bindHook(handler, "replace_hooked_method", statId) : null;
+        this.stats = BuildConfig.DEBUG_TOOLS && replaceCall != null ? new HookStats(statId, pluginId, "replace") : null;
         this.beforeFilters = beforeFilters;
+    }
+
+    void addTarget(java.lang.reflect.Member member) {
+        if (stats != null) {
+            stats.addTarget(member);
+        }
     }
 
     @Override
     protected void beforeHookedMethod(MethodHookParam param) {
-        if (!HookFilter.evaluateAll(beforeFilters, param, false)) {
+        if (replaceCall == null || !HookFilter.evaluateAll(beforeFilters, param, false)) {
             return;
         }
         XposedHooks.PyResult result =
-                XposedHooks.callPython(pluginId, handler, "replace_hooked_method", param);
+                XposedHooks.callPython(pluginId, replaceCall, param, stats);
         if (!result.ok) {
             return; // ошибка уже ушла в watchdog; param не тронут — выполнится оригинал
         }

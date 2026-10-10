@@ -34,6 +34,7 @@ public final class AppUtils {
     private static final String RELEASE_SIGNATURE = "n4MjWgos1KTzGpMSD4ztPg==";
 
     private static volatile Gson gson;
+    private static final ThreadLocal<Boolean> loggingPluginMessage = new ThreadLocal<>();
 
     private AppUtils() {
     }
@@ -86,7 +87,22 @@ public final class AppUtils {
         logInternal(throwable != null ? throwable.getMessage() : null, throwable, 5);
     }
 
+    public static void logPlugin(String message) {
+        if (loggingPluginMessage.get() != null) {
+            return;
+        }
+        loggingPluginMessage.set(Boolean.TRUE);
+        try {
+            logInternal(message, null, 0);
+        } finally {
+            loggingPluginMessage.remove();
+        }
+    }
+
     private static void logInternal(String message, Throwable throwable, int depth) {
+        if (depth <= 0) {
+            return;
+        }
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         StackTraceElement frame = trace[Math.max(3, Math.min(depth, trace.length - 1))];
         String owner = frame.getClassName();

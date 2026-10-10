@@ -111,10 +111,6 @@ public final class AiConfig {
         return getPreferences().getInt(KEY_SELECTED_SERVICE_HASH, DEFAULT_SERVICE.getLegacyHash());
     }
 
-    private static void setSelectedServiceHash(int value) {
-        getEditor().putInt(KEY_SELECTED_SERVICE_HASH, value).apply();
-    }
-
     public static String getSelectedRole() {
         return getPreferences().getString(KEY_SELECTED_ROLE,
                 Suggestions.ASSISTANT.getRole().getName());

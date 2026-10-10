@@ -6,6 +6,7 @@ import android.widget.LinearLayout;
 import android.view.View;
 
 import org.mvel2.MVEL;
+import org.mvel2.optimizers.OptimizerFactory;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessageObject;
@@ -47,6 +48,10 @@ import app.regram.plugins.PluginsController;
  * Всё зовётся на UI-потоке; при выключенном движке или пустом реестре работа не делается.
  */
 public final class MenuInjector {
+
+    static {
+        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
+    }
 
     /**
      * База id пунктов меню сообщения. Стоковые OPTION_* — 0..152, nkbtn_* — 2008..2101,
@@ -91,9 +96,13 @@ public final class MenuInjector {
         if (item.condition == null || item.condition.isEmpty()) {
             return true;
         }
+        String previousRuntime = app.regram.plugins.PluginRuntime.enter(item.pluginId);
         try {
             Serializable compiled = COMPILED_CONDITIONS.get(item.condition);
             if (compiled == null) {
+                if (!isSafeCondition(item.condition)) {
+                    throw new IllegalArgumentException("condition may only read the menu context");
+                }
                 compiled = MVEL.compileExpression(item.condition);
                 if (COMPILED_CONDITIONS.size() < 512) {
                     COMPILED_CONDITIONS.put(item.condition, compiled);
@@ -106,7 +115,39 @@ public final class MenuInjector {
                 FileLog.e("MenuInjector: condition failed for " + item.pluginId + "/" + item.itemId, t);
             }
             return false;
+        } finally {
+            app.regram.plugins.PluginRuntime.exit(previousRuntime);
         }
+    }
+
+    private static final java.util.regex.Pattern UNSAFE_CONDITION = java.util.regex.Pattern.compile(
+            "\\b(?:new|import|def|function|foreach|for|while|do|with|until|class|getClass|forName|"
+                    + "getClassLoader|loadClass|invoke|getMethod|getMethods|getDeclared\\w*|getField|getFields|"
+                    + "newInstance|getRuntime|exec|setAccessible|getConstructor\\w*)\\b"
+                    + "|[;@$#`{}]"
+                    + "|(?<![=!<>])=(?!=)"
+                    + "|\\+\\+|--|[+\\-*/%]=");
+
+    private static final java.util.regex.Pattern ROOT_NAME =
+            java.util.regex.Pattern.compile("(?<![.\\w])([A-Za-z_]\\w*)");
+
+    private static final java.util.Set<String> CONDITION_ROOTS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "account", "chat", "chatId", "context", "dialog_id", "encryptedChat", "fragment", "message",
+            "user", "userId", "true", "false", "null", "nil", "empty", "is", "isnot", "contains",
+            "instanceof", "soundslike", "strsim"));
+
+    static boolean isSafeCondition(String condition) {
+        String code = condition.replaceAll("'(?:[^'\\\\]|\\\\.)*'|\"(?:[^\"\\\\]|\\\\.)*\"", "''");
+        if (UNSAFE_CONDITION.matcher(code).find()) {
+            return false;
+        }
+        java.util.regex.Matcher roots = ROOT_NAME.matcher(code);
+        while (roots.find()) {
+            if (!CONDITION_ROOTS.contains(roots.group(1))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** icon — имя drawable-ресурса приложения; не резолвится → 0 (пункт без иконки). */

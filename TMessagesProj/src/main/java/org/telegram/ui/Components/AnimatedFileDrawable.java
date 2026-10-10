@@ -43,6 +43,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.utils.BitmapsCache;
 import org.telegram.messenger.utils.Choreographer60FpsContent;
 import org.telegram.tgnet.TLRPC;
@@ -218,6 +219,10 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
 
     @UiThread
     public void invalidateInternal() {
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            AndroidUtilities.runOnUIThread(this::invalidateInternal);
+            return;
+        }
         for (ImageReceiver imageReceiver : parents) {
             imageReceiver.invalidate();
         }
@@ -689,9 +694,10 @@ public final class AnimatedFileDrawable extends BitmapDrawable implements Animat
             cacheGenRunnable = null;
         }
         if (loadFrameTask == null) {
-            if (mDecoder != null) {
-                mDecoder.recycle();
+            final AnimatedFileNative decoder = mDecoder;
+            if (decoder != null) {
                 mDecoder = null;
+                Utilities.globalQueue.postRunnable(decoder::recycle);
             }
 
             ArrayList<Bitmap> bitmapToRecycle = new ArrayList<>();

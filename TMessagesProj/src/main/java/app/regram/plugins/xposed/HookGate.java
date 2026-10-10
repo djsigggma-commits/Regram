@@ -182,7 +182,9 @@ public final class HookGate {
         protected void beforeHookedMethod(MethodHookParam param) {
             Object member = param.args != null && param.args.length > 0 ? param.args[0] : null;
             if (member instanceof Member) {
-                prewarm((Member) member);
+                Member target = PluginHookTargets.resolve((Member) member);
+                param.args[0] = target;
+                prewarm(target);
             }
         }
     }

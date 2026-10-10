@@ -54,6 +54,7 @@ public final class ClassAliases {
             {"com.google.android.exoplayer2.PlaybackException", "androidx.media3.common.PlaybackException"},
             {"com.google.android.exoplayer2.PlaybackParameters", "androidx.media3.common.PlaybackParameters"},
             {"com.google.android.exoplayer2.C", "androidx.media3.common.C"},
+            {"org.telegram.ui.Gifts.ProfileGiftsContainer$SelectGiftsBottomSheet", "org.telegram.ui.Gifts.SelectGiftsBottomSheet"},
     };
 
     private static final String[][] PREFIXES = {
@@ -78,12 +79,15 @@ public final class ClassAliases {
     }
 
     public static String resolve(String name) {
-        if (name == null || !underRoot(name)) {
-            return name;
+        if (name == null) {
+            return null;
         }
         String exact = lookup(name);
         if (exact != null) {
             return exact;
+        }
+        if (!underRoot(name)) {
+            return name;
         }
         int dollar = name.indexOf('$');
         String outer = dollar < 0 ? name : name.substring(0, dollar);

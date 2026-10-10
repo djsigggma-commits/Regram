@@ -14797,6 +14797,10 @@ public class ChatActivityEnterView extends FrameLayout implements
         return emojiViewVisible || botKeyboardViewVisible;
     }
 
+    public boolean isPersistentBotKeyboardShowing() {
+        return isPopupShowing() && currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD && botReplyMarkup != null && botReplyMarkup.is_persistent;
+    }
+
     public boolean closeCreationLinkDialog(boolean invoked) {
         return messageEditText != null && messageEditText.closeCreationLinkDialog(invoked);
     }

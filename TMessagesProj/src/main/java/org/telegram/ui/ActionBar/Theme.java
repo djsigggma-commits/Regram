@@ -8189,11 +8189,11 @@ public class Theme {
                 chat_adminPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
                 chat_timePaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
                 chat_msgTextCodePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-                chat_msgTextCodePaint.setTypeface(Typeface.MONOSPACE);
+                chat_msgTextCodePaint.setTypeface(AndroidUtilities.mono());
                 chat_msgTextCode2Paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-                chat_msgTextCode2Paint.setTypeface(Typeface.MONOSPACE);
+                chat_msgTextCode2Paint.setTypeface(AndroidUtilities.mono());
                 chat_msgTextCode3Paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-                chat_msgTextCode3Paint.setTypeface(Typeface.MONOSPACE);
+                chat_msgTextCode3Paint.setTypeface(AndroidUtilities.mono());
                 chat_msgCodeBgPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
                 chat_ephemeralPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
             }
@@ -9184,6 +9184,8 @@ public class Theme {
     }
 
     public static int getColor(int key, ResourcesProvider provider) {
+        Integer monoColor = app.regram.appearance.MonoColor.override(key);
+        if (monoColor != null) return monoColor;
         // Скрытие разделителей должно работать и при непустом ResourcesProvider
         // (чат-темы, боттом-шиты, профиль): иначе линии остаются там, где цвет берёт провайдер.
         if (key_divider == key && !resolvingDividerColor && app.regram.appearance.AppearanceConfig.dividerHidden()) {
@@ -9208,6 +9210,11 @@ public class Theme {
     }
 
     public static int getColor(int key, boolean[] isDefault, boolean ignoreAnimation) {
+        Integer monoColor = app.regram.appearance.MonoColor.override(key);
+        if (monoColor != null) {
+            if (isDefault != null) isDefault[0] = false;
+            return monoColor;
+        }
         if (!ignoreAnimation && animatingColors != null) {
             int index = animatingColors.indexOfKey(key);
             if (index >= 0) {

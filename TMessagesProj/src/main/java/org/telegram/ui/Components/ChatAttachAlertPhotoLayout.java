@@ -4347,6 +4347,8 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         private boolean hasCameraSpaceRow;
         private final ArrayList<RecyclerListView.Holder> viewsCache = new ArrayList<>(8);
         private int itemsCount;
+        private String lastLetter;
+        private long lastLetterDate = -1;
         private int photosStartRow;
         private int photosEndRow;
 
@@ -4375,7 +4377,11 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             isInFastScroll = false;
             if (listView != null) {
                 for (int a = 0, N = listView.getChildCount(); a < N; a++) {
-                    listView.getChildAt(a).invalidate();
+                    final View child = listView.getChildAt(a);
+                    child.invalidate();
+                    if (child instanceof PhotoAttachPhotoCell) {
+                        ((PhotoAttachPhotoCell) child).imageView.invalidate();
+                    }
                 }
             }
         }
@@ -4759,7 +4765,11 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                 if (Build.VERSION.SDK_INT <= 28) {
                     date /= 1000;
                 }
-                return LocaleController.formatYearMont(date, true);
+                if (lastLetter == null || lastLetterDate != date) {
+                    lastLetterDate = date;
+                    lastLetter = LocaleController.formatYearMont(date, true);
+                }
+                return lastLetter;
             }
             return "";
         }

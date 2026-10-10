@@ -34,6 +34,7 @@ import android.os.PowerManager;
 import android.os.Process;
 import android.os.SystemClock;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ViewGroup;
 
@@ -45,7 +46,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.json.JSONObject;
-import org.telegram.messenger.utils.Choreographer60FpsContent;
 import org.telegram.messenger.voip.VideoCapturerDevice;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
@@ -231,6 +231,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
             return;
         }
         applicationInited = true;
+        final long initStartedAt = SystemClock.elapsedRealtime();
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
 
         try {
@@ -252,6 +253,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
 
                     boolean isSlow = isConnectionSlow();
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                        if (a != UserConfig.selectedAccount && !UserConfig.getInstance(a).isClientActivated()) continue;
                         ConnectionsManager.getInstance(a).checkConnection();
                         FileLoader.getInstance(a).onNetworkChanged(isSlow);
                     }
@@ -301,16 +303,18 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
             // умолчанию — патчим assetName после инициализации конфигов.
             org.telegram.ui.ActionBar.Theme.reloadMonetThemes();
         }
-        app.regram.plugins.PluginsController.getInstance().init(applicationContext);
+        if (BuildConfig.DEBUG_TOOLS) {
+            app.regram.debug.EnergyProfiler.resumeIfEnabled(applicationContext);
+        }
         SharedPrefsHelper.init(applicationContext);
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(AndroidUtil.shouldEnableCrashlytics());
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             UserConfig.getInstance(a).loadConfig();
+            if (a != UserConfig.selectedAccount && !UserConfig.getInstance(a).isClientActivated()) continue;
             MessagesController.getInstance(a);
-            if (a == 0) {
+            ConnectionsManager.getInstance(a);
+            if (a == UserConfig.selectedAccount) {
                 SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
-            } else {
-                ConnectionsManager.getInstance(a);
             }
             TLRPC.User user = UserConfig.getInstance(a).getCurrentUser();
             if (user != null) {
@@ -326,11 +330,17 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
         FileLog.d("app initied");
 
         MediaController.getInstance();
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (a != UserConfig.selectedAccount && !UserConfig.getInstance(a).isClientActivated()) continue;
             ContactsController.getInstance(a).checkAppAccount();
             DownloadController.getInstance(a);
         }
         BillingController.getInstance().startConnection();
+        if (BuildVars.LOGS_ENABLED) {
+            FileLog.d("re:gram base init took " + (SystemClock.elapsedRealtime() - initStartedAt) + " ms");
+        }
+        // Start optional Python work after the caller has finished constructing the initial UI.
+        applicationHandler.post(() -> app.regram.plugins.PluginsController.getInstance().init(applicationContext));
     }
 
     public ApplicationLoader() {
@@ -421,13 +431,14 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
 
         LauncherIconController.tryFixLauncherIconIfNeeded();
         ProxyRotationController.init();
-        ProxyPingController.init();    }
+        ProxyPingController.init();
+        app.regram.proxy.ProxyPingController.init();
+        app.regram.links.LinkCleaner.preloadIfEnabled();
+        app.regram.appearance.M3CircularProgress.prewarm();
+
+    }
 
     // Local Push Service, TFoss implementation
-    private final Runnable debugEverySecondChecks = () -> AndroidUtilities.runOnUIThread(() -> {
-        NotificationCenter.sanitize();
-    });
-
     public static void startPushService() {
         Utilities.stageQueue.postRunnable(ApplicationLoader::startPushServiceInternal);
     }
@@ -435,14 +446,17 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
     private static void startPushServiceInternal() {
         SharedPreferences preferences = MessagesController.getNotificationsSettings(UserConfig.selectedAccount);
         final int pushServiceType = NaConfig.INSTANCE.getPushServiceType().Int();
-        final boolean remotePush = pushServiceType != 0
-                && (pushServiceType == 2 || PushListenerController.getProvider().hasServices());
+        final boolean remoteFailed = TextUtils.isEmpty(SharedConfig.pushString)
+                && ("__FIREBASE_FAILED__".equals(SharedConfig.pushStringStatus)
+                || UnifiedPushService.UP_FAILED.equals(SharedConfig.pushStringStatus));
+        final boolean remotePush = pushServiceType != 0 && !remoteFailed
+                && PushListenerController.getProvider().hasServices();
         boolean enabled;
         if (remotePush) {
             enabled = false;
         } else if (preferences.contains("pushService")) {
             enabled = preferences.getBoolean("pushService", true);
-        } else if (PushListenerController.getProvider().hasServices()) {
+        } else if (!remoteFailed && PushListenerController.getProvider().hasServices()) {
             return;
         } else {
             enabled = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false);
@@ -500,6 +514,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
         AndroidUtilities.runOnUIThread(() -> {
             if (getPushProvider().hasServices()) {
                 getPushProvider().onRequestPushToken();
+                AndroidUtilities.runOnUIThread(ApplicationLoader::checkPushTokenTimeout, PUSH_TOKEN_TIMEOUT_MS);
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d("No valid " + getPushProvider().getLogTitle() + " APK found.");
@@ -509,6 +524,25 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
                 startPushService();
             }
         }, 1000);
+    }
+
+    private static final long PUSH_TOKEN_TIMEOUT_MS = 60_000;
+
+    private static void checkPushTokenTimeout() {
+        final String status = SharedConfig.pushStringStatus;
+        if (!TextUtils.isEmpty(SharedConfig.pushString) || status == null || !status.contains("_GENERATING_SINCE_")) {
+            return;
+        }
+        final int pushType = getPushProvider().getPushType();
+        FileLog.d(getPushProvider().getLogTitle() + " token request timed out");
+        if (pushType == PushListenerController.PUSH_TYPE_WEB) {
+            SharedConfig.pushStringStatus = UnifiedPushService.UP_FAILED;
+        } else {
+            GooglePushListenerServiceProvider.lastError = "no token after " + PUSH_TOKEN_TIMEOUT_MS / 1000 + " s";
+            SharedConfig.pushStringStatus = "__FIREBASE_FAILED__";
+        }
+        PushListenerController.sendRegistrationToServer(pushType, null);
+        startPushService();
     }
 
     /*private boolean checkPlayServices() {

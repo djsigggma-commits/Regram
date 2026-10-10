@@ -1,5 +1,9 @@
 package org.telegram.ui;
 
+import tw.nekomimi.nekogram.utils.ShareUtil;
+import app.regram.debug.EnergyProfiler;
+import app.regram.debug.JankProfiler;
+import app.regram.debug.PluginToggleTrace;
 import app.regram.settings.OpenExteraSettingsActivity;
 
 import static org.telegram.messenger.AndroidUtilities.dp;
@@ -73,6 +77,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.AuthTokensHelper;
 import org.telegram.messenger.BirthdayController;
 import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.ChatThemeController;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLoader;
@@ -401,7 +406,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         listView = new UniversalRecyclerView(this, this::fillItems, this::onClick, this::onLongClick);
         listView.adapter.setApplyBackground(false);
         listView.setSections();
-        listView.setPadding(0, AndroidUtilities.statusBarHeight + dp(12), 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight);
+        listView.setPadding(0, AndroidUtilities.statusBarHeight + dp(12), 0, AndroidUtilities.navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
         listView.setClipToPadding(false);
         listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -568,8 +573,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             setInfo();
             scheduleItemsUpdate(true);
         } else if (id == NotificationCenter.updateInterfaces) {
-            setInfo();
-            scheduleItemsUpdate(false);
+            final int mask = (Integer) args[0];
+            if (isPaused()) {
+                scheduleItemsUpdate(false);
+            } else if ((mask & (MessagesController.UPDATE_MASK_NAME | MessagesController.UPDATE_MASK_AVATAR | MessagesController.UPDATE_MASK_PHONE | MessagesController.UPDATE_MASK_USER_PHONE | MessagesController.UPDATE_MASK_EMOJI_STATUS)) != 0) {
+                setInfo();
+                scheduleItemsUpdate(false);
+            }
         } else if (id == NotificationCenter.newSuggestionsAvailable) {
             scheduleItemsUpdate(true);
         }
@@ -1072,8 +1082,21 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         final Insets systemInsets = AndroidUtilities.getDefaultWindowInsets(insets, false);
         navigationBarHeight = systemInsets.bottom;
         final int statusBarHeight = systemInsets.top;
-        listView.setPadding(0, statusBarHeight + dp(12), 0, navigationBarHeight + additionNavigationBarHeight);
+        listView.setPadding(0, statusBarHeight + dp(12), 0, navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
         return WindowInsetsCompat.CONSUMED;
+    }
+
+    private int miniPlayerPadding;
+
+    @Override
+    public void setMiniPlayerInset(float inset, int padding) {
+        if (miniPlayerPadding == padding) {
+            return;
+        }
+        miniPlayerPadding = padding;
+        if (listView != null) {
+            listView.setPadding(0, listView.getPaddingTop(), 0, navigationBarHeight + additionNavigationBarHeight + miniPlayerPadding);
+        }
     }
 
     public static class AccountCell extends LinearLayout implements Theme.Colorable {
@@ -1621,6 +1644,57 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             return Unit.INSTANCE;
         });
 
+        if (BuildConfig.DEBUG_TOOLS) {
+            builder.addItem(getString(JankProfiler.isRunning() ? R.string.OEProfilerStop : R.string.OEProfilerStart), R.drawable.msg_speed, (it) -> {
+                final Activity activity = getParentActivity();
+                if (JankProfiler.isRunning()) {
+                    JankProfiler.stop(file -> shareProfilerReport(activity, file));
+                } else if (activity != null) {
+                    JankProfiler.start(activity);
+                    BulletinFactory.of(SettingsActivity.this).createSimpleBulletin(R.raw.info, getString(R.string.OEProfilerStarted)).show();
+                }
+                return Unit.INSTANCE;
+            });
+
+            if (!JankProfiler.isRunning() && JankProfiler.getLastReport() != null) {
+                builder.addItem(getString(R.string.OEProfilerShareLast), R.drawable.msg_share, (it) -> {
+                    shareProfilerReport(getParentActivity(), JankProfiler.getLastReport());
+                    return Unit.INSTANCE;
+                });
+            }
+
+            builder.addItem(getString(EnergyProfiler.isRunning() ? R.string.OEEnergyProfilerStop : R.string.OEEnergyProfilerStart), R.drawable.msg_speed, (it) -> {
+                final Activity activity = getParentActivity();
+                if (EnergyProfiler.isRunning()) {
+                    EnergyProfiler.stop(file -> shareProfilerReport(activity, file));
+                } else if (activity != null) {
+                    EnergyProfiler.start(activity);
+                    BulletinFactory.of(SettingsActivity.this).createSimpleBulletin(R.raw.info, getString(R.string.OEEnergyProfilerStarted)).show();
+                }
+                return Unit.INSTANCE;
+            });
+
+            if (EnergyProfiler.isRunning()) {
+                builder.addItem(getString(R.string.OEEnergyProfilerShareCurrent), R.drawable.msg_share, (it) -> {
+                    final Activity activity = getParentActivity();
+                    EnergyProfiler.shareCurrent(file -> shareProfilerReport(activity, file));
+                    return Unit.INSTANCE;
+                });
+            } else if (EnergyProfiler.getLastReport() != null) {
+                builder.addItem(getString(R.string.OEEnergyProfilerShareLast), R.drawable.msg_share, (it) -> {
+                    shareProfilerReport(getParentActivity(), EnergyProfiler.getLastReport());
+                    return Unit.INSTANCE;
+                });
+            }
+
+            if (PluginToggleTrace.getLog() != null) {
+                builder.addItem(getString(R.string.OEPluginToggleLogShare), R.drawable.msg_share, (it) -> {
+                    shareProfilerReport(getParentActivity(), PluginToggleTrace.getLog());
+                    return Unit.INSTANCE;
+                });
+            }
+        }
+
         {
         builder.addItem(getString(R.string.CheckUpdate), R.drawable.msg_search_solar, (it) -> {
             Browser.openUrl(getContext(), "tg://update");
@@ -1675,6 +1749,13 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         });
         }
         builder.show();
+    }
+
+    private static void shareProfilerReport(Activity activity, File file) {
+        if (activity == null || activity.isFinishing() || file == null || !file.exists()) {
+            return;
+        }
+        ShareUtil.shareFile(activity, file);
     }
 
     public void openDebugMenu() {

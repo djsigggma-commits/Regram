@@ -143,7 +143,7 @@ public final class MathExpression {
         FUNCTIONS.put("min", new Function(1, Integer.MAX_VALUE, a -> extreme(a, false)));
         FUNCTIONS.put("max", new Function(1, Integer.MAX_VALUE, a -> extreme(a, true)));
         FUNCTIONS.put("log", new Function(1, 1, a -> Math.log10(a[0])));
-        FUNCTIONS.put("log2", new Function(1, 1, a -> Math.log(a[0]) / Math.log(2)));
+        FUNCTIONS.put("lg", new Function(1, 1, a -> Math.log10(a[0])));
         FUNCTIONS.put("ln", new Function(1, 1, a -> Math.log(a[0])));
         FUNCTIONS.put("exp", new Function(1, 1, a -> Math.exp(a[0])));
         FUNCTIONS.put("sin", new Function(1, 1, a -> Math.sin(a[0])));
@@ -200,6 +200,29 @@ public final class MathExpression {
             result = max ? Math.max(result, values[i]) : Math.min(result, values[i]);
         }
         return result;
+    }
+
+    private static double logBase(double value, double base) {
+        if (base <= 0 || base == 1) {
+            return Double.NaN;
+        }
+        if (base == 10) {
+            return Math.log10(value);
+        }
+        return Math.log(value) / Math.log(base);
+    }
+
+    private static Function logFunction(String name) {
+        if (name.length() < 4 || name.length() > 9 || !name.startsWith("log")) {
+            return null;
+        }
+        for (int i = 3; i < name.length(); i++) {
+            if (!Character.isDigit(name.charAt(i))) {
+                return null;
+            }
+        }
+        int base = Integer.parseInt(name.substring(3));
+        return new Function(1, 1, a -> logBase(a[0], base));
     }
 
     private static double factorial(double value) {
@@ -490,9 +513,13 @@ public final class MathExpression {
         private double parseIdentifier(String name) {
             Double constant = CONSTANTS.get(name);
             if (constant != null) {
+                hasOperation = true;
                 return constant;
             }
             Function function = FUNCTIONS.get(name);
+            if (function == null) {
+                function = logFunction(name);
+            }
             if (function == null) {
                 throw ERROR;
             }

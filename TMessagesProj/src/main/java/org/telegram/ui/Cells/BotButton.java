@@ -26,7 +26,6 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.LoadingDrawable;
 import org.telegram.ui.Components.Text;
-import org.telegram.ui.LinkManager;
 
 import java.util.Arrays;
 
@@ -50,6 +49,7 @@ class BotButton {
     public float progressAlpha;
     public long lastUpdateTime;
     public boolean isInviteButton;
+    public boolean isWebAppLink;
     public boolean isLocked;
 
     private final Path path = new Path();
@@ -216,7 +216,7 @@ class BotButton {
             drawable.draw(canvas);
         } else if (buttonTypeUrl != null) {
             final Drawable drawable;
-            if (LinkManager.isWebAppLink(buttonTypeUrl.url)) {
+            if (isWebAppLink) {
                 drawable = Theme.getThemeDrawable(Theme.key_drawable_botWebView, resourcesProvider);
             } else if (isInviteButton) {
                 drawable = Theme.getThemeDrawable(Theme.key_drawable_botInvite, resourcesProvider);

@@ -10,6 +10,13 @@ package com.exteragram.messenger.plugins;
  */
 public abstract class PluginsController {
 
+    public final java.util.Map<String, PythonPluginsEngine> engines = new java.util.AbstractMap<String, PythonPluginsEngine>() {
+        @Override
+        public java.util.Set<Entry<String, PythonPluginsEngine>> entrySet() {
+            return new java.util.HashMap<String, PythonPluginsEngine>(getEngines()).entrySet();
+        }
+    };
+
     public static PluginsController getInstance() {
         return app.regram.plugins.PluginsController.getInstance();
     }
@@ -73,6 +80,14 @@ public abstract class PluginsController {
 
     public abstract void shutdown(Runnable onDone);
 
+    public static boolean isPluginPinned(String pluginId) {
+        return app.regram.plugins.PluginsController.isPluginPinned(pluginId);
+    }
+
+    public static void setPluginPinned(String pluginId, boolean isPinned) {
+        app.regram.plugins.PluginsController.setPluginPinned(pluginId, isPinned);
+    }
+
     public static void runOnPluginsQueue(Runnable runnable) {
         app.regram.plugins.PluginsController.runOnPluginsQueue(runnable);
     }
@@ -128,15 +143,30 @@ public abstract class PluginsController {
 
     public abstract java.util.Map<String, ? extends Plugin> getPlugins();
 
-    /**
-     * Учёт Xposed-хука, который dex-модуль поставил сам.
-     * Вызов идёт по этому типу, поэтому метод нельзя оставлять только у наследника.
-     */
-    public void addXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook) {
-        app.regram.plugins.xposed.XposedHooks.addPluginUnhook(pluginId, unhook);
-    }
+    public abstract java.io.File getPluginsDir();
 
-    public void removeXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook) {
-        app.regram.plugins.xposed.XposedHooks.removePluginUnhook(pluginId, unhook);
-    }
+    public abstract android.content.SharedPreferences getPreferences();
+
+    public abstract void executeOnAppEvent(String eventType);
+
+    public abstract void addXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook);
+
+    public abstract void addXposedHooks(String pluginId,
+                                        java.util.ArrayList<de.robv.android.xposed.XC_MethodHook.Unhook> unhooks);
+
+    public abstract void removeXposedHook(String pluginId, de.robv.android.xposed.XC_MethodHook.Unhook unhook);
+
+    public abstract void addEventHook(String pluginId, String hookName, boolean matchSubstring, int priority);
+
+    public abstract void removeEventHook(String pluginId, String hookName);
+
+    public abstract void removeHooksByPluginId(String pluginId);
+
+    public abstract void cleanupPlugin(String pluginId);
+
+    public abstract boolean removeMenuItem(String pluginId, String itemId);
+
+    public abstract void removeMenuItemsByPluginId(String pluginId);
+
+    public abstract void notifyMenuItemsUpdated();
 }

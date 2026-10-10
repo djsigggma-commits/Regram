@@ -2321,7 +2321,7 @@ public class RichMessageLayout {
         public Typeface getTypeface() {
             final int block = flags & TEXT_FLAG_BLOCKS;
             if (block == TEXT_FLAG_BLOCK_CODE) {
-                return Typeface.MONOSPACE;
+                return AndroidUtilities.mono();
             } else if (block == TEXT_FLAG_BLOCK_QUOTE_CAPTION) {
                 return AndroidUtilities.bold();
             } else if (block >= 1 && block <= 6) {
@@ -2330,7 +2330,7 @@ public class RichMessageLayout {
                 }
                 return AndroidUtilities.getTypeface("fonts/mw_bold.ttf");
             } else if (hasFlag(flags, TEXT_FLAG_MONO)) {
-                return Typeface.MONOSPACE;
+                return AndroidUtilities.mono();
             }
             final boolean bold = hasFlag(flags, TEXT_FLAG_BOLD);
             final boolean italic = hasFlag(flags, TEXT_FLAG_ITALIC) || block == TEXT_FLAG_BLOCK_PULLQUOTE;

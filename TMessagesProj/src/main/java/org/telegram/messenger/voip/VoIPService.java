@@ -3455,7 +3455,8 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			// encryption key
 			final Instance.EncryptionKey encryptionKey = new Instance.EncryptionKey(authKey, isOutgoing);
 
-			boolean newAvailable = "2.7.7".compareTo(privateCall.protocol.library_versions.get(0)) <= 0;
+			final String libraryVersion = Instance.selectVersion(privateCall.protocol.library_versions);
+			boolean newAvailable = "2.7.7".compareTo(libraryVersion) <= 0;
 			if (captureDevice[CAPTURE_DEVICE_CAMERA] != 0 && !newAvailable) {
 				NativeInstance.destroyVideoCapturer(captureDevice[CAPTURE_DEVICE_CAMERA]);
 				captureDevice[CAPTURE_DEVICE_CAMERA] = 0;
@@ -3470,8 +3471,8 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 				}
 			}
 			// init
-			tgVoip[CAPTURE_DEVICE_CAMERA] = Instance.makeInstance(privateCall.protocol.library_versions.get(0), config, persistentStateFilePath, endpoints, null, getNetworkType(), encryptionKey, remoteSink[CAPTURE_DEVICE_CAMERA], captureDevice[CAPTURE_DEVICE_CAMERA], (uids, levels, voice) -> {
-				if (sharedInstance == null || privateCall == null) {
+			tgVoip[CAPTURE_DEVICE_CAMERA] = Instance.makeInstance(libraryVersion, config, persistentStateFilePath, endpoints, null, getNetworkType(), encryptionKey, remoteSink[CAPTURE_DEVICE_CAMERA], captureDevice[CAPTURE_DEVICE_CAMERA], (uids, levels, voice) -> {
+				if (sharedInstance != VoIPService.this || privateCall == null || levels == null || levels.length < 2) {
 					return;
 				}
 				NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.webRtcMicAmplitudeEvent, levels[0]);
@@ -3510,10 +3511,8 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 					}
 				}
 			}, 5000);
-		} catch (Exception x) {
-			if (BuildVars.LOGS_ENABLED) {
-				FileLog.e("error starting call", x);
-			}
+		} catch (Exception | LinkageError x) {
+			FileLog.e("error starting call", x);
 			callFailed();
 		}
 	}

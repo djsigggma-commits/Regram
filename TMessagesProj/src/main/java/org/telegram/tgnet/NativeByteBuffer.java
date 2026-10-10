@@ -667,8 +667,9 @@ public class NativeByteBuffer extends AbstractSerializedData {
 
     @Override
     protected void finalize() throws Throwable {
-        if (!reused) {
-            reuse();
+        if (!reused && address != 0) {
+            reused = true;
+            native_reuse(address);
         }
         super.finalize();
     }

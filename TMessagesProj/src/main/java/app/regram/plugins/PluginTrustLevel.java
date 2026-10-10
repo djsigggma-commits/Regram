@@ -47,7 +47,7 @@ public final class PluginTrustLevel {
     }
 
     private static SharedPreferences prefs() {
-        return PluginsController.getInstance().getPreferences();
+        return PluginGrantStore.get();
     }
 
     /**
@@ -91,6 +91,9 @@ public final class PluginTrustLevel {
      * самое, что и получит плагин.
      */
     public static void setLevel(String pluginId, int level) {
+        if (PluginSinkGate.refuseFromPlugin("setLevel", false)) {
+            return;
+        }
         SharedPreferences p = prefs();
         if (p == null || pluginId == null) {
             return;
@@ -128,6 +131,9 @@ public final class PluginTrustLevel {
 
     /** Забыть уровень (удаление плагина). */
     public static void clear(String pluginId) {
+        if (PluginSinkGate.refuseFromPlugin("clearLevel", true)) {
+            return;
+        }
         SharedPreferences p = prefs();
         if (p != null && pluginId != null) {
             p.edit().remove(prefsKey(pluginId)).apply();

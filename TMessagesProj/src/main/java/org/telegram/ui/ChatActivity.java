@@ -190,6 +190,7 @@ import org.telegram.messenger.HashtagSearchController;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
+import org.telegram.messenger.utils.Choreographer60FpsContent;
 import org.telegram.messenger.LanguageDetector;
 import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.LocaleController;
@@ -2102,11 +2103,7 @@ public class ChatActivity extends BaseFragment implements
                 if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
                     return false;
                 }
-                boolean available = dialog_id >= 0;
-                if (!available && chatInfo != null) {
-                    available = ChatObject.reactionIsAvailable(chatInfo, reaction == null ? reactionStringSetting : reaction.reaction);
-                }
-                if (!available) {
+                if (!isDoubleTapReactionAvailable(message, reaction == null ? reactionStringSetting : reaction.reaction)) {
                     return false;
                 }
                 return message != null && !message.isDateObject && !message.isSending() && message.canSetReaction() && !message.isEditing() && !actionBar.isActionModeShowed() && !isSecretChat() && !isInScheduleMode() && !message.isSponsored() && !message.isAyuDeleted();
@@ -2207,11 +2204,7 @@ public class ChatActivity extends BaseFragment implements
             }ReactionsEffectOverlay.removeCurrent(false);
                 String reactionString = getMediaDataController().getDoubleTapReaction();
                 if (reactionString.startsWith("animated_")) {
-                    boolean available = dialog_id >= 0;
-                    if (!available && chatInfo != null) {
-                        available = ChatObject.reactionIsAvailable(chatInfo, reactionString);
-                    }
-                    if (!available) {
+                    if (!isDoubleTapReactionAvailable(messageObject, reactionString)) {
                         return;
                     }
                     selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
@@ -2220,11 +2213,7 @@ public class ChatActivity extends BaseFragment implements
                     if (reaction == null || messageObject.isSponsored()) {
                         return;
                     }
-                    boolean available = dialog_id >= 0;
-                    if (!available && chatInfo != null) {
-                        available = ChatObject.reactionIsAvailable(chatInfo, reaction.reaction);
-                    }
-                    if (!available) {
+                    if (!isDoubleTapReactionAvailable(messageObject, reaction.reaction)) {
                         return;
                     }
                     selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reaction), true, false, false, false);
@@ -8225,6 +8214,7 @@ public class ChatActivity extends BaseFragment implements
                     topPanelLayout.setViewVisible(fragmentContextViewWrapper, visibility == VISIBLE);
                 }
             };
+            fragmentContextView.setSpeedHintViewParent(contentView);
             topPanelLayout.setCallFragmentContextView(fragmentContextView);
             fragmentContextViewWrapper.addView(fragmentContextView);
             fragmentLocationContextViewWrapper.addView(fragmentLocationContextView);
@@ -9850,7 +9840,7 @@ public class ChatActivity extends BaseFragment implements
         if (cell == null || cell.timeLayout == null || cell.getMessageObject() == null ||
                 cell.getMessageObject().messageOwner == null ||
                 (chatMode != MODE_DEFAULT && chatMode != MODE_PINNED && chatMode != MODE_SAVED) ||
-                (NekoConfig.hideTimeForSticker.Bool() && cell.getMessageObject().isAnyKindOfSticker())
+                app.regram.chats.StickerTime.isHidden(cell.getMessageObject())
         ) {
             return;
         }
@@ -11650,6 +11640,19 @@ public class ChatActivity extends BaseFragment implements
         dimBehindView(value, false, view != sideControlsButtonsLayout);
     }
 
+    private boolean isDoubleTapReactionAvailable(MessageObject messageObject, String reaction) {
+        if (messageObject != null && messageObject.isForwardedChannelPost()) {
+            final long channelId = -messageObject.getFromChatId();
+            final TLRPC.ChatFull channelInfo = getMessagesController().getChatFull(channelId);
+            if (channelInfo == null) {
+                getMessagesController().loadFullChat(channelId, classGuid, false);
+                return false;
+            }
+            return ChatObject.reactionIsAvailable(channelInfo, reaction);
+        }
+        return dialog_id >= 0 || chatInfo != null && ChatObject.reactionIsAvailable(chatInfo, reaction);
+    }
+
     private void setScrimView(View scrimView) {
         if (this.scrimView == scrimView) {
             return;
@@ -11657,11 +11660,20 @@ public class ChatActivity extends BaseFragment implements
         if (this.scrimView != null) {
             if (this.scrimView instanceof ChatActionCell) {
                 ((ChatActionCell) this.scrimView).setInvalidateWithParent(null);
+            } else if (this.scrimView instanceof ChatMessageCell) {
+                ((ChatMessageCell) this.scrimView).getPhotoImage().setLayerNum(0);
             }
         }
         this.scrimView = scrimView;
         if (this.scrimView instanceof ChatActionCell) {
             ((ChatActionCell) this.scrimView).setInvalidateWithParent(fragmentView);
+        } else if (this.scrimView instanceof ChatMessageCell) {
+            final ImageReceiver photoImage = ((ChatMessageCell) this.scrimView).getPhotoImage();
+            photoImage.setLayerNum(512);
+            final AnimatedFileDrawable animation = photoImage.getAnimation();
+            if (animation != null && !animation.isRunning() && photoImage.getAllowStartAnimation() && NotificationCenter.getGlobalInstance().getCurrentHeavyOperationFlags() != 0) {
+                animation.checkRepeat();
+            }
         }
     }
     public void dimBehindView(boolean enable) {
@@ -11844,10 +11856,10 @@ public class ChatActivity extends BaseFragment implements
         stringBuilder.setSpan(new TypefaceSpan(AndroidUtilities.getTypeface("fonts/ritalic.ttf")), 0, stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         item.addSubItem(text_italic, stringBuilder);
         stringBuilder = new SpannableStringBuilder(LocaleController.getString(R.string.Mono));
-        stringBuilder.setSpan(new TypefaceSpan(Typeface.MONOSPACE), 0, stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        stringBuilder.setSpan(new TypefaceSpan(AndroidUtilities.mono()), 0, stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         item.addSubItem(text_mono, stringBuilder);
         stringBuilder = new SpannableStringBuilder(LocaleController.getString(R.string.MonoCode));
-        stringBuilder.setSpan(new TypefaceSpan(Typeface.MONOSPACE), 0, stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        stringBuilder.setSpan(new TypefaceSpan(AndroidUtilities.mono()), 0, stringBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         item.addSubItem(text_code, stringBuilder);
         if (currentEncryptedChat == null || AndroidUtilities.getPeerLayerVersion(currentEncryptedChat.layer) >= 101) {
             stringBuilder = new SpannableStringBuilder(LocaleController.getString(R.string.Strike));
@@ -13286,8 +13298,8 @@ public class ChatActivity extends BaseFragment implements
                     try {
                         intent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(getParentActivity(), ApplicationLoader.getApplicationId() + ".provider", file));
                         intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    } catch (Exception ignore) {
-                        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+                    } catch (Exception e) {
+                        FileLog.e(e);
                     }
                 } else {
                     intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
@@ -13574,6 +13586,7 @@ public class ChatActivity extends BaseFragment implements
         MessageObject.GroupedMessages groupedMessages = null;
         if (message.getGroupId() != 0) {
             groupedMessages = groupedMessagesMap.get(message.getGroupId());
+            if (groupedMessages != null) groupedMessages.ensurePresentationLayout();
             if (groupedMessages != null && (groupedMessages.messages.size() <= 1 || groupedMessages.getPosition(message) == null)) {
                 groupedMessages = null;
             }
@@ -19130,7 +19143,7 @@ public class ChatActivity extends BaseFragment implements
                         }
 
                         if (cell != null && cell.getPhotoImage().isAnimationRunning()) {
-                            invalidate();
+                            Choreographer60FpsContent.getInstance().postInvalidateView(this);
                         }
 
                         float viewClipLeft = chatListView.getLeft();
@@ -21540,6 +21553,8 @@ public class ChatActivity extends BaseFragment implements
                     size[0] = thumb.size;
                     if (size[0] == 0) size[0] = -1;
                     return thumb;
+                } else {
+                    size[0] = -1;
                 }
             }
             return null;
@@ -21914,6 +21929,17 @@ public class ChatActivity extends BaseFragment implements
             didReceivedNotification5(id, account, args);
             didReceivedNotification6(id, account, args);
             didReceivedNotification7(id, account, args);
+        }
+    }
+
+    private static void hookDeletedHistory(int account, long startId, long endId, int minVal, long dialogId, long topicId, int loadType, long threadId, boolean topic) {
+        if (startId > endId) {
+            long t = startId;
+            startId = endId;
+            endId = t;
+        }
+        if (startId != minVal || endId != minVal) {
+            AyuHistoryHook.doHookAsync(account, startId, endId, dialogId, 200, topicId, loadType, false, threadId, topic);
         }
     }
 
@@ -22381,6 +22407,7 @@ public class ChatActivity extends BaseFragment implements
                 getMediaDataController().loadReplyMessagesForMessages(messArr, dialog_id, chatMode, 0, null, classGuid, null);
             }
             int approximateHeightSum = 0;
+            final boolean measureApproximateHeight = load_type == 2 && first_unread_id != 0;
             if (!chatWasReset && (load_type == 2 || load_type == 1) && messArr.isEmpty() && !isCache) {
                 forwardEndReached[0] = true;
             }
@@ -22413,99 +22440,118 @@ public class ChatActivity extends BaseFragment implements
                 boolean isThreadChat = isThreadChat();
                 boolean isChannelComment = (isReplyChatComment || (isThreadChat && !isTopic));
 
-                int minVal = isSecretChat() ? Integer.MAX_VALUE : 0;
-                int maxVal = isSecretChat() ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+                if (!isChannelComment && !isInScheduleMode() && chatMode != MODE_PINNED) {
+                    int minVal = isSecretChat() ? Integer.MAX_VALUE : 0;
+                    int maxVal = isSecretChat() ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+                    int loadType = load_type;
+                    long threadId = threadMessageId;
+                    boolean topicChat = isTopic;
+                    boolean deferred = false;
 
-                long startId = minVal; // top message (startId < endId)
-                // ...deleted messages
-                long endId = minVal; // bottom message
+                    long startId = minVal; // top message (startId < endId)
+                    // ...deleted messages
+                    long endId = minVal; // bottom message
 
-                Pair<Integer, Integer> msgIds = AyuHistoryHook.getMinAndMaxIds(messArr);
+                    Pair<Integer, Integer> msgIds = AyuHistoryHook.getMinAndMaxIds(messArr);
 
-                if (!DialogObject.isEncryptedDialog(dialogId)) {
-                    if (!messArr.isEmpty()) {
-                        int msg1 = msgIds.first; // smaller
-                        int msg2 = msgIds.second; // bigger
+                    if (!DialogObject.isEncryptedDialog(dialogId)) {
+                        if (!messArr.isEmpty()) {
+                            int msg1 = msgIds.first; // smaller
+                            int msg2 = msgIds.second; // bigger
 
-                        startId = Math.min(msg1, msg2);
-                        endId = Math.max(msg1, msg2);
+                            startId = Math.min(msg1, msg2);
+                            endId = Math.max(msg1, msg2);
 
-                        TLRPC.Dialog dialog = getMessagesController().getDialog(dialogId);
+                            TLRPC.Dialog dialog = getMessagesController().getDialog(dialogId);
 
-                        TLRPC.TL_forumTopic topic = null;
-                        if (isTopic) {
-                            TLRPC.ChatFull chatFull = getCurrentChatInfo();
-                            if (chatFull != null) {
-                                topic = getMessagesController().getTopicsController().findTopic(chatFull.id, getTopicId());
-                            } else if (currentChat != null) {
-                                topic = getMessagesController().getTopicsController().findTopic(currentChat.id, getTopicId());
+                            TLRPC.TL_forumTopic topic = null;
+                            if (isTopic) {
+                                TLRPC.ChatFull chatFull = getCurrentChatInfo();
+                                if (chatFull != null) {
+                                    topic = getMessagesController().getTopicsController().findTopic(chatFull.id, getTopicId());
+                                } else if (currentChat != null) {
+                                    topic = getMessagesController().getTopicsController().findTopic(currentChat.id, getTopicId());
+                                }
+                            }
+
+                            long fallbackStartId = startId;
+                            long fallbackEndId = endId;
+                            if (messArr.size() == 1 && messArr.get(0).messageOwner instanceof TLRPC.TL_messageService) { // TL_messageService
+                                fallbackStartId = minVal;
+                                fallbackEndId = AyuUtils.getMinRealId(messages);
+                            } else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1)) { // allows loading messages that are uppermore than the dialog
+                                fallbackStartId = minVal;
+                                fallbackEndId = Math.min(msg1, msg2);
+                            }
+
+                            if (dialog != null && DialogObject.isUserDialog(dialogId) && (startId == endId && endId == dialog.top_message) && messArr.size() <= 1) { // empty user dialog, so load as much as we can
+                                startId = minVal;
+                                endId = maxVal;
+                            } else if (dialog != null && dialog.top_message == endId || topic != null && topic.top_message == endId) { // allows loading messages that are under bottom messages
+                                endId = maxVal; // startId is the smallest in the current batch
+                            } else if (dialog != null) {
+                                deferred = true;
+                                final long batchStartId = startId;
+                                final long batchEndId = endId;
+                                final long otherStartId = fallbackStartId;
+                                final long otherEndId = fallbackEndId;
+                                final int topMessage = dialog.top_message;
+                                getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                                    Pair<Integer, Integer> minMaxRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
+                                    if (minMaxRes.second == batchEndId && topMessage <= minMaxRes.second) {
+                                        hookDeletedHistory(currentAccount, batchStartId, maxVal, minVal, dialogId, topicId, loadType, threadId, topicChat);
+                                    } else {
+                                        hookDeletedHistory(currentAccount, otherStartId, otherEndId, minVal, dialogId, topicId, loadType, threadId, topicChat);
+                                    }
+                                });
+                            } else {
+                                startId = fallbackStartId;
+                                endId = fallbackEndId;
+                            }
+                        } else {
+                            if (!messages.isEmpty() && load_type != 1) { // for loading uppermore
+                                startId = minVal;
+                                endId = AyuUtils.getMinRealId(messages);
+                            } else if (DialogObject.isUserDialog(dialogId)) { // empty(new) user dialog, so load as much as we can
+                                startId = minVal;
+                                endId = maxVal;
+                            }
+                            if (isCache) {
+                                startId = minVal;
+                                endId = minVal;
                             }
                         }
+                    } else { // works for secret chats only, because they're all cached
+                        deferred = true;
+                        getMessagesStorage().getStorageQueue().postRunnable(() -> {
+                            Pair<Integer, Integer> secretRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
+                            int secretStartId = secretRes.second; // bigger
+                            int secretEndId = secretRes.first; // smaller
 
-                        Pair<Integer, Integer> minMaxRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
-                        if (dialog != null && DialogObject.isUserDialog(dialogId) && (startId == endId && endId == dialog.top_message) && messArr.size() <= 1) { // empty user dialog, so load as much as we can
-                            startId = minVal;
-                            endId = maxVal;
-                        } else if (isChannelComment) { // deleted messages loading in comments
-                            startId = threadMaxOutboxReadId == 0 ? minVal : threadMessageId;
-                            endId = threadMaxOutboxReadId == 0 ? minVal : threadMaxOutboxReadId;
-                        } else if (dialog != null && (dialog.top_message == endId || (minMaxRes.second == endId && dialog.top_message <= minMaxRes.second)) || topic != null && topic.top_message == endId) { // allows loading messages that are under bottom messages
-                            endId = maxVal; // startId is the smallest in the current batch
-                        } else if (messArr.size() == 1 && messArr.get(0).messageOwner instanceof TLRPC.TL_messageService) { // TL_messageService
-                            startId = minVal;
-                            endId = AyuUtils.getMinRealId(messages);
-                        } else if (messArr.size() < count && !isCache && (load_type == 2 || load_type == 1) && !messArr.isEmpty()) { // allows loading messages that are uppermore than the dialog
-                            startId = minVal;
-                            endId = Math.min(msg1, msg2);
-                        }
-                    } else {
-                        if (!messages.isEmpty() && load_type != 1) { // for loading uppermore
-                            startId = minVal;
-                            endId = AyuUtils.getMinRealId(messages);
-                        } else if (DialogObject.isUserDialog(dialogId)) { // empty(new) user dialog, so load as much as we can
-                            startId = minVal;
-                            endId = maxVal;
-                        }
-                        if (isCache) {
-                            startId = minVal;
-                            endId = minVal;
-                        }
+                            int msg1 = msgIds.second; // bigger
+                            int msg2 = msgIds.first; // smaller
+
+                            long secretStart;
+                            long secretEnd;
+                            if (Math.abs(secretStartId - secretEndId) == 1 || (secretStartId == msg1 && secretEndId == msg2)) { // empty dialog, so load as much as we can
+                                secretStart = minVal;
+                                secretEnd = maxVal;
+                            } else if (secretStartId == msg1) { // loaded up to top
+                                secretStart = minVal;
+                                secretEnd = msg2;
+                            } else if (secretEndId == msg2) { // loaded up to bottom
+                                secretStart = msg1;
+                                secretEnd = maxVal;
+                            } else { // just between some messages
+                                secretStart = msg1;
+                                secretEnd = msg2;
+                            }
+                            hookDeletedHistory(currentAccount, secretStart, secretEnd, minVal, dialogId, topicId, loadType, threadId, topicChat);
+                        });
                     }
-                } else { // works for secret chats only, because they're all cached
-                    Pair<Integer, Integer> secretRes = getMessagesStorage().getMinAndMaxForDialog(dialogId);
-                    int secretStartId = secretRes.second; // bigger
-                    int secretEndId = secretRes.first; // smaller
 
-                    int msg1 = msgIds.second; // bigger
-                    int msg2 = msgIds.first; // smaller
-
-                    if (Math.abs(secretStartId - secretEndId) == 1 || (secretStartId == msg1 && secretEndId == msg2)) { // empty dialog, so load as much as we can
-                        startId = minVal;
-                        endId = maxVal;
-                    } else if (secretStartId == msg1) { // loaded up to top
-                        startId = minVal;
-                        endId = msg2;
-                    } else if (secretEndId == msg2) { // loaded up to bottom
-                        startId = msg1;
-                        endId = maxVal;
-                    } else { // just between some messages
-                        startId = msg1;
-                        endId = msg2;
-                    }
-                }
-
-                if (startId > endId) {
-                    long t = startId;
-                    startId = endId;
-                    endId = t;
-                }
-
-                if (!isChannelComment && !isInScheduleMode() && chatMode != MODE_PINNED && (startId != minVal || endId != minVal)) {
-                    boolean needToReset = messArr.size() == count;
-                    int limit = 200;
-                    AyuHistoryHook.doHookAsync(currentAccount, startId, endId, dialogId, limit, topicId, load_type, isChannelComment, threadMessageId, isTopic);
-                    if (needToReset) {
-                        count = messArr.size();
+                    if (!deferred) {
+                        hookDeletedHistory(currentAccount, startId, endId, minVal, dialogId, topicId, loadType, threadId, topicChat);
                     }
                 }
             }
@@ -22531,7 +22577,7 @@ public class ChatActivity extends BaseFragment implements
                         }
                     }
                 }
-                if (approximateHeightSum <= AndroidUtilities.displaySize.y / 2) {
+                if (measureApproximateHeight && approximateHeightSum <= AndroidUtilities.displaySize.y / 2) {
                     approximateHeightSum += getHeightForMessage(obj, false);
                 }
                 if (currentUser != null) {
@@ -27491,7 +27537,11 @@ public class ChatActivity extends BaseFragment implements
                         if (notPushedSponsoredMessages == null) {
                             notPushedSponsoredMessages = new ArrayList<>();
                         }
-                        notPushedSponsoredMessages.add(obj);
+                        // When retrying, arr is notPushedSponsoredMessages itself: obj is already queued,
+                        // and appending to the list being iterated would loop forever.
+                        if (arr != notPushedSponsoredMessages) {
+                            notPushedSponsoredMessages.add(obj);
+                        }
                         continue;
                     }
                 }
@@ -29322,14 +29372,14 @@ public class ChatActivity extends BaseFragment implements
         addActions.put("mono", () -> {
             if (includeMono && NaConfig.INSTANCE.getShowTextMono().Bool()) {
                 SpannableStringBuilder s = new SpannableStringBuilder(LocaleController.getString(R.string.Mono));
-                s.setSpan(new TypefaceSpan(Typeface.MONOSPACE), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                s.setSpan(new TypefaceSpan(AndroidUtilities.mono()), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 menu.add(R.id.menu_groupbolditalic, R.id.menu_mono, order.getAndIncrement(), s);
             }
         });
         addActions.put("code", () -> {
             if (NaConfig.INSTANCE.getShowTextMonoCode().Bool()) {
                 SpannableStringBuilder s = new SpannableStringBuilder(getString(R.string.MonoCode));
-                s.setSpan(new TypefaceSpan(Typeface.MONOSPACE), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                s.setSpan(new TypefaceSpan(AndroidUtilities.mono()), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 menu.add(R.id.menu_groupbolditalic, R.id.menu_code, order.getAndIncrement(), s);
             }
         });
@@ -34446,7 +34496,7 @@ public class ChatActivity extends BaseFragment implements
             chatLayoutManager.setCanScrollVertically(false);
             // openExtera: снимок экрана как источник блюра для меню
             // dimBehindView(v, true) идёт без блюра, поэтому scrimBlur3SourceBitmap иначе остался бы пустым.
-            if (glassMenu) {
+            if (glassMenu && scrimBlur3SourceBitmap.getBitmap() == null) {
                 GlassMenuHelper.captureBlur(scrimBlur3SourceBitmap, scrimBlur3Factory, fragmentView);
             }
             dimBehindView(v, true);
@@ -36982,7 +37032,7 @@ public class ChatActivity extends BaseFragment implements
         } else if (actionBar != null && actionBar.isActionModeShowed()) {
             if (invoked) clearSelectionMode();
             return false;
-        } else if (chatActivityEnterView != null && chatActivityEnterView.isPopupShowing()) {
+        } else if (chatActivityEnterView != null && chatActivityEnterView.isPopupShowing() && !chatActivityEnterView.isPersistentBotKeyboardShowing()) {
             if (invoked) chatActivityEnterView.hidePopup(true);
             return false;
 //        } else if (chatActivityEnterView != null && chatActivityEnterView.hasBotWebView() && chatActivityEnterView.botCommandsMenuIsShowing() && chatActivityEnterView.onBotWebViewBackPressed()) {
@@ -39633,7 +39683,7 @@ public class ChatActivity extends BaseFragment implements
                     cell.resetPressedLink(-1);
                 }
                 if (!messageObject.isVoice()) {
-                    showDialog(new AudioPlayerAlert(getContext(), themeDelegate));
+                    showDialog(app.regram.player.Md3Player.create(getContext(), themeDelegate));
                 }
             } else if (str.startsWith("card:")) {
                 didLongPressCard(cell, url, str.substring(5));
@@ -40507,7 +40557,7 @@ public class ChatActivity extends BaseFragment implements
                 if (view instanceof ChatMessageCell) {
                     final ChatMessageCell messageCell = (ChatMessageCell) view;
                     MessageObject.GroupedMessages groupedMessages = getValidGroupedMessage(message);
-                    messageCell.isChat = currentChat != null || UserObject.isUserSelf(currentUser) || UserObject.isReplyUser(currentUser) || (chatMode == MODE_SEARCH);
+                    messageCell.isChat = currentChat != null || UserObject.isUserSelf(currentUser) || UserObject.isReplyUser(currentUser) || (chatMode == MODE_SEARCH) || app.regram.chats.AllLeft.privateChat(message);
                     messageCell.setSponsoredMessageVisible(true, false);
                     messageCell.isBotForum = UserObject.isBotForum(currentUser);
                     messageCell.isReportChat = isReport();
@@ -44780,6 +44830,8 @@ public class ChatActivity extends BaseFragment implements
                             getString(R.string.ImportAyuDBAlert),
                             R.drawable.msg_photo_settings_solar, getString(R.string.Import), true,
                             () -> AyuData.importAyuDatabase(ChatActivity.this, finalLocFile));
+                } else if (app.regram.backup.AyuDatabaseImport.isAyuGramExport(message.getDocumentName())) {
+                    app.regram.backup.AyuDatabaseImport.confirm(ChatActivity.this, locFile);
                 } else if (app.regram.icons.IconPackManager.isIconPack(message)) {
                     // openExtera: иконпак, присланный файлом в чат
                     app.regram.icons.IconPackManager.getInstance()
@@ -50702,7 +50754,7 @@ public class ChatActivity extends BaseFragment implements
         if (parentFragment == null) {
             return false;
         }
-        if (parentFragment.isThreadChat() && !parentFragment.isTopic || parentFragment.isReport()) {
+        if (parentFragment.isThreadChat() && !parentFragment.isTopic || parentFragment.isReport() || UserObject.isReplyUser(parentFragment.getCurrentUser())) {
             return false;
         }
         return parentFragment.getChatMode() != ChatActivity.MODE_SEARCH && parentFragment.getChatMode() != ChatActivity.MODE_SAVED;

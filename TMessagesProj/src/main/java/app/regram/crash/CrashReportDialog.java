@@ -47,7 +47,7 @@ public final class CrashReportDialog {
 
         final TextView textView = new TextView(context);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-        textView.setTypeface(android.graphics.Typeface.MONOSPACE);
+        textView.setTypeface(org.telegram.messenger.AndroidUtilities.mono());
         textView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         textView.setText(report);
         textView.setTextIsSelectable(true);

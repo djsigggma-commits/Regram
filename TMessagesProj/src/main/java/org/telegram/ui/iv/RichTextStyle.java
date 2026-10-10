@@ -135,6 +135,11 @@ public class RichTextStyle {
         }
         if (rt instanceof TL_iv.textUrl) {
             TL_iv.textUrl url = (TL_iv.textUrl) rt;
+            TL_iv.textCustomEmoji linkedEmoji = app.regram.chats.LinkedCustomEmoji.richEmoji(url);
+            if (linkedEmoji != null) {
+                append(sb, linkedEmoji, flags, block, allowInlineButtons);
+                return;
+            }
             int start = sb.length();
             append(sb, url.text, flags, block, allowInlineButtons);
             if (sb.length() > start && url.url != null) {

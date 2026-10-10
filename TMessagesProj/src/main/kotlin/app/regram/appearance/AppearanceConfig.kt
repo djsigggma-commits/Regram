@@ -254,6 +254,30 @@ object AppearanceConfig {
         return newNavigationBarStyle.Bool()
     }
 
+    @JvmField
+    val md3Player =
+        addConfig("OEAppearanceMd3Player", ConfigItem.configTypeBool, true)
+
+    @JvmStatic
+    fun md3Player(): Boolean {
+        ensureLoaded()
+        return md3Player.Bool()
+    }
+
+    @JvmField
+    val md3MiniPlayer =
+        addConfig("OEAppearanceMd3MiniPlayer", ConfigItem.configTypeBool, true)
+
+    @JvmStatic
+    fun md3MiniPlayer(): Boolean {
+        ensureLoaded()
+        return md3MiniPlayer.Bool()
+    }
+
+    @JvmField
+    val lrclibAllowed =
+        addConfig("OEPlayerLrclibAllowed", ConfigItem.configTypeBool, false)
+
     /** Широкая нижняя панель как в Telegram iOS. Уступает M3-панели, если включены обе. */
     @JvmField
     val iosNavigationBarStyle =
@@ -610,6 +634,7 @@ object AppearanceConfig {
         } else if (!legacyHidden && dividerStyle.Int() == DIVIDER_HIDDEN) {
             NaConfig.hideDividers.setConfigBool(true)
         }
+        migrateLegacyTitleName()
         migrateCustomTitle()
         migrateCenterTitle()
         migrateIosChatHeader()
@@ -651,6 +676,16 @@ object AppearanceConfig {
         }
         if (chat != snow) {
             NaConfig.chatDecoration.setConfigInt(snow)
+        }
+    }
+
+    private const val LEGACY_DEFAULT_TITLE = "Nagram X"
+
+    private fun migrateLegacyTitleName() {
+        if (NaConfig.customTitle.String() != LEGACY_DEFAULT_TITLE) return
+        NaConfig.customTitle.setConfigString(NaConfig.customTitle.defaultValue as String)
+        if (titleText.Int() == TITLE_TEXT_CUSTOM) {
+            titleText.setConfigInt(0)
         }
     }
 

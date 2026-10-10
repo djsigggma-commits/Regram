@@ -2,6 +2,7 @@ package app.regram.plugins.xposed;
 
 import com.chaquo.python.PyObject;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.messenger.BuildConfig;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,8 +11,8 @@ import de.robv.android.xposed.XC_MethodHook;
 
 /**
  * before/after-хук: вызывает Python-методы {@code before_hooked_method(param)} и
- * {@code after_hooked_method(param)} (любой из них может отсутствовать — наличие
- * проверено один раз при регистрации). MethodHookParam передаётся в Python как есть,
+ * {@code after_hooked_method(param)}. Отсутствующий метод и пустой метод, унаследованный
+ * от MethodHook, не вызываются: это решается один раз при регистрации. MethodHookParam передаётся в Python как есть,
  * Chaquopy оборачивает его в прокси (param.thisObject, param.args, param.getResult(),
  * param.setResult(...) доступны из Python).
  *
@@ -23,8 +24,10 @@ public class PyMethodHook extends XC_MethodHook {
     private final String pluginId;
     private final ThreadLocal<java.util.IdentityHashMap<MethodHookParam, ActionBar.UnreadImageView>> badgeDraws = new ThreadLocal<>();
     private final PyObject handler;
-    private final boolean hasBefore;
-    private final boolean hasAfter;
+    private final PyObject beforeCall;
+    private final PyObject afterCall;
+    private final HookStats beforeStats;
+    private final HookStats afterStats;
     private final List<HookFilter> beforeFilters;
     private final List<HookFilter> afterFilters;
 
@@ -57,17 +60,21 @@ public class PyMethodHook extends XC_MethodHook {
         super(priority);
         this.pluginId = pluginId;
         this.handler = handler;
-        this.hasBefore = before && handler != null
-                && handler.containsKey("before_hooked_method");
-        this.hasAfter = after && handler != null
-                && handler.containsKey("after_hooked_method");
+        final int beforeId = BuildConfig.DEBUG_TOOLS ? HookStats.nextId() : -1;
+        final int afterId = BuildConfig.DEBUG_TOOLS ? HookStats.nextId() : -1;
+        this.beforeCall = before && handler != null
+                ? XposedHooks.bindHook(handler, "before_hooked_method", beforeId) : null;
+        this.afterCall = after && handler != null
+                ? XposedHooks.bindHook(handler, "after_hooked_method", afterId) : null;
+        this.beforeStats = BuildConfig.DEBUG_TOOLS && beforeCall != null ? new HookStats(beforeId, pluginId, "before") : null;
+        this.afterStats = BuildConfig.DEBUG_TOOLS && afterCall != null ? new HookStats(afterId, pluginId, "after") : null;
         this.beforeFilters = beforeFilters;
         this.afterFilters = afterFilters;
     }
 
     @Override
     protected void beforeHookedMethod(MethodHookParam param) {
-        if (hasAfter && param.thisObject instanceof ActionBar.UnreadImageView
+        if (afterCall != null && param.thisObject instanceof ActionBar.UnreadImageView
                 && param.method != null && "onDraw".equals(param.method.getName())
                 && HookFilter.evaluateAll(afterFilters, param, false)
                 && ownsUnreadBadge(param.thisObject)) {
@@ -80,16 +87,18 @@ public class PyMethodHook extends XC_MethodHook {
             draws.put(param, view);
             view.beginPluginUnreadBadge();
         }
-        if (hasBefore && HookFilter.evaluateAll(beforeFilters, param, false)) {
-            XposedHooks.callPython(pluginId, handler, "before_hooked_method", param);
+        if (beforeCall != null && HookFilter.evaluateAll(beforeFilters, param, false)) {
+            XposedHooks.callPython(pluginId, beforeCall, param, beforeStats);
+            HookNumbers.coerce(param);
         }
     }
 
     @Override
     protected void afterHookedMethod(MethodHookParam param) {
         try {
-            if (hasAfter && HookFilter.evaluateAll(afterFilters, param, true)) {
-                XposedHooks.callPython(pluginId, handler, "after_hooked_method", param);
+            if (afterCall != null && HookFilter.evaluateAll(afterFilters, param, true)) {
+                XposedHooks.callPython(pluginId, afterCall, param, afterStats);
+                HookNumbers.coerce(param);
             }
         } finally {
             java.util.IdentityHashMap<MethodHookParam, ActionBar.UnreadImageView> draws = badgeDraws.get();
@@ -102,6 +111,15 @@ public class PyMethodHook extends XC_MethodHook {
                     badgeDraws.remove();
                 }
             }
+        }
+    }
+
+    void addTarget(java.lang.reflect.Member member) {
+        if (beforeStats != null) {
+            beforeStats.addTarget(member);
+        }
+        if (afterStats != null) {
+            afterStats.addTarget(member);
         }
     }
 

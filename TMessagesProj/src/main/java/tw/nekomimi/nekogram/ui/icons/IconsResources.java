@@ -3,6 +3,7 @@ package tw.nekomimi.nekogram.ui.icons;
 import android.annotation.SuppressLint;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.util.LruCache;
 
 import androidx.annotation.Nullable;
 
@@ -15,6 +16,7 @@ public class IconsResources extends Resources {
 
     public static final int ICON_REPLACE_SOLAR = 1;
     private int _iconsType = -1;
+    private final LruCache<Long, Drawable.ConstantState> constantStates = new LruCache<>(300);
 
     public IconsResources(Resources resources) {
         super(resources.getAssets(), resources.getDisplayMetrics(), resources.getConfiguration());
@@ -54,11 +56,22 @@ public class IconsResources extends Resources {
     @Nullable
     public Drawable getOriginalDrawableForDensity(int id, int density, @Nullable Theme theme) {
         int converted = getConversion(id);
+        long key = ((long) converted << 32) | (density & 0xffffffffL);
+        Drawable.ConstantState state = constantStates.get(key);
+        if (state != null) {
+            return state.newDrawable(this).mutate();
+        }
         // Только super.getDrawableForDensity: это терминальная реализация в Resources.
         // super.getDrawable(...) звать нельзя — он внутри вызывает виртуальный
         // getDrawableForDensity, попадает обратно в наш override и уходит в рекурсию.
         // density == 0 базовый Resources трактует как «без переопределения плотности».
-        return super.getDrawableForDensity(converted, density, theme);
+        Drawable drawable = super.getDrawableForDensity(converted, density, theme);
+        Drawable.ConstantState loaded = drawable != null ? drawable.getConstantState() : null;
+        if (loaded == null || loaded.canApplyTheme()) {
+            return drawable;
+        }
+        constantStates.put(key, loaded);
+        return loaded.newDrawable(this).mutate();
     }
 
     private int getConversion(int icon) {

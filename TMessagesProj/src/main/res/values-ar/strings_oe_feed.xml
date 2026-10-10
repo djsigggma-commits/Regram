@@ -19,4 +19,7 @@
     <string name="FeedSettings">إعدادات الموجز</string>
     <string name="FeedShownChannels">تظهر في الموجز</string>
     <string name="HideFeedTab">إخفاء تبويب الموجز</string>
+    <string name="FeedAddNewChannels">إضافة القنوات الجديدة</string>
+    <string name="FeedAddNewChannelsOnInfo">تظهر القنوات الجديدة التي تتابعها في الخلاصة تلقائيًا.</string>
+    <string name="FeedAddNewChannelsOffInfo">تبقى القنوات الجديدة مخفية حتى تحددها أدناه.</string>
 </resources>

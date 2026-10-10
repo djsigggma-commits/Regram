@@ -166,7 +166,7 @@ public class ChatScrimPopupContainerLayout extends LinearLayout {
 
     private void updateBottomViewPosition() {
         if (bottomView != null) {
-            bottomView.setTranslationY(bottomViewYOffset + expandSize + bottomViewReactionsOffset - hiddenSwipeBackHeight());
+            bottomView.setTranslationY(Math.min(bottomViewYOffset, -hiddenSwipeBackHeight()) + expandSize + bottomViewReactionsOffset);
         }
     }
 

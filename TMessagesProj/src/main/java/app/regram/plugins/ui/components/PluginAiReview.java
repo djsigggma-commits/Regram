@@ -164,6 +164,26 @@ public final class PluginAiReview {
         if (found != null && !found.isEmpty()) {
             facts.append("\n").append(TextUtils.join(", ", found));
         }
+        PluginCapabilityScan.DexInfo dex = PluginCapabilityScan.dexInfo(capabilities);
+        if (dex != null) {
+            facts.append("\nEmbedded DEX: ").append(dex.size).append(" bytes, ")
+                    .append(dex.loaded ? "loaded and run by the plugin" : "never loaded by the plugin code")
+                    .append(", classes: ").append(TextUtils.join(", ", dex.classes));
+            if (dex.moreClasses > 0) {
+                facts.append(" and ").append(dex.moreClasses).append(" more");
+            }
+            List<String> uses = new ArrayList<>();
+            for (String permission : PluginCapabilityScan.ordered(capabilities)) {
+                for (String evidence : PluginCapabilityScan.evidenceOf(capabilities, permission)) {
+                    if (evidence.startsWith("DEX: ")) {
+                        uses.add(evidence.substring(5));
+                    }
+                }
+            }
+            if (!uses.isEmpty()) {
+                facts.append("\nDEX references: ").append(TextUtils.join(", ", uses));
+            }
+        }
         return facts.toString();
     }
 

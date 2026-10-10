@@ -614,8 +614,11 @@ public class SharedLinkCell extends FrameLayout {
     }
 
     public void setLink(MessageObject messageObject, boolean divider) {
-        needDivider = divider;
         resetPressedLink();
+        if (message == messageObject && needDivider == divider) {
+            return;
+        }
+        needDivider = divider;
         message = messageObject;
 
         requestLayout();

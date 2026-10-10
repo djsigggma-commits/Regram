@@ -24,6 +24,8 @@ public class ExtendedGridLayoutManager extends GridLayoutManager {
     private SparseIntArray itemSpans = new SparseIntArray();
     private SparseIntArray itemsToRow = new SparseIntArray();
     private int lastSpanCount;
+    private int lastItemsCount;
+    private boolean layoutDirty = true;
     private int firstRowMax;
     private int rowsCount;
     private int calculatedWidth;
@@ -57,7 +59,9 @@ public class ExtendedGridLayoutManager extends GridLayoutManager {
         firstRowMax = 0;
 
         final int itemsCount = getFlowItemCount();
-        lastSpanCount = itemsCount;
+        lastSpanCount = getSpanCount();
+        lastItemsCount = itemsCount;
+        layoutDirty = false;
         if (itemsCount == 0) {
             return;
         }
@@ -162,7 +166,7 @@ public class ExtendedGridLayoutManager extends GridLayoutManager {
     }
 
     private void checkLayout() {
-        if (itemSpans.size() != getFlowItemCount() || calculatedWidth != getWidth() || lastSpanCount != getSpanCount()) {
+        if (layoutDirty || lastItemsCount != getFlowItemCount() || calculatedWidth != getWidth() || lastSpanCount != getSpanCount()) {
             calculatedWidth = getWidth();
             prepareLayout(getWidth());
         }
@@ -175,6 +179,7 @@ public class ExtendedGridLayoutManager extends GridLayoutManager {
 
     public int getRowsCount(int width) {
         if (rowsCount == 0) {
+            calculatedWidth = width;
             prepareLayout(width);
         }
         return rowsCount;
@@ -192,6 +197,48 @@ public class ExtendedGridLayoutManager extends GridLayoutManager {
 
     protected int getFlowItemCount() {
         return getItemCount();
+    }
+
+    @Override
+    public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+        layoutDirty = true;
+        super.onLayoutChildren(recycler, state);
+    }
+
+    @Override
+    public void onAdapterChanged(RecyclerView.Adapter oldAdapter, RecyclerView.Adapter newAdapter) {
+        layoutDirty = true;
+        super.onAdapterChanged(oldAdapter, newAdapter);
+    }
+
+    @Override
+    public void onItemsChanged(RecyclerView recyclerView) {
+        layoutDirty = true;
+        super.onItemsChanged(recyclerView);
+    }
+
+    @Override
+    public void onItemsAdded(RecyclerView recyclerView, int positionStart, int itemCount) {
+        layoutDirty = true;
+        super.onItemsAdded(recyclerView, positionStart, itemCount);
+    }
+
+    @Override
+    public void onItemsRemoved(RecyclerView recyclerView, int positionStart, int itemCount) {
+        layoutDirty = true;
+        super.onItemsRemoved(recyclerView, positionStart, itemCount);
+    }
+
+    @Override
+    public void onItemsUpdated(RecyclerView recyclerView, int positionStart, int itemCount, Object payload) {
+        layoutDirty = true;
+        super.onItemsUpdated(recyclerView, positionStart, itemCount, payload);
+    }
+
+    @Override
+    public void onItemsMoved(RecyclerView recyclerView, int from, int to, int itemCount) {
+        layoutDirty = true;
+        super.onItemsMoved(recyclerView, from, to, itemCount);
     }
 
     @Override

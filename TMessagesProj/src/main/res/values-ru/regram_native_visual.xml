@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="OEAppearanceNativeVisual">Встроенное оформление</string>
+    <string name="OEAppearanceNativeVisualInfo">Единый цвет интерфейса и все сообщения слева — встроено в клиент</string>
+    <string name="RegramMonoColor">Включить MonoColor UI</string>
+    <string name="RegramMonoSource">Источник цвета</string>
+    <string name="RegramMonoCustomColor">Свой цвет</string>
+    <string name="RegramMonoButton">Кнопка</string>
+    <string name="RegramMonoAccent">Акцент темы</string>
+    <string name="RegramMonoHeader">Шапка</string>
+    <string name="RegramMonoLinks">Ссылки</string>
+    <string name="RegramMonoFloating">Плавающая кнопка</string>
+    <string name="RegramMonoOutgoing">Исходящие сообщения</string>
+    <string name="RegramMonoGradient">Градиент</string>
+    <string name="RegramMonoAvatars">Аватарки и фотографии профилей</string>
+    <string name="RegramMonoStories">Кольца историй, близких друзей и эфиров</string>
+    <string name="RegramMonoNames">Имена отправителей</string>
+    <string name="RegramMonoDialogs">Названия чатов и последние сообщения</string>
+    <string name="RegramMonoProfiles">Пользовательские цвета профилей</string>
+    <string name="RegramMonoInfo">Выбранный оттенок адаптируется к светлой и тёмной теме. Плагин не нужен. Перед включением отключите исходный плагин MonoColor UI. Функция основана на MonoColor UI от @limeplug.</string>
+    <string name="RegramAllLeft">Включить AllLeft</string>
+    <string name="RegramAllLeftPrivate">Только личные чаты</string>
+    <string name="RegramAllLeftStatus">Галочки доставки и прочтения на моих сообщениях</string>
+    <string name="RegramAllLeftInfo">Сообщения рисуются слева, с именами и аватарками. Подряд идущие сообщения одного отправителя собираются в стопку. Избранное и рекламные сообщения не меняются. Принадлежность сообщений и отправка не изменяются. Перед включением отключите исходный плагин AllLeft. Функция основана на AllLeft от @limeplug.</string>
+    <string name="RegramMentionAvatars">Аватары рядом с упоминаниями</string>
+    <string name="RegramMentionPosition">Расположение аватара</string>
+    <string name="RegramMentionBefore">Перед ником</string>
+    <string name="RegramMentionAfter">После ника</string>
+    <string name="RegramMentionSize">Размер аватара</string>
+    <string name="RegramMentionSmall">Маленький (14 dp)</string>
+    <string name="RegramMentionMedium">Обычный (16 dp)</string>
+    <string name="RegramMentionLarge">Большой (18 dp)</string>
+    <string name="RegramMentionChats">Каналы и группы</string>
+    <string name="RegramMentionBots">Боты</string>
+    <string name="RegramMentionInfo">Аватары у упоминаний в сообщениях и подписях к медиа. Используются пользователи и чаты, уже известные текущему аккаунту, без запросов поиска и перехода к другим аккаунтам. Спойлеры и код исключены. Текст, копирование и позиции сущностей не изменяются. Отключите исходный плагин MentionAvatars. Функция основана на MentionAvatars 1.1.1 от @limeplug.</string>
+    <string name="RegramPlayerColor">Свой цвет плеера</string>
+    <string name="RegramPlayerPreset">Пресет</string>
+    <string name="RegramPlayerHex">Свой цвет (HEX)</string>
+    <string name="RegramPlayerInvalidHex">Введите #RGB или #RRGGBB</string>
+    <string name="RegramPlayerInfo">Встроенный Player Color 1.3 от @neptuniy237. Палитра мини-плеера и полного плеера, с обложкой и без неё. Отключите исходный плагин Player Color. Обновится при следующем событии плеера: паузе или смене трека.</string>
+    <string-array name="RegramPlayerColorPresets">
+        <item>Свой цвет (HEX)</item><item>Красный</item><item>Розовый</item><item>Фиолетовый</item><item>Индиго</item><item>Синий</item><item>Бирюзовый</item><item>Зелёный</item><item>Лайм</item><item>Жёлтый</item><item>Оранжевый</item><item>Коричневый</item><item>Серый</item>
+    </string-array>
+</resources>

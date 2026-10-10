@@ -344,6 +344,9 @@ public final class EtgBackup {
         bool(list, "immersiveDrawerAnimation", AppearanceConfig.immersiveDrawerAnimation);
         bool(list, "showFeedTab", AppearanceConfig.showFeedTab);
         bool(list, "hideStickerTime", NekoConfig.hideTimeForSticker);
+        list.add(new Entry(SECTION_EXTERA, "stickerTimeMode", KIND_INT, 0, 2, null,
+                () -> new JsonPrimitive(ChatsConfig.stickerTimeMode()),
+                value -> ChatsConfig.setStickerTimeMode(value.getAsInt())));
         bool(list, "replyColors", ChatsConfig.replyColors);
         bool(list, "replyEmoji", ChatsConfig.replyEmoji);
         bool(list, "replyBackground", ChatsConfig.replyBackground);

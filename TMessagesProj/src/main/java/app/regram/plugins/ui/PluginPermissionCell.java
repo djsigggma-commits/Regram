@@ -137,6 +137,14 @@ public class PluginPermissionCell extends FrameLayout {
         setWillNotDraw(false);
     }
 
+    public void applyColors(int title, int subtitle, int icon, int evidenceBackground) {
+        titleView.setTextColor(title);
+        subtitleView.setTextColor(subtitle);
+        evidenceView.setTextColor(subtitle);
+        evidenceView.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(12), evidenceBackground));
+        expandView.setColorFilter(new PorterDuffColorFilter(icon, PorterDuff.Mode.SRC_IN));
+    }
+
     public void setOnExpandChanged(Runnable listener) {
         onExpandChanged = listener;
     }

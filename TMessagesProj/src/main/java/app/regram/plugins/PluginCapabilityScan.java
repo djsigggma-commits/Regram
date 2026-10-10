@@ -33,6 +33,7 @@ public final class PluginCapabilityScan {
 
     /** Ключ разбора, который не является разрешением: код плагина нечитаем. */
     public static final String KEY_OBFUSCATION = "obfuscation";
+    public static final String KEY_DEX = "dex";
 
     private PluginCapabilityScan() {
     }
@@ -62,7 +63,7 @@ public final class PluginCapabilityScan {
             JSONObject parsed = new JSONObject(json);
             for (Iterator<String> keys = parsed.keys(); keys.hasNext(); ) {
                 String key = keys.next();
-                if (!PluginPermissions.isKnown(key) && !KEY_OBFUSCATION.equals(key)) {
+                if (!PluginPermissions.isKnown(key) && !KEY_OBFUSCATION.equals(key) && !KEY_DEX.equals(key)) {
                     continue;  // "error" и всё незнакомое
                 }
                 JSONArray array = parsed.optJSONArray(key);
@@ -147,6 +148,47 @@ public final class PluginCapabilityScan {
 
     public static boolean isObfuscated(Map<String, List<String>> capabilities) {
         return !obfuscationEvidence(capabilities).isEmpty();
+    }
+
+    public static final class DexInfo {
+        public long size;
+        public boolean loaded;
+        public final List<String> classes = new ArrayList<>();
+        public int moreClasses;
+    }
+
+    public static DexInfo dexInfo(Map<String, List<String>> capabilities) {
+        List<String> items = evidenceOf(capabilities, KEY_DEX);
+        if (items.isEmpty()) {
+            return null;
+        }
+        DexInfo info = new DexInfo();
+        for (String item : items) {
+            int colon = item.indexOf(':');
+            if (colon <= 0) {
+                continue;
+            }
+            String key = item.substring(0, colon);
+            String value = item.substring(colon + 1);
+            try {
+                switch (key) {
+                    case "size":
+                        info.size = Long.parseLong(value);
+                        break;
+                    case "loaded":
+                        info.loaded = "yes".equals(value);
+                        break;
+                    case "class":
+                        info.classes.add(value);
+                        break;
+                    case "more":
+                        info.moreClasses = Integer.parseInt(value);
+                        break;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return info;
     }
 
     /** Улики одного разрешения; пустой список, если разбора нет. */
