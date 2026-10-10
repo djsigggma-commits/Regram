@@ -212,7 +212,8 @@ public class PluginsController extends com.exteragram.messenger.plugins.PluginsC
         if (store == null) {
             return false;
         }
-        cached = store.getBoolean(PluginsConstants.KEY_UNSAFE_MODE, false);
+        // Default to compatibility mode; preserve an explicit user opt-out.
+        cached = store.getBoolean(PluginsConstants.KEY_UNSAFE_MODE, true);
         unsafeMode = cached;
         return cached;
     }

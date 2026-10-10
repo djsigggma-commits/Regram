@@ -69,6 +69,28 @@ def test_in_app_icon_previews_use_layers_and_intro_has_no_zoom():
     assert "ImageView.ScaleType.FIT_CENTER" in about
 
 
+def test_updater_and_settings_use_regram_not_renamed_upstream_icons():
+    java = ROOT / 'TMessagesProj/src/main/java'
+    updater = (java / 'app/regram/updater/UpdaterSheet.java').read_text()
+    assert 'logo.setImageResource(R.drawable.regram_launcher_art)' in updater
+    assert 'logo.setImageResource(R.drawable.regram_icon)' not in updater
+    assert 'logo.setBackgroundColor(AboutHeaderCell.LOGO_BACKGROUND)' not in updater
+    android_src = '{http://schemas.android.com/apk/res/android}src'
+    drawable = ROOT / 'TMessagesProj/src/main/res/drawable'
+    assert ET.parse(drawable / 'regram_icon_tile.xml').getroot().get(android_src) == '@drawable/regram_settings_mark'
+    assert ET.parse(drawable / 'regram_icon_monochrome.xml').getroot().get(android_src) == '@drawable/regram_launcher_monochrome'
+    image = pytest.importorskip('PIL.Image')
+    with image.open(ROOT / 'logo/icon_clean_light.png') as original:
+        mark = original.convert('RGBA')
+        expected = image.new('RGBA', (432, 432), (0, 0, 0, 0))
+        height = round(324 * mark.height / mark.width)
+        expected.alpha_composite(mark.resize((324, height), image.Resampling.LANCZOS),
+                                 ((432 - 324) // 2, (432 - height) // 2))
+        for qualifier in ('drawable-nodpi', 'drawable-night-nodpi'):
+            with image.open(RES / qualifier / 'regram_settings_mark.png') as actual:
+                assert actual.convert('RGBA').tobytes() == expected.tobytes()
+
+
 def test_only_explicitly_pinned_plugin_payloads_are_bundled():
     source = ROOT / "TMessagesProj/src/main"
     payloads = {

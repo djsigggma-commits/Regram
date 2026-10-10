@@ -73,8 +73,8 @@ public class SpannableStringBuilder implements Spanned {
         'org/telegram/ui/Components/TextStyleSpan.java': 'package org.telegram.ui.Components; public class TextStyleSpan {public static final int FLAG_STYLE_SPOILER=1, FLAG_STYLE_MONO=2, FLAG_STYLE_CODE=4; public static class TextStyleRun {public int flags;} boolean spoiler,mono; public TextStyleSpan(boolean s,boolean m){spoiler=s;mono=m;} public boolean isSpoiler(){return spoiler;} public boolean isMono(){return mono;}}',
         'app/regram/chats/MentionAvatarSpan.java': '''package app.regram.chats; import android.view.View; import org.telegram.tgnet.TLObject;
 public class MentionAvatarSpan extends android.text.style.ReplacementSpan {
- public final TLObject peer; public final float size; public final boolean before; public View parent;
- public MentionAvatarSpan(int account,float size,boolean before,TLObject peer){this.size=size;this.before=before;this.peer=peer;}
+ public final TLObject peer; public final float size; public final boolean before; public View parent; public final android.text.style.URLSpan link;
+ public MentionAvatarSpan(int account,float size,boolean before,TLObject peer,android.text.style.URLSpan link){this.size=size;this.before=before;this.peer=peer;this.link=link;}
  public void setParent(View v){parent=v;}
 }''',
         'tw/nekomimi/nekogram/NekoConfig.java': '''package tw.nekomimi.nekogram; public class NekoConfig {
@@ -109,6 +109,7 @@ public class MentionTest {
   assert avatars(decorated).length==1; MentionAvatarSpan avatar=avatars(decorated)[0];
   assert ((Spanned)decorated).getSpanStart(avatar)==3 && ((Spanned)decorated).getSpanEnd(avatar)==4;
   URLSpan clickable=((Spanned)decorated).getSpans(0,decorated.length(),URLSpan.class)[0];
+  assert avatar.link==clickable;
   assert ((Spanned)decorated).getSpanStart(clickable)==3 && ((Spanned)decorated).getSpanEnd(clickable)==7;
   SpannableStringBuilder longLink=new SpannableStringBuilder("https://t.me/foo/"+"a".repeat(500));
   longLink.setSpan(new URLSpan("https://t.me/foo/123"),0,longLink.length(),33);

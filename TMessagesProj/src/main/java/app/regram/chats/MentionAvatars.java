@@ -63,7 +63,7 @@ public final class MentionAvatars {
             if (!allowed(peer)) continue;
             boolean before = position() == 0;
             int[] range = avatarRange(result, start, end, before);
-            MentionAvatarSpan span = new MentionAvatarSpan(account, sizeDp(), before, peer);
+            MentionAvatarSpan span = new MentionAvatarSpan(account, sizeDp(), before, peer, url);
             result.setSpan(span, range[0], range[1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             added++;
         }

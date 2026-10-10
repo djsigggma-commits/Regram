@@ -40,7 +40,9 @@ def generate():
                                 ("regram_launcher_foreground", foreground),
                                 ("regram_launcher_art", artwork.resize((CANVAS, CANVAS), Image.Resampling.LANCZOS)),
                                 ("regram_launcher_monochrome", mark_layer(
-                                    mono_source.convert("RGBA"), ADAPTIVE_MARK_WIDTH))):
+                                    mono_source.convert("RGBA"), ADAPTIVE_MARK_WIDTH)),
+                                ("regram_settings_mark", mark_layer(
+                                    mono_source.convert("RGBA"), 324))):
                 image.save(directory / f"{name}.png", optimize=True)
             for density, size in SIZES.items():
                 directory = RES / f"mipmap{qualifier}-{density}"

@@ -8,7 +8,7 @@ def test_beta14_version_and_chaquopy_revision():
     props = (ROOT / 'gradle.properties').read_text()
     assert 'APP_VERSION_NAME=12.10.6\n' in props
     assert 'APP_VERSION_CODE=7112\n' in props
-    assert 'REGRAM_VERSION=1.0.8\n' in props
+    assert 'REGRAM_VERSION=1.0.9\n' in props
     restore = (ROOT / 'tools/restore_submodules.sh').read_text()
     assert 'v12.10.6-beta14' in restore
     assert 'c217deac1c2df5ab879b9844d911e1c90e59a4c1' in restore
@@ -34,7 +34,7 @@ def test_release_branding_and_sticker_rows_use_current_symbols():
     chats = (java / 'settings/OpenExteraChatsActivity.java').read_text()
     assert 'return LauncherIcon.REGRAM;' in icons
     assert 'LauncherIcon.EXTERALESS' not in icons
-    assert 'R.drawable.regram_icon' in updater
+    assert 'R.drawable.regram_launcher_art' in updater
     assert 'R.drawable.exteraless_icon' not in updater
     assert 'import org.telegram.messenger.FileLog;' in replacement
     assert 'hideTimeOnStickersRow' not in chats
