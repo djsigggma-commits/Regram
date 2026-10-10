@@ -915,6 +915,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 h += storiesHeight * (1f - searchAnimationProgress) * (1f - rightSlidingProgress) * (1f - progressToActionMode);
             }
             h += storiesOverscroll;
+            h += getTopFoldersHeight();
             h += getIdleSearchFieldHeight() * (1f - progressToActionMode) * (1f - searchAnimationProgress) * (1f - rightSlidingProgress);
 
             return (int) h;
@@ -2130,8 +2131,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             }
             additionalPadding = 0;
 
-            // Folders live at the bottom; they must not reserve space in the header.
-            final float filterTabsVisibility = 0f;
+            // Only top folders reserve header space; bottom folders reserve bottom padding.
+            final float filterTabsVisibility = AppearanceConfig.foldersAtTop()
+                    ? getFilterTabsVisibilityFactor(true) : 0f;
             final float topPanelsVisibility = topPanelLayout != null ? topPanelLayout.getMetadata().getTotalVisibility() : 0f;
 
             t += (int) (dp(36 + 14) * filterTabsVisibility);
@@ -6841,17 +6843,19 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
         if (filterTabsView != null) {
             View parent = (View) filterTabsView.getParent();
-            if (parent != null) {
+            if (AppearanceConfig.foldersAtTop()) {
+                filterTabsView.setTranslationY(totalOffset - searchOffset);
+                filtersTabVisibility = filterTabsView.getAlpha();
+            } else if (parent != null) {
                 filterTabsView.setTranslationY(parent.getMeasuredHeight()
                         - getBottomFoldersPadding() - filterTabsView.getTop());
             }
-            filtersTabVisibility = filterTabsView.getAlpha();
         }
 
         if (topPanelLayout != null) {
             final float searchTopPanelOffset = dp(SEARCH_FIELD_HEIGHT) - getIdleSearchFieldHeight();
             topPanelLayout.setTranslationY(lerp(
-                totalOffset - searchOffset,
+                totalOffset - searchOffset + getTopFoldersHeight(),
                 searchTopPanelOffset - dp(3) - (searchTabsView == null ? dp(44) : 0),
                 animatorSearchVisible.getFloatValue()));
             topPanelsVisibility = topPanelLayout.getMetadata().getTotalVisibility();
@@ -6861,7 +6865,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (topBubblesFadeView != null) {
             topBubblesFadeView.setTranslationY(fadeViewT - searchOffset);
             final float s = lerp(dp(7), dp(50), Math.min(topPanelsVisibility, filtersTabVisibility));
-            topBubblesFadeView.setPosition(s, Math.min(dp(40), topPanelsHeight - s));
+            topBubblesFadeView.setPosition(s, Math.min(dp(40), topPanelsHeight + getTopFoldersHeight() - s));
             topBubblesFadeView.setAlpha(Math.max(filtersTabVisibility, topPanelsVisibility));
         }
     }
@@ -14767,6 +14771,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         final int actionBarHeight = actionBar.getMeasuredHeight()
             + getIdleSearchFieldHeight()
             + dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)
+            + getTopFoldersHeight()
             + (topPanelLayout != null && topPanelLayout.getVisibility() == View.VISIBLE ? topPanelLayout.getSumHeightOfAllVisibleChild() : 0)
             + ((int) scrollYOffset);
 
@@ -14810,9 +14815,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    private int getBottomFoldersHeight() {
+    private int getVisibleFoldersHeight() {
         return filterTabsView != null && filterTabsView.getVisibility() == View.VISIBLE
                 ? (int) (filterTabsView.getMeasuredHeight() * filterTabsView.getAlpha()) : 0;
+    }
+
+    private int getTopFoldersHeight() {
+        return AppearanceConfig.foldersAtTop() ? getVisibleFoldersHeight() : 0;
+    }
+
+    private int getBottomFoldersHeight() {
+        return AppearanceConfig.foldersAtTop() ? 0 : getVisibleFoldersHeight();
     }
 
     private int getBottomFoldersPadding() {

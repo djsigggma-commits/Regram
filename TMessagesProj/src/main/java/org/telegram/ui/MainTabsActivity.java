@@ -306,27 +306,8 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     }
 
     private boolean tabletLayout;
+    /** Kept for callers/plugins; layout is handled by the wrapper and window insets. */
     public void updateLayout() {
-//        if (tabletLayout == AndroidUtilities.isTablet()) return;
-//        tabletLayout = AndroidUtilities.isTablet();
-//
-//        final boolean isUpdateLayoutVisible = updateLayoutWrapper.isUpdateLayoutVisible();
-//        final int updateLayoutHeight = isUpdateLayoutVisible ? dp(UpdateLayoutWrapper.HEIGHT) : 0;
-//        int bottomMargin = isUpdateLayoutVisible ? (navigationBarHeight + updateLayoutHeight) : 0;
-//        if (tabletLayout) {
-//            bottomMargin = Math.max(bottomMargin, navigationBarHeight + dp(DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS));
-//        }
-//        final FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL);
-//        if (tabletLayout) {
-//            lp.leftMargin = dp(6);
-//            lp.rightMargin = dp(6);
-//            lp.topMargin = dp(6);
-//        }
-//        lp.bottomMargin = bottomMargin;
-//
-//        viewPager.setLayoutParams(lp);
-//        viewPager.setTabletLayout(tabletLayout);
-//        checkUi_fadeView();
     }
 
     @Override
@@ -386,7 +367,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         tabsView.setClipChildren(false);
         // В M3 панель без внутренних
         // отступов и без ограничения ширины
-        MainTabsUiHelper.applyTabsLayoutStyle(tabsView, MainTabsHelper.getTabsViewWidth());
+        MainTabsUiHelper.applyTabsLayoutStyle(tabsView, dp(MainTabsHelper.getTabsViewWidth()));
 
         tabs = new GlassTabView[7];
         tabs[INDEX_CHATS] = GlassTabView.createMainTab(context, resourceProvider, GlassTabView.TabAnimation.CHATS, R.string.MainTabsChats);

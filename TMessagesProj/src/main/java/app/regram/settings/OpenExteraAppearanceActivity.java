@@ -132,6 +132,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     // Folders
     private int foldersHeaderRow;
     private int foldersPreviewRow;
+    private int foldersAtTopRow;
     private int tabTitleStyleRow;
     private int tabCounterRow;
     private int foldersDividerRow;
@@ -189,6 +190,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
 
         foldersHeaderRow = addRow("foldersHeader");
         foldersPreviewRow = addRow("foldersPreview");
+        foldersAtTopRow = addRow("foldersAtTop");
         tabTitleStyleRow = addRow("tabTitleStyle");
         tabCounterRow = addRow("tabCounter");
         foldersDividerRow = addRow();
@@ -684,6 +686,13 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                 showRestartHint();
             });
             return;
+        } else if (position == foldersAtTopRow) {
+            AppearanceConfig.foldersAtTop.setConfigBool(!AppearanceConfig.foldersAtTop());
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(AppearanceConfig.foldersAtTop());
+            }
+            rebuildAll();
+            return;
         } else if (position == centerTitleRow) {
             // Обычный переключатель, а не селектор из четырёх пунктов:
             // центровка либо есть, либо нет.
@@ -915,7 +924,10 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                     // иначе строка, побывавшая заблокированной, останется полупрозрачной.
                     cell.setEnabled(position != separateHeadersRow
                             || !AppearanceConfig.sectionsSeparatedHeadersForced(), null);
-                    if (position == centerTitleRow) {
+                    if (position == foldersAtTopRow) {
+                        cell.setTextAndCheck(getString(R.string.OEAppearanceFoldersAtTop),
+                                AppearanceConfig.foldersAtTop(), true);
+                    } else if (position == centerTitleRow) {
                         cell.setTextAndCheck(getString(R.string.OEAppearanceCenterTitle),
                                 AppearanceConfig.INSTANCE.centerTitle(), true);
                     } else if (position == useSystemFontsRow) {

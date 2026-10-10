@@ -8,7 +8,7 @@ def test_beta14_version_and_chaquopy_revision():
     props = (ROOT / 'gradle.properties').read_text()
     assert 'APP_VERSION_NAME=12.10.6\n' in props
     assert 'APP_VERSION_CODE=7112\n' in props
-    assert 'REGRAM_VERSION=1.0.7\n' in props
+    assert 'REGRAM_VERSION=1.0.8\n' in props
     restore = (ROOT / 'tools/restore_submodules.sh').read_text()
     assert 'v12.10.6-beta14' in restore
     assert 'c217deac1c2df5ab879b9844d911e1c90e59a4c1' in restore

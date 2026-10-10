@@ -30,6 +30,7 @@ public class RingPlayButton extends View {
     private final float radius;
     private final float maxAmplitude;
     private final int waves;
+    private final WaveRingGeometry geometry;
     private int ringColor;
     private int iconColor;
     private MessageObject message;
@@ -44,6 +45,7 @@ public class RingPlayButton extends View {
         radius = dp(radiusDp);
         maxAmplitude = dpf2(amplitudeDp);
         this.waves = waves;
+        geometry = new WaveRingGeometry(waves);
         playIcon = PlayerIcon.fill(PlayerIcon.PLAY, iconDp);
         pauseIcon = PlayerIcon.fill(PlayerIcon.PAUSE, iconDp);
         trackPaint.setStyle(Paint.Style.STROKE);
@@ -119,33 +121,35 @@ public class RingPlayButton extends View {
         drawnProgress = progress;
         float sweep = 360f * progress;
         if (sweep > 0.5f) {
-            path.rewind();
-            boolean first = true;
-            for (float deg = 0; ; deg += 3f) {
-                boolean last = deg >= sweep;
-                float d = last ? sweep : deg;
-                double th = Math.toRadians(d - 90);
-                float r = radius + amplitude * (float) Math.sin(waves * Math.toRadians(d) - phase);
-                float x = cx + r * (float) Math.cos(th);
-                float y = cy + r * (float) Math.sin(th);
-                if (first) {
-                    path.moveTo(x, y);
-                    first = false;
-                } else {
-                    path.lineTo(x, y);
-                }
-                if (last) {
-                    break;
-                }
-            }
             ringPaint.setColor(ringColor);
-            canvas.drawPath(path, ringPaint);
+            if (amplitude == 0f) {
+                canvas.drawArc(cx - radius, cy - radius, cx + radius, cy + radius,
+                        -90, sweep, false, ringPaint);
+            } else {
+                path.rewind();
+                float sinPhase = (float) Math.sin(phase);
+                float cosPhase = (float) Math.cos(phase);
+                for (int i = 0; i * WaveRingGeometry.STEP_DEGREES < sweep; i++) {
+                    float r = geometry.radiusAt(i, radius, amplitude, sinPhase, cosPhase);
+                    float x = cx + r * WaveRingGeometry.X[i];
+                    float y = cy + r * WaveRingGeometry.Y[i];
+                    if (i == 0) path.moveTo(x, y);
+                    else path.lineTo(x, y);
+                }
+                // Only the fractional endpoint needs fresh trigonometry.
+                double th = Math.toRadians(sweep - 90);
+                float r = radius + amplitude * (float) Math.sin(waves * Math.toRadians(sweep) - phase);
+                path.lineTo(cx + r * (float) Math.cos(th), cy + r * (float) Math.sin(th));
+                canvas.drawPath(path, ringPaint);
+            }
         }
         float t = Math.max(0f, Math.min(1f, alt.value));
         drawIcon(canvas, playIcon, 1f - t, 1f - 0.4f * alt.value);
         drawIcon(canvas, pauseIcon, t, 0.6f + 0.4f * alt.value);
         removeCallbacks(waveFrame);
-        if (animating || targetAmp != amplitude) {
+        if (!isShown() || getWindowVisibility() != VISIBLE) {
+            lastFrame = 0;
+        } else if (animating || targetAmp != amplitude) {
             postInvalidateOnAnimation();
         } else if (amplitude > 0f) {
             postDelayed(waveFrame, WAVE_FRAME_MS);

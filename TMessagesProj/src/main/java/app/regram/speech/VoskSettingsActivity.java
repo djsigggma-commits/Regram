@@ -16,8 +16,9 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.BulletinFactory;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 
 import tw.nekomimi.nekogram.settings.BaseNekoSettingsActivity;
 import tw.nekomimi.nekogram.ui.cells.HeaderCell;
@@ -25,6 +26,9 @@ import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 public class VoskSettingsActivity extends BaseNekoSettingsActivity implements VoskManager.DownloadListener {
 
     private final List<VoskModel> models = VoskModels.all();
+    private final HashMap<String, Long> installedSizes = new HashMap<>();
+    private final HashSet<String> pendingSizes = new HashSet<>();
+    private int sizeGeneration;
 
     private int languagesHeaderRow;
     private int languagesStartRow;
@@ -40,6 +44,9 @@ public class VoskSettingsActivity extends BaseNekoSettingsActivity implements Vo
     @Override
     public void onFragmentDestroy() {
         VoskManager.removeListener(this);
+        sizeGeneration++;
+        pendingSizes.clear();
+        installedSizes.clear();
         super.onFragmentDestroy();
     }
 
@@ -104,6 +111,9 @@ public class VoskSettingsActivity extends BaseNekoSettingsActivity implements Vo
         builder.setMessage(getString(R.string.VoskDeleteModelConfirm));
         builder.setPositiveButton(getString(R.string.Delete), (dialog, which) -> {
             VoskManager.delete(model.code);
+            sizeGeneration++;
+            pendingSizes.clear();
+            installedSizes.remove(model.code);
             if (listAdapter != null) {
                 listAdapter.notifyItemRangeChanged(languagesStartRow, models.size());
             }
@@ -137,6 +147,7 @@ public class VoskSettingsActivity extends BaseNekoSettingsActivity implements Vo
         if (error != null && !(error instanceof InterruptedException)) {
             BulletinFactory.of(this).createErrorBulletin(getString(R.string.VoskDownloadFailed)).show();
         } else if (error == null) {
+            installedSizes.remove(model.code);
             VoskManager.setLanguage(model.code);
         }
         if (listAdapter != null) {
@@ -144,16 +155,34 @@ public class VoskSettingsActivity extends BaseNekoSettingsActivity implements Vo
         }
     }
 
+    private CharSequence installedSizeOf(VoskModel model) {
+        Long cached = installedSizes.get(model.code);
+        if (cached != null) return AndroidUtilities.formatFileSize(cached);
+        if (pendingSizes.add(model.code)) {
+            final int generation = sizeGeneration;
+            VoskManager.requestInstalledSize(model.code, size -> {
+                if (generation != sizeGeneration) return;
+                pendingSizes.remove(model.code);
+                installedSizes.put(model.code, size);
+                if (listAdapter != null) {
+                    int index = models.indexOf(model);
+                    if (index >= 0) listAdapter.notifyItemChanged(languagesStartRow + index, PARTIAL);
+                }
+            });
+        }
+        return "…";
+    }
+
     private CharSequence stateOf(VoskModel model) {
         if (model.code.equals(VoskManager.getDownloadingCode())) {
             long total = VoskManager.getTotalBytes();
             int percent = total > 0 ? (int) (VoskManager.getDownloadedBytes() * 100 / total) : 0;
-            return String.format(Locale.US, "%d%%", percent);
+            return percent + "%";
         }
         if (VoskManager.isInstalled(model.code)) {
             return model.code.equals(VoskManager.getLanguage())
                     ? getString(R.string.VoskModelSelected)
-                    : AndroidUtilities.formatFileSize(VoskManager.installedSize(model.code));
+                    : installedSizeOf(model);
         }
         return AndroidUtilities.formatFileSize(model.size);
     }

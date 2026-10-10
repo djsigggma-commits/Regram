@@ -32,18 +32,30 @@ public class RecentlyOnlineActivity extends BaseFragment implements Notification
     private RecyclerListView list;
     private RecyclerListView.SelectionAdapter adapter;
     private boolean refreshScheduled;
+    private boolean resumed;
     private final Runnable refreshRunnable = () -> {
         refreshScheduled = false;
-        if (list != null) refresh();
+        if (resumed && list != null) refresh();
     };
 
-    @Override public boolean onFragmentCreate() {
-        super.onFragmentCreate();
+    @Override public void onResume() {
+        super.onResume();
+        if (resumed) return;
+        resumed = true;
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.updateInterfaces);
-        return true;
+        if (list != null) refresh();
+    }
+
+    @Override public void onPause() {
+        resumed = false;
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateInterfaces);
+        AndroidUtilities.cancelRunOnUIThread(refreshRunnable);
+        refreshScheduled = false;
+        super.onPause();
     }
 
     @Override public void onFragmentDestroy() {
+        resumed = false;
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.updateInterfaces);
         AndroidUtilities.cancelRunOnUIThread(refreshRunnable);
         refreshScheduled = false;
@@ -86,11 +98,11 @@ public class RecentlyOnlineActivity extends BaseFragment implements Notification
     }
 
     @Override public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.updateInterfaces && account == currentAccount &&
+        if (resumed && id == NotificationCenter.updateInterfaces && account == currentAccount &&
                 (args.length == 0 || !(args[0] instanceof Integer) ||
                  (((Integer) args[0]) & MessagesController.UPDATE_MASK_STATUS) != 0)) {
             AndroidUtilities.runOnUIThread(() -> {
-                if (list != null && !refreshScheduled) {
+                if (resumed && list != null && !refreshScheduled) {
                     refreshScheduled = true;
                     AndroidUtilities.runOnUIThread(refreshRunnable, 350);
                 }

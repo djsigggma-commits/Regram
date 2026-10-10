@@ -6,6 +6,9 @@ import android.text.TextUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.Utilities;
+
+import app.regram.utils.DownloadProgress;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,6 +44,8 @@ public final class VoskManager {
     private static final int BUFFER_SIZE = 64 * 1024;
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final ExecutorService MODEL_INFO_IO = Executors.newSingleThreadExecutor(
+            task -> new Thread(task, "vosk-model-info"));
     private static final ArrayList<DownloadListener> listeners = new ArrayList<>();
 
     private static volatile String downloadingCode;
@@ -98,6 +103,14 @@ public final class VoskManager {
         return dir == null ? 0 : directorySize(dir);
     }
 
+    /** Settings must not recursively traverse model directories on the UI thread. */
+    public static void requestInstalledSize(String code, Utilities.Callback<Long> callback) {
+        MODEL_INFO_IO.execute(() -> {
+            long size = installedSize(code);
+            AndroidUtilities.runOnUIThread(() -> callback.run(size));
+        });
+    }
+
     public static String getDownloadingCode() {
         return downloadingCode;
     }
@@ -133,10 +146,12 @@ public final class VoskManager {
         totalBytes = model.size;
         cancelled = new AtomicBoolean();
         final AtomicBoolean cancelFlag = cancelled;
+        DownloadProgress progress = new DownloadProgress(
+                task -> AndroidUtilities.runOnUIThread(task, 100), VoskManager::notifyProgress);
         executor.submit(() -> {
             Throwable error = null;
             try {
-                downloadInternal(model, cancelFlag);
+                downloadInternal(model, cancelFlag, progress);
             } catch (Throwable e) {
                 error = e;
                 if (!(e instanceof InterruptedException)) {
@@ -144,12 +159,16 @@ public final class VoskManager {
                 }
             }
             final Throwable result = error;
-            downloadingCode = null;
-            AndroidUtilities.runOnUIThread(() -> notifyFinished(model, result));
+            AndroidUtilities.runOnUIThread(() -> {
+                progress.finish();
+                downloadingCode = null;
+                notifyFinished(model, result);
+            });
         });
     }
 
-    private static void downloadInternal(VoskModel model, AtomicBoolean cancelFlag) throws Exception {
+    private static void downloadInternal(VoskModel model, AtomicBoolean cancelFlag,
+                                         DownloadProgress progress) throws Exception {
         File root = getModelsDir();
         if (root == null) {
             throw new IOException("no models dir");
@@ -180,7 +199,6 @@ public final class VoskManager {
             }
             byte[] buffer = new byte[BUFFER_SIZE];
             long done = 0;
-            long lastPublished = 0;
             try (InputStream input = body.byteStream();
                  OutputStream output = new FileOutputStream(archive)) {
                 int read;
@@ -192,12 +210,7 @@ public final class VoskManager {
                     digest.update(buffer, 0, read);
                     done += read;
                     downloadedBytes = done;
-                    if (done - lastPublished > 512 * 1024) {
-                        lastPublished = done;
-                        final long published = done;
-                        final long total = totalBytes;
-                        AndroidUtilities.runOnUIThread(() -> notifyProgress(published, total));
-                    }
+                    progress.update(done, totalBytes);
                 }
             }
         }
@@ -253,6 +266,9 @@ public final class VoskManager {
                 try (OutputStream output = new FileOutputStream(out)) {
                     int read;
                     while ((read = zip.read(buffer)) != -1) {
+                        if (cancelFlag.get()) {
+                            throw new InterruptedException("cancelled");
+                        }
                         output.write(buffer, 0, read);
                     }
                 }

@@ -58,6 +58,17 @@ object AppearanceConfig {
     val singleCornerRadius =
         addConfig("OEAppearanceSingleCornerRadius", ConfigItem.configTypeBool, false)
 
+    /** Размещать строку папок над списком чатов вместо нижней панели. */
+    @JvmField
+    val foldersAtTop =
+        addConfig("OEAppearanceFoldersAtTop", ConfigItem.configTypeBool, false)
+
+    @JvmStatic
+    fun foldersAtTop(): Boolean {
+        ensureLoaded()
+        return foldersAtTop.Bool()
+    }
+
     // ---- Список чатов ----
 
     /** Мини-аватарки отправителей в списке чатов. */

@@ -33,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import app.regram.utils.DownloadProgress;
+
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -381,6 +383,8 @@ public final class GitHubUpdater {
         Call call = client().newCall(new Request.Builder().url(release.apkUrl)
                 .header("User-Agent", "exteraless").build());
         download = call;
+        DownloadProgress progress = new DownloadProgress(
+                task -> AndroidUtilities.runOnUIThread(task, 100), listener::onProgress);
         new Thread(() -> {
             boolean ok = false;
             try (Response response = call.execute()) {
@@ -392,19 +396,11 @@ public final class GitHubUpdater {
                 try (InputStream input = body.byteStream(); OutputStream output = new FileOutputStream(target)) {
                     byte[] buffer = new byte[64 * 1024];
                     long done = 0;
-                    int lastPercent = -1;
                     int read;
                     while ((read = input.read(buffer)) > 0) {
                         output.write(buffer, 0, read);
                         done += read;
-                        if (total > 0) {
-                            int percent = (int) (done * 100 / total);
-                            if (percent != lastPercent) {
-                                lastPercent = percent;
-                                final long doneBytes = done;
-                                AndroidUtilities.runOnUIThread(() -> listener.onProgress(doneBytes, total));
-                            }
-                        }
+                        progress.update(done, total);
                     }
                 }
                 ok = true;
@@ -415,6 +411,7 @@ public final class GitHubUpdater {
             }
             final boolean success = ok;
             AndroidUtilities.runOnUIThread(() -> {
+                progress.finish();
                 download = null;
                 if (success) {
                     listener.onFinished(true, false);

@@ -46,3 +46,18 @@ No messages, account data, features, bundled plugins, themes, licenses, JNI APIs
 Validation: **239 passed, 33 skipped, 27 subtests passed** (`python3 -m pytest tests -q`). New tests include both direct-Java and wrapped Python hook-parameter paths. Java/Kotlin syntax and Python AST checks pass. APK compilation and device performance measurements were not performed: the SDK, build Python 3.11, credentials/configuration and submodule contents are still unavailable. The older compilation/APK results above describe earlier checkouts, not this update. A subsequent signed arm64 release build including this pass and call/startup fixes succeeded; see [BUILD_RELEASE_1.0.2.md](BUILD_RELEASE_1.0.2.md). This does not constitute an on-device performance test.
 
 Backup before this pass: `../Regram-before-optimization.tar.gz`. For further optimization, capture Perfetto CPU/frame/memory traces with the actual phone, enabled plugins and exact stutter scenario; source checks do not establish an FPS or battery improvement.
+
+## Additional bounded-work / debloat pass
+
+- APK and Vosk model downloads share a latest-value progress dispatcher. At most one delivery is queued; updates are delayed by 100 ms. Completion flushes the latest value and releases the listener, so already queued callbacks cannot touch a completed download. Unknown content lengths also receive byte progress.
+- Vosk settings no longer recursively scan model directories during RecyclerView binding. Sizes are loaded on a dedicated serial executor, cached for the screen lifetime and invalidated on delete/install. Generation checks ignore results from destroyed/rebuilt screens. Size queries do not queue behind downloads or occupy Telegram's global queue.
+- Vosk extraction checks cancellation inside large ZIP entries, not just between files. Download state stays active until UI completion, preventing a new download from inheriting old progress callbacks.
+- The player ring uses a native arc when flat. Animated rings reuse precomputed circle/wave samples and the sine angle-difference identity; only phase and the fractional endpoint require per-frame trigonometry. Hidden windows do not schedule subsequent frames. Geometry checks preserve the old wave shape to float precision.
+- Recently Online subscribes to status updates only while resumed; pausing cancels the pending list rebuild. Resume refreshes current data.
+- Removed unused private tab-position arrays, maximum-text-width calculations and an unused logging import. Removed the commented-out legacy layout implementation while retaining the public compatibility method.
+
+No account data, bundled plugins, dependencies, JNI/reflection APIs, licenses or user-facing features were deleted. Existing release shrinking and plugin compatibility rules remain unchanged. This is a source-level optimization pass, not a claim of maximum speed or measured FPS/battery gains.
+
+Validation: `python3 -m pytest tests -q`: **268 passed, 39 skipped, 27 subtests passed**. New executable Java checks cover 100,000 coalesced updates, concurrent producers, reentrant callbacks, completion and wave geometry. Offline `:TMessagesProj:compileDebugJavaWithJavac` succeeded through `tools/build.sh`, with `NATIVE_TARGET=SKIP`, Python 3.11 and a 10 GiB Gradle heap. This checks Java/Kotlin compilation and resources; native compilation, APK assembly and on-device performance were not tested in this pass.
+
+Backup before this pass (includes the earlier folder-position changes): `../Regram-before-debloat-pass.tar.gz`.

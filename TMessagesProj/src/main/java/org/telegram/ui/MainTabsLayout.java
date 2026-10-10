@@ -19,8 +19,6 @@ import androidx.dynamicanimation.animation.FloatPropertyCompat;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 
-import android.util.Log;
-
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.ui.ActionBar.Theme;
@@ -218,7 +216,6 @@ public class MainTabsLayout extends AnimatedLinearLayout {
             }
 
             tabsWidth[a] = Math.round(tabsTextWidthWithMargin[a]);
-            tabsLeftPos[a] = l;
             l += tabsWidth[a];
         }
         setMeasuredDimension(l + getPaddingLeft() + getPaddingRight(), height);
@@ -247,11 +244,7 @@ public class MainTabsLayout extends AnimatedLinearLayout {
     private int[] tabsWeight;
     private int[] tabsWidth;
 
-    private int[] tabsLeftPos;
-
-
     private int visibleChildCount;
-    private int biggestTabTextWidth;
 
     private void measureTabTexts(float textSizeDp) {
         final int childCount = getChildCount();
@@ -259,11 +252,9 @@ public class MainTabsLayout extends AnimatedLinearLayout {
             tabsTextWidth = new float[childCount];
             tabsTextWidthWithMargin = new float[childCount];
             tabsWeight = new int[childCount];
-            tabsLeftPos = new int[childCount];
             tabsWidth = new int[childCount];
         }
 
-        float maxTabWidthF = 0;
         int index = 0;
 
         for (int a = 0; a < childCount; a++) {
@@ -281,11 +272,9 @@ public class MainTabsLayout extends AnimatedLinearLayout {
             }
 
             tabsTextWidth[a] = tabWidth;
-            maxTabWidthF = Math.max(maxTabWidthF, tabWidth);
             index++;
         }
 
-        biggestTabTextWidth = (int) Math.ceil(maxTabWidthF);
         visibleChildCount = index;
     }
 
