@@ -33,3 +33,14 @@ tests/local/
 TMessagesProj/src/debug/google-services.json
 
 .pytest_cache/
+
+# Local release artifacts, credentials and device logs are never source assets.
+/artifacts/
+/regram-crash.log
+*.apk
+*.keystore
+*.jks
+*.p12
+.env
+.env.*
+!.env.example

@@ -159,17 +159,21 @@ public class MessageDrawable extends Drawable {
         if (currentType == TYPE_PREVIEW) {
             return Theme.getColor(key);
         }
-        if (resourcesProvider != null) {
-            return resourcesProvider.getColor(key);
-        }
-        return Theme.getColor(key);
+        return Theme.getColor(key, resourcesProvider);
     }
 
     protected int getCurrentColor(int key) {
         if (currentType == TYPE_PREVIEW) {
             return Theme.getColor(key);
         }
-        return resourcesProvider != null ? resourcesProvider.getCurrentColor(key) : Theme.getCurrentColor(key);
+        boolean owner = app.regram.appearance.QuickTheme.beginResolve();
+        int color;
+        try {
+            color = resourcesProvider != null ? resourcesProvider.getCurrentColor(key) : Theme.getCurrentColor(key);
+        } finally {
+            app.regram.appearance.QuickTheme.endResolve(owner);
+        }
+        return owner ? app.regram.appearance.QuickTheme.adjust(key, color) : color;
     }
 
     public void setBotButtonsBottom(boolean botButtonsBottom) {
@@ -550,6 +554,22 @@ public class MessageDrawable extends Drawable {
     }
 
     public void draw(Canvas canvas, Paint paintToUse) {
+        int opacity = app.regram.appearance.QuickTheme.bubbleAlpha();
+        // Custom paint is also used as a blur/masking pass: do not alter it.
+        if (opacity == 255 || paintToUse != null) {
+            drawInternal(canvas, paintToUse);
+            return;
+        }
+        Rect bounds = getBounds();
+        int save = canvas.saveLayerAlpha(bounds.left, bounds.top, bounds.right, bounds.bottom, opacity);
+        try {
+            drawInternal(canvas, paintToUse);
+        } finally {
+            canvas.restoreToCount(save);
+        }
+    }
+
+    private void drawInternal(Canvas canvas, Paint paintToUse) {
         Rect bounds = getBounds();
         if (!oeRemoveMessageTail() && paintToUse == null && gradientShader == null && overrideRoundRadius == 0 && overrideRounding <= 0) {
             Drawable background = getBackgroundDrawable();

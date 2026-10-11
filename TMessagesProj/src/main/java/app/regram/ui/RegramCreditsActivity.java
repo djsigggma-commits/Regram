@@ -28,13 +28,13 @@ import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 public class RegramCreditsActivity extends BaseNekoSettingsActivity {
     private static final int TYPE_ART = 100;
     private static final String[] CREATORS = {
-            "@ihufe", "@lime_2612", "@atb_ptzhn"
+            "@ihufe", "@lime_2612", "@atb_ptzhn", "@croweer"
     };
     private static final String[] SOURCES = {
             "@nagramxf", "@exteraless", "@inugram", "@exteragram", "@ayugram"
     };
     private static final int[] ROLES = {
-            R.string.RegramDesigner, R.string.RegramCoder1, R.string.RegramCoder2
+            R.string.RegramDesigner, R.string.RegramCoder1, R.string.RegramCoder2, R.string.RegramSmm
     };
 
     private int artRow;
@@ -111,7 +111,8 @@ public class RegramCreditsActivity extends BaseNekoSettingsActivity {
                 art.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 art.setContentDescription(getString(R.string.RegramCreditsArtDescription));
                 FrameLayout.LayoutParams layout = new FrameLayout.LayoutParams(
-                        AndroidUtilities.dp(180), AndroidUtilities.dp(244), Gravity.CENTER);
+                        ViewGroup.LayoutParams.MATCH_PARENT, AndroidUtilities.dp(244), Gravity.CENTER);
+                layout.leftMargin = layout.rightMargin = AndroidUtilities.dp(16);
                 frame.addView(art, layout);
                 return new RecyclerListView.Holder(frame);
             }

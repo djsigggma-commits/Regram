@@ -145,6 +145,12 @@ public class NekoConfig {
     public static ConfigItem regramDisableGeneralTopicSwipe = addConfig("RegramDisableGeneralTopicSwipe", configTypeBool, false);
 
     // Native MonoColor UI / AllLeft. Masters are opt-in; child defaults match the plugins.
+    public static ConfigItem regramQuickTheme = addConfig("RegramQuickTheme", configTypeBool, false);
+    public static ConfigItem regramQuickTransparency = addConfig("RegramQuickTransparency", configTypeInt, 0);
+    public static ConfigItem regramQuickContrast = addConfig("RegramQuickContrast", configTypeInt, 100);
+    public static ConfigItem regramQuickSaturation = addConfig("RegramQuickSaturation", configTypeInt, 100);
+    public static ConfigItem regramQuickBrightness = addConfig("RegramQuickBrightness", configTypeInt, 0);
+
     public static ConfigItem regramMonoColor = addConfig("RegramMonoColor", configTypeBool, false);
     public static ConfigItem regramMonoSource = addConfig("RegramMonoSource", configTypeInt, 0);
     public static ConfigItem regramMonoCustomColor = addConfig("RegramMonoCustomColor", configTypeInt, 0xff4faede);

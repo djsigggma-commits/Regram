@@ -34,8 +34,8 @@ public class ConfigItem {
     public ConfigItem(String key, int type, Object defaultValue) {
         this.key = key;
         this.type = type;
-        this.defaultValue = defaultValue;
-        this.value = defaultValue;
+        this.defaultValue = app.regram.config.BundledDefaults.configDefault(key, type, defaultValue);
+        this.value = this.defaultValue;
     }
 
     public String getKey() {

@@ -10,6 +10,8 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.Utilities;
 
+import app.regram.utils.SineWave;
+
 /**
  * Эмуляция Material 3 CircularProgressIndicator: дуга-индикатор, дорожка (track) под ней
  * и зазор между ними; опционально — волнистая дуга (M3 Expressive).
@@ -61,6 +63,7 @@ public class M3CircularProgress {
 
     private final Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path = new Path();
+    private final SineWave wave = new SineWave();
 
     private int trackColor;
     private float gap = AndroidUtilities.dp(2);
@@ -161,8 +164,10 @@ public class M3CircularProgress {
         double angleSin = Math.sin(Math.toRadians(startAngle));
         final double waveStart = 2 * Math.PI * phase / waveLength;
         final double waveStep = 2 * Math.PI * arcLength / (steps * waveLength);
+        wave.reset(waveStart, waveStep);
         for (int i = 0; i <= steps; i++) {
-            final float offset = (float) (waveAmplitude * Math.sin(waveStart + i * waveStep));
+            final float offset = (float) (waveAmplitude * wave.value());
+            wave.advance();
             final float r = radius + offset;
             final float x = cx + (float) (r * angleCos);
             final float y = cy + (float) (r * angleSin);

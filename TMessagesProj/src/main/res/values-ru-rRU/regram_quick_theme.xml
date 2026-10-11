@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramQuickTheme">Быстрая настройка темы</string>
+    <string name="RegramQuickThemeSummary">Прозрачность, контраст и цвета ползунками</string>
+    <string name="RegramQuickEnable">Включить настройку темы</string>
+    <string name="RegramQuickTransparency">Прозрачность сообщений</string>
+    <string name="RegramQuickContrast">Контраст палитры</string>
+    <string name="RegramQuickSaturation">Насыщенность палитры</string>
+    <string name="RegramQuickBrightness">Яркость палитры</string>
+    <string name="RegramQuickReset">Сбросить изменения</string>
+    <string name="RegramQuickPreview">Предпросмотр</string>
+    <string name="RegramQuickIncoming">Входящее сообщение</string>
+    <string name="RegramQuickOutgoing">Ваше сообщение</string>
+    <string name="RegramQuickInfo">Предпросмотр меняется во время движения ползунка. Изменения сохраняются и применяются к интерфейсу, когда вы отпускаете ползунок. Прозрачность затрагивает фон сообщений, но не текст. Яркость, контраст и насыщенность меняют фоны интерфейса, акценты и цвета сообщений, а не фотографии или изображения обоев. Контраст — не повышение резкости изображений. Исходная тема не изменяется: выключите настройку или сбросьте изменения, чтобы вернуться к ней. Полупрозрачные сообщения могут сильнее нагружать графику.</string>
+</resources>

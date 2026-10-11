@@ -506,6 +506,9 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
             }
         } catch (Exception e) {
             FileLog.e(e);
+        } finally {
+            mapView = null;
+            mapsInitialized = false;
         }
         if (undoView[0] != null) {
             undoView[0].hide(true, 0);
@@ -1314,39 +1317,36 @@ public class LocationActivity extends BaseFragment implements NotificationCenter
                 moveToBounds = null;
             }
         }));
-        IMapsProvider.IMapView map = mapView;
-//        new Thread(() -> {
-//            try {
-//                map.onCreate(null);
-//            } catch (Exception e) {
-//                //this will cause exception, but will preload google maps?
-//            }
-//            AndroidUtilities.runOnUIThread(() -> {
-                if (mapView != null && getParentActivity() != null) {
-                    try {
-                        map.onCreate(null);
-                        ApplicationLoader.getMapsProvider().initializeMaps(ApplicationLoader.applicationContext);
-                        mapView.getMapAsync(map1 -> {
-                            this.map = map1;
-                            int themeResId = getMapThemeResId();
-                            if (themeResId != 0) {
-                                currentMapStyleDark = true;
-                                IMapsProvider.IMapStyleOptions style = ApplicationLoader.getMapsProvider().loadRawResourceStyle(ApplicationLoader.applicationContext, themeResId);
-                                this.map.setMapStyle(style);
-                            }
-                            this.map.setPadding(dp(70), 0, dp(70), dp(10));
-                            onMapInit();
-                        });
-                        mapsInitialized = true;
-                        if (onResumeCalled) {
-                            mapView.onResume();
-                        }
-                    } catch (Exception e) {
-                        FileLog.e(e);
+        final IMapsProvider.IMapView map = mapView;
+        AndroidUtilities.runOnUIThread(() -> {
+            if (mapView != map || getParentActivity() == null) {
+                return;
+            }
+            try {
+                ApplicationLoader.getMapsProvider().initializeMaps(ApplicationLoader.applicationContext);
+                map.onCreate(null);
+                map.getMapAsync(map1 -> {
+                    if (mapView != map || getParentActivity() == null) {
+                        return;
                     }
+                    this.map = map1;
+                    int themeResId = getMapThemeResId();
+                    if (themeResId != 0) {
+                        currentMapStyleDark = true;
+                        IMapsProvider.IMapStyleOptions style = ApplicationLoader.getMapsProvider().loadRawResourceStyle(ApplicationLoader.applicationContext, themeResId);
+                        this.map.setMapStyle(style);
+                    }
+                    this.map.setPadding(dp(70), 0, dp(70), dp(10));
+                    onMapInit();
+                });
+                mapsInitialized = true;
+                if (onResumeCalled) {
+                    map.onResume();
                 }
-//            });
-//        }).start();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        });
 
         if (messageObject == null && chatLocation == null) {
             if (chat != null && locationType == LOCATION_TYPE_GROUP && dialogId != 0) {

@@ -128,6 +128,7 @@ public final class GeneralHelper {
      * OEGeneralResetSettingsInfo. Настройки NagramX, кроме перечисленных ниже, не трогаются.
      */
     public static void resetSettings() {
+        app.regram.appearance.QuickTheme.reset();
         OpenExteraConfig.reset();
         GeneralConfig.reset();
         AppearanceConfig.reset();

@@ -30,7 +30,7 @@ class RegramIntegrationTests(unittest.TestCase):
         credits = (JAVA / "app/regram/ui/RegramCreditsActivity.java").read_text()
         root = (JAVA / "app/regram/settings/OpenExteraSettingsActivity.java").read_text()
         other = (JAVA / "app/regram/settings/OpenExteraOtherActivity.java").read_text()
-        for name in ("@ihufe", "@lime_2612", "@atb_ptzhn",
+        for name in ("@ihufe", "@lime_2612", "@atb_ptzhn", "@croweer",
                      "@nagramxf", "@exteraless", "@inugram", "@exteragram", "@ayugram"):
             self.assertIn('"' + name + '"', credits)
         for name in ("WeexTech", "ChatGPT"):
@@ -43,7 +43,7 @@ class RegramIntegrationTests(unittest.TestCase):
             path = ROOT / "TMessagesProj/src/main/res" / language / "strings_regram.xml"
             names = {node.get("name") for node in ET.parse(path).getroot()}
             self.assertTrue({"RegramCreatorsAndSources", "RegramDesigner",
-                             "RegramCoder1", "RegramCoder2", "RegramCodeSources"} <= names)
+                             "RegramCoder1", "RegramCoder2", "RegramSmm", "RegramCodeSources"} <= names)
             self.assertFalse({"RegramOwner", "RegramCoder3"} & names)
         for path, text in branding.overlays().items():
             for node in ET.fromstring(text).findall("string"):
@@ -92,7 +92,7 @@ class RegramIntegrationTests(unittest.TestCase):
         config = (JAVA / "tw/nekomimi/nekogram/NekoConfig.java").read_text()
         options = re.findall(r'ConfigItem (regram\w+) = addConfig\("(Regram\w+)", configTypeBool, false\)', config)
         # Native visual controls have their own policy/UI tests (array-backed settings).
-        native_visual = {"regramMonoColor", "regramMonoGradient", "regramAllLeft", "regramAllLeftPrivate", "regramMentionAvatars", "regramPlayerColor"}
+        native_visual = {"regramMonoColor", "regramMonoGradient", "regramAllLeft", "regramAllLeftPrivate", "regramMentionAvatars", "regramPlayerColor", "regramQuickTheme"}
         options = [(field, key) for field, key in options if field not in native_visual]
         self.assertEqual(len(options), 10)
         destinations = {

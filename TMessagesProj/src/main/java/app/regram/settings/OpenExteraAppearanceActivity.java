@@ -144,6 +144,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     private int emojiSetsRow;
     private int pillStackRow;
     private int nativeVisualRow;
+    private int quickThemeRow;
     private int hidingRow;
     private int linksDividerRow;
 
@@ -202,6 +203,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         iconPacksRow = addRow("iconPacks");
         emojiSetsRow = addRow("emojiSets", "EmojiSets");
         nativeVisualRow = addRow("nativeVisual", "OEAppearanceNativeVisual");
+        quickThemeRow = addRow("quickTheme", "RegramQuickTheme");
         pillStackRow = addRow("pillStack");
         hidingRow = addRow("hiding");
         linksDividerRow = addRow();
@@ -551,7 +553,10 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position == nativeVisualRow) {
+        if (position == quickThemeRow) {
+            presentFragment(new QuickThemeActivity());
+            return;
+        } else if (position == nativeVisualRow) {
             presentFragment(new NativeVisualSettingsActivity());
             return;
         } else if (position == iconPacksRow) {
@@ -1056,6 +1061,8 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                     } else if (position == emojiSetsRow) {
                         cell.setTextAndValueAndIcon(getString(R.string.EmojiSets), getString(NekoConfig.useSystemEmoji.Bool()
                                 ? R.string.OEAppearanceUseSystemEmoji : R.string.OEAppearanceEmojiSetsInfo), R.drawable.msg_emoji_smiles, true);
+                    } else if (position == quickThemeRow) {
+                        cell.setTextAndValueAndIcon(getString(R.string.RegramQuickTheme), getString(R.string.RegramQuickThemeSummary), R.drawable.msg_theme, true);
                     } else if (position == nativeVisualRow) {
                         cell.setTextAndValueAndIcon(getString(R.string.OEAppearanceNativeVisual), getString(R.string.OEAppearanceNativeVisualInfo), R.drawable.msg_theme, true);
                     } else if (position == pillStackRow) {
@@ -1130,7 +1137,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             } else if (position == fabShapeRow) {
                 return TYPE_FAB_SHAPE;
             } else if (position == appNavigationRow || position == iconPacksRow
-                    || position == emojiSetsRow || position == nativeVisualRow || position == pillStackRow || position == hidingRow) {
+                    || position == emojiSetsRow || position == nativeVisualRow || position == quickThemeRow || position == pillStackRow || position == hidingRow) {
                 return TYPE_DETAIL_SETTINGS;
             } else if (position == md3GroupRow || position == iosGroupRow) {
                 return TYPE_EXPANDABLE_SWITCH;

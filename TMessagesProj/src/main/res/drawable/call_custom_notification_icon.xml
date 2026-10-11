@@ -8,7 +8,7 @@
         </shape>
     </item>
     <item
-        android:drawable="@drawable/notification"
+        android:drawable="@drawable/regram_notification"
 		android:gravity="center"
         android:left="-2dp"
         android:width="24dp"

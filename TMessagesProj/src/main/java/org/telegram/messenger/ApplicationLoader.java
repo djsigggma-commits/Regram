@@ -110,6 +110,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
         super.attachBaseContext(base);
         try {
             applicationContext = getApplicationContext();
+            app.regram.config.BundledDefaults.initializeForFreshInstall(applicationContext);
         } catch (Throwable ignore) {
         }
     }
@@ -125,18 +126,20 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
         return new GoogleLocationProvider();
     }*/
 
-    public static IMapsProvider getMapsProvider() {
+    public static synchronized IMapsProvider getMapsProvider() {
         if (mapsProvider == null) {
-            if (NekoConfig.useOSMDroidMap.Bool())
+            // Fallback is session-local: keep the user's provider preference intact.
+            if (NekoConfig.useOSMDroidMap.Bool()
+                    || !MapsAvailability.canUseGoogleMaps(applicationContext)) {
                 mapsProvider = new OSMDroidMapsProvider();
-            else {
+            } else {
                 mapsProvider = new GoogleMapsProvider();
             }
         }
         return mapsProvider;
     }
 
-    public static void resetMapsProvider() {
+    public static synchronized void resetMapsProvider() {
         mapsProvider = null;
     }
 
@@ -302,6 +305,12 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
             // ради ресивера/провайдера), палитра молча откатывалась бы на набор по
             // умолчанию — патчим assetName после инициализации конфигов.
             org.telegram.ui.ActionBar.Theme.reloadMonetThemes();
+        }
+        if (NekoConfig.regramQuickTheme.Bool()) {
+            // Theme may already have been loaded by an early receiver/provider.
+            org.telegram.ui.ActionBar.Theme.applyCommonTheme();
+            org.telegram.ui.ActionBar.Theme.applyDialogsTheme();
+            org.telegram.ui.ActionBar.Theme.applyChatTheme(false, true);
         }
         if (BuildConfig.DEBUG_TOOLS) {
             app.regram.debug.EnergyProfiler.resumeIfEnabled(applicationContext);

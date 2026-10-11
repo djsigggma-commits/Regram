@@ -70,6 +70,7 @@
     <string name="RegramDesigner">Designer</string>
     <string name="RegramCoder1">Coder 1</string>
     <string name="RegramCoder2">Coder 2</string>
+    <string name="RegramSmm">SMM</string>
     <string name="RegramUpstreamChannel">Base project channel</string>
     <string name="RegramUpstreamSource">Base project source</string>
 </resources>

@@ -61,3 +61,7 @@ No account data, bundled plugins, dependencies, JNI/reflection APIs, licenses or
 Validation: `python3 -m pytest tests -q`: **268 passed, 39 skipped, 27 subtests passed**. New executable Java checks cover 100,000 coalesced updates, concurrent producers, reentrant callbacks, completion and wave geometry. Offline `:TMessagesProj:compileDebugJavaWithJavac` succeeded through `tools/build.sh`, with `NATIVE_TARGET=SKIP`, Python 3.11 and a 10 GiB Gradle heap. This checks Java/Kotlin compilation and resources; native compilation, APK assembly and on-device performance were not tested in this pass.
 
 Backup before this pass (includes the earlier folder-position changes): `../Regram-before-debloat-pass.tar.gz`.
+
+## Release 1.1.6.1 follow-up
+
+Bounded quick-theme color caching, recurrence-based M3/player waves, reused player ripples, hidden-view animation gating, a 2–8 MiB custom-icon cache and capped dedicated-queue prewarm, and removal of a no-op camera handler. Four-part version numbering/update ordering is supported. Features, plugins, JNI/reflection contracts and shared story thumbnails are preserved. See [BUILD_RELEASE_1.1.6.1.md](BUILD_RELEASE_1.1.6.1.md) for scope, regression checks, release verification and remaining device tests.

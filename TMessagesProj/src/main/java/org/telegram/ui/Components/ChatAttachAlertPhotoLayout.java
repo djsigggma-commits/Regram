@@ -35,7 +35,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
@@ -427,11 +426,6 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             resumeCameraPreview();
             AndroidUtilities.runOnUIThread(()-> setCurrentSpoilerVisible(-1, true), 150);
             onSelectedItemsCountChanged(getSelectedCount());
-        }
-
-        @Override
-        public void onEditModeChanged(boolean isEditMode) {
-            onPhotoEditModeChanged(isEditMode);
         }
 
         @Override
@@ -2183,10 +2177,6 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             public void onClose() {
                 resumeCameraPreview();
                 onSelectedItemsCountChanged(getSelectedCount());
-            }
-
-            public void onEditModeChanged(boolean isEditMode) {
-                onPhotoEditModeChanged(isEditMode);
             }
 
             @Override
@@ -3945,8 +3935,8 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                 saveLastCameraBitmap();
                 break;
             }
-            cameraViewItemDecoration.updateBitmap();
         }
+        cameraViewItemDecoration.updateBitmap();
 
         if (headerAnimator != null) {
             headerAnimator.cancel();
@@ -3978,24 +3968,6 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
         }
     }
 
-    private void onPhotoEditModeChanged(boolean isEditMode) {
-//        if (needCamera && !noCameraPermissions && showCameraTile()) {
-//            if (isEditMode) {
-//                if (cameraView != null) {
-//                    isCameraFrontfaceBeforeEnteringEditMode = cameraView.isFrontface();
-//                    hideCamera(true);
-//                }
-//            } else {
-//                afterCameraInitRunnable = () -> {
-//                    pauseCameraPreview();
-//                    afterCameraInitRunnable = null;
-//                    isCameraFrontfaceBeforeEnteringEditMode = null;
-//                };
-//                showCamera();
-//            }
-//        }
-    }
-
     public void pauseCamera(boolean pause) {
         if (needCamera && !noCameraPermissions && showCameraTile()) {
             if (pause) {
@@ -4004,11 +3976,6 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                     hideCamera(true);
                 }
             } else {
-//                afterCameraInitRunnable = () -> {
-//                    pauseCameraPreview();
-//                    afterCameraInitRunnable = null;
-//                    isCameraFrontfaceBeforeEnteringEditMode = null;
-//                };
                 if (!NekoConfig.disableInstantCamera.Bool()) {
                     showCamera();
                 }
@@ -4795,13 +4762,14 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
     }
 
     private class CameraViewItemDecoration extends RecyclerView.ItemDecoration implements IBlur3Capture {
-        private Drawable placeholderDrawable;
+        private final Drawable placeholderDrawable;
         private final Path clipPath = new Path();
         private final Drawable cameraDrawable;
         private final @NonNull RecyclerView parent;
 
         public CameraViewItemDecoration(@NonNull RecyclerView parent) {
             this.parent = parent;
+            this.placeholderDrawable = getContext().getResources().getDrawable(R.drawable.regram_attach_camera_art).mutate();
             this.cameraDrawable = getContext().getResources().getDrawable(R.drawable.camera).mutate();
         }
 
@@ -4861,8 +4829,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             }
 
             if (builder != null) {
-                builder.add(placeholderDrawable != null && !(cameraView != null && cameraView.isInited() && !isHidden));
-                builder.add(cameraView != null);
+                builder.add(R.drawable.regram_attach_camera_art);
                 builder.add(cameraDrawable != null);
             }
 
@@ -4876,20 +4843,21 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             c.save();
             c.clipPath(clipPath);
 
-            if (placeholderDrawable != null && !(cameraView != null && cameraView.isInited() && !isHidden)) {
-                placeholderDrawable.setBounds(left, top, right, bottom);
-                placeholderDrawable.draw(c);
-            }
-
-            if (cameraView != null) {
-                cameraView.drawInDecoration = true;
-                c.save();
-                c.clipRect(left, top, right, bottom);
-                c.translate(left, top);
-                cameraView.draw(c);
-                c.restore();
-                cameraView.drawInDecoration = false;
-            }
+            // The collapsed camera tile is artwork, not a blurred thumbnail or
+            // live preview. Center-crop without stretching the supplied image.
+            final int artWidth = placeholderDrawable.getIntrinsicWidth();
+            final int artHeight = placeholderDrawable.getIntrinsicHeight();
+            final float artScale = Math.max((right - left) / (float) artWidth,
+                    (bottom - top) / (float) artHeight);
+            final int drawWidth = Math.round(artWidth * artScale);
+            final int drawHeight = Math.round(artHeight * artScale);
+            final int artLeft = left + (right - left - drawWidth) / 2;
+            final int artTop = top + (bottom - top - drawHeight) / 2;
+            c.save();
+            c.clipRect(left, top, right, bottom);
+            placeholderDrawable.setBounds(artLeft, artTop, artLeft + drawWidth, artTop + drawHeight);
+            placeholderDrawable.draw(c);
+            c.restore();
 
             if (cameraDrawable != null) {
                 final int s = dp(24);
@@ -4900,25 +4868,11 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             }
 
             c.restore();
-
-            gridView.invalidate();
         }
 
 
         public void updateBitmap() {
-            Bitmap bitmap = null;
-            try {
-                File file = new File(ApplicationLoader.getFilesDirFixed(), "cthumb.jpg");
-                bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-            } catch (Throwable ignore) {
-
-            }
-            if (bitmap != null) {
-                placeholderDrawable = new BitmapDrawable(getContext().getResources(), bitmap);
-            } else {
-                placeholderDrawable = getContext().getResources().getDrawable(R.drawable.icplaceholder).mutate();
-            }
-
+            // Keep legacy refresh calls, but never replace the art with cthumb.jpg.
             if (gridView != null) {
                 gridView.invalidate();
             }
@@ -4938,15 +4892,13 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
             super(context, frontface, lazy);
         }
 
-        public boolean drawInDecoration;
-
         @Override
         protected void dispatchDraw(Canvas canvas) {
             if (AndroidUtilities.makingGlobalBlurBitmap) {
                 return;
             }
 
-            if (drawInDecoration || !cameraAnimationInProgress && cameraOpened) {
+            if (!cameraAnimationInProgress && cameraOpened) {
                 super.dispatchDraw(canvas);
                 return;
             }

@@ -206,8 +206,9 @@ object PillStackConfig {
     fun resetLayout() {
         synchronized(sync) {
             activePills.clear()
-            activePills.addAll(parseList(DEFAULT_ACTIVE))
+            activePills.addAll(parseList(activePillsRaw.defaultValue as String))
             hiddenPills.clear()
+            hiddenPills.addAll(parseList(hiddenPillsRaw.defaultValue as String))
             dormantActive.clear()
             dormantHidden.clear()
         }

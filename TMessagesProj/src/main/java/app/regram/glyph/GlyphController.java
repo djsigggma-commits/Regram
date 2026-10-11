@@ -151,6 +151,16 @@ public final class GlyphController {
 
     /** Отбиндить сервис — вызывается при выключении фичи в настройках. */
     public synchronized void shutdown() {
+        // Phone (1): явно погасить зоны и закрыть сессию до отвязки сервиса.
+        try {
+            if (stripManager != null && stripSessionOpen) {
+                stripManager.turnOff();
+                stripManager.closeSession();
+            }
+        } catch (Throwable t) {
+            FileLog.e(t);
+        }
+        hideMatrixLogo();
         initialized = false;
         stripSessionOpen = false;
         matrixRegistered = false;
@@ -308,6 +318,9 @@ public final class GlyphController {
                 previewPending = supported && GlyphConfig.enabled();
                 return;
             }
+            if (glyphBusy) {
+                return;
+            }
             if (matrixRegistered) {
                 showMatrixLogo();
             }
@@ -348,6 +361,7 @@ public final class GlyphController {
             public void onServiceConnected(ComponentName componentName) {
                 boolean registered = false;
                 if (Common.is20111()) {
+                    // Nothing Phone (1), все пять групп зон A–E поддерживаются SDK.
                     registered = stripManager.register(Glyph.DEVICE_20111);
                 } else if (Common.is22111()) {
                     registered = stripManager.register(Glyph.DEVICE_22111);
@@ -366,7 +380,7 @@ public final class GlyphController {
                 try {
                     stripManager.openSession();
                     stripSessionOpen = true;
-                    runPendingPreview();
+                    onGlyphServiceReady();
                 } catch (GlyphException e) {
                     FileLog.e(e);
                 }
@@ -375,6 +389,7 @@ public final class GlyphController {
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
                 stripSessionOpen = false;
+                handler.post(() -> glyphBusy = false);
             }
         });
     }
@@ -387,14 +402,26 @@ public final class GlyphController {
                 matrixRegistered = matrixManager.register(
                         Common.is23112() ? Glyph.DEVICE_23112 : Glyph.DEVICE_25111p);
                 if (matrixRegistered) {
-                    runPendingPreview();
+                    onGlyphServiceReady();
                 }
             }
 
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
                 matrixRegistered = false;
+                handler.post(() -> {
+                    glyphBusy = false;
+                    handler.removeCallbacks(breathRunnable);
+                });
             }
+        });
+    }
+
+    private void onGlyphServiceReady() {
+        handler.post(() -> {
+            // Запись/звонок могли начаться, пока асинхронный bind ещё не завершился.
+            updateGlyphActivity();
+            runPendingPreview();
         });
     }
 

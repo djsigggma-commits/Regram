@@ -88,6 +88,7 @@ public class MorphButton extends android.view.View {
     }
 
     public void setColors(int bg, int fg, int activeBg, int activeFg) {
+        if (bgColor == bg && fgColor == fg && activeBgColor == activeBg && activeFgColor == activeFg) return;
         bgColor = bg;
         fgColor = fg;
         activeBgColor = activeBg;
@@ -96,6 +97,7 @@ public class MorphButton extends android.view.View {
     }
 
     public void setBadgeColors(int bg, int fg) {
+        if (badgeBg == bg && badgeFg == fg) return;
         badgeBg = bg;
         badgeFg = fg;
         invalidate();
@@ -222,11 +224,25 @@ public class MorphButton extends android.view.View {
             canvas.drawText(badgeText, bx, by - (badgeTextPaint.descent() + badgeTextPaint.ascent()) / 2f, badgeTextPaint);
         }
 
-        if (animating) {
+        if (animating && isShown() && getWindowVisibility() == VISIBLE) {
             postInvalidateOnAnimation();
         } else {
             lastFrame = 0;
         }
+    }
+
+    @Override
+    protected void onVisibilityChanged(@NonNull android.view.View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        lastFrame = 0;
+        if (visibility == VISIBLE) invalidate();
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        lastFrame = 0;
+        if (visibility == VISIBLE) invalidate();
     }
 
     private void drawIcon(Canvas canvas, PlayerIcon drawable, float cx, float cy, int color, float alpha, float s) {

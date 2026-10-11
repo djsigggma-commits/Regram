@@ -70,6 +70,7 @@
     <string name="RegramDesigner">Дизайнер</string>
     <string name="RegramCoder1">Кодер 1</string>
     <string name="RegramCoder2">Кодер 2</string>
+    <string name="RegramSmm">SMM</string>
     <string name="RegramUpstreamChannel">Канал проекта-основы</string>
     <string name="RegramUpstreamSource">Исходники проекта-основы</string>
 </resources>

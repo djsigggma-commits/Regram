@@ -149,6 +149,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private boolean underLightNav;
     private final RectF backgroundRect = new RectF();
     private PlayerColors colors;
+    private int headerRippleColor;
     private ValueAnimator colorAnimator;
     private MessageObject current;
     private String currentKey;
@@ -184,6 +185,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         fallbackSeed = PlayerColors.noCoverSeed(resourcesProvider);
         Integer seed = PlayerArt.cachedSeed(playing);
         colors = PlayerColors.fromSeed(seed != null ? seed : fallbackSeed, dark);
+        headerRippleColor = colors.ripple();
 
         root = new FrameLayout(context) {
             @Override
@@ -258,12 +260,14 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         collapseButton = new ImageView(context);
         collapseButton.setScaleType(ImageView.ScaleType.CENTER);
         collapseButton.setImageDrawable(collapseIcon);
+        collapseButton.setBackground(Theme.createSelectorDrawable(headerRippleColor, Theme.RIPPLE_MASK_CIRCLE_20DP));
         collapseButton.setContentDescription(getString(R.string.Close));
         collapseButton.setOnClickListener(v -> dismiss());
         header.addView(collapseButton, LayoutHelper.createFrame(48, 48, Gravity.LEFT | Gravity.CENTER_VERTICAL));
         moreButton = new ImageView(context);
         moreButton.setScaleType(ImageView.ScaleType.CENTER);
         moreButton.setImageDrawable(moreIcon);
+        moreButton.setBackground(Theme.createSelectorDrawable(headerRippleColor, Theme.RIPPLE_MASK_CIRCLE_20DP));
         moreButton.setContentDescription(getString(R.string.AccDescrMoreOptions));
         moreButton.setOnClickListener(this::showMenu);
         header.addView(moreButton, LayoutHelper.createFrame(48, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
@@ -1520,6 +1524,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             colorAnimator.cancel();
             colorAnimator = null;
         }
+        if (colors == target) return;
         if (!animated) {
             applyColors(target);
             return;
@@ -1527,6 +1532,12 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         PlayerColors from = colors;
         colorAnimator = ValueAnimator.ofFloat(0f, 1f);
         colorAnimator.addUpdateListener(a -> applyColors(PlayerColors.lerp(from, target, (float) a.getAnimatedValue())));
+        colorAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (colorAnimator == animation) colorAnimator = null;
+            }
+        });
         colorAnimator.setDuration(600);
         colorAnimator.setInterpolator(EMPHASIZED);
         colorAnimator.start();
@@ -1537,8 +1548,12 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         root.invalidate();
         collapseIcon.setColor(c.onSurface);
         moreIcon.setColor(c.onSurface);
-        collapseButton.setBackground(Theme.createSelectorDrawable(c.ripple(), Theme.RIPPLE_MASK_CIRCLE_20DP));
-        moreButton.setBackground(Theme.createSelectorDrawable(c.ripple(), Theme.RIPPLE_MASK_CIRCLE_20DP));
+        int ripple = c.ripple();
+        if (headerRippleColor != ripple) {
+            Theme.setSelectorDrawableColor(collapseButton.getBackground(), ripple, true);
+            Theme.setSelectorDrawableColor(moreButton.getBackground(), ripple, true);
+            headerRippleColor = ripple;
+        }
         headerLabel.setTextColor(c.onSurfaceVariant);
         headerTitle.setTextColor(c.onSurface);
         cover.setColors(c.primaryContainer, c.onPrimaryContainer);

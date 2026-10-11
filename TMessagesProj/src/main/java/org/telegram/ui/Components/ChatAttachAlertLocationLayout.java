@@ -895,40 +895,42 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
             return origMethod.call(ev);
         });
         final IMapsProvider.IMapView map = mapView;
-        new Thread(() -> {
-            try {
-                map.onCreate(null);
-            } catch (Exception e) {
-                //this will cause exception, but will preload google maps?
+        // Both Google Maps and OSM are Views: create once, on the UI thread,
+        // after the rest of the picker controls have been constructed.
+        AndroidUtilities.runOnUIThread(() -> {
+            if (mapView != map || getParentActivity() == null) {
+                return;
             }
-            AndroidUtilities.runOnUIThread(() -> {
-                if (mapView != null && getParentActivity() != null) {
-                    try {
-                        map.onCreate(null);
-                        ApplicationLoader.getMapsProvider().initializeMaps(ApplicationLoader.applicationContext);
-                        mapView.getMapAsync(map1 -> {
-                            this.map = map1;
-                            this.map.setOnMapLoadedCallback(() -> AndroidUtilities.runOnUIThread(() -> {
-                                loadingMapView.setTag(1);
-                                loadingMapView.animate().alpha(0.0f).setDuration(180).start();
-                            }));
-                            if (isActiveThemeDark()) {
-                                currentMapStyleDark = true;
-                                IMapsProvider.IMapStyleOptions style = ApplicationLoader.getMapsProvider().loadRawResourceStyle(ApplicationLoader.applicationContext, R.raw.mapstyle_night);
-                                this.map.setMapStyle(style);
-                            }
-                            onMapInit();
-                        });
-                        mapsInitialized = true;
-                        if (onResumeCalled) {
-                            mapView.onResume();
-                        }
-                    } catch (Exception e) {
-                        FileLog.e(e);
+            try {
+                ApplicationLoader.getMapsProvider().initializeMaps(ApplicationLoader.applicationContext);
+                map.onCreate(null);
+                map.getMapAsync(map1 -> {
+                    if (mapView != map || getParentActivity() == null) {
+                        return;
                     }
+                    this.map = map1;
+                    this.map.setOnMapLoadedCallback(() -> AndroidUtilities.runOnUIThread(() -> {
+                        if (mapView != map) {
+                            return;
+                        }
+                        loadingMapView.setTag(1);
+                        loadingMapView.animate().alpha(0.0f).setDuration(180).start();
+                    }));
+                    if (isActiveThemeDark()) {
+                        currentMapStyleDark = true;
+                        IMapsProvider.IMapStyleOptions style = ApplicationLoader.getMapsProvider().loadRawResourceStyle(ApplicationLoader.applicationContext, R.raw.mapstyle_night);
+                        this.map.setMapStyle(style);
+                    }
+                    onMapInit();
+                });
+                mapsInitialized = true;
+                if (onResumeCalled) {
+                    map.onResume();
                 }
-            });
-        }).start();
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        });
 
         markerImageView = new ImageView(context);
         markerImageView.setImageResource(R.drawable.map_pin2);
@@ -1029,10 +1031,12 @@ public class ChatAttachAlertLocationLayout extends ChatAttachAlert.AttachAlertLa
         try {
             if (mapView != null) {
                 mapView.onDestroy();
-                mapView = null;
             }
         } catch (Exception ignore) {
 
+        } finally {
+            mapView = null;
+            mapsInitialized = false;
         }
         if (adapter != null) {
             adapter.destroy();

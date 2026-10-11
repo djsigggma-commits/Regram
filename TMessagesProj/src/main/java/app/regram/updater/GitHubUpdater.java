@@ -30,8 +30,6 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import app.regram.utils.DownloadProgress;
 
@@ -52,7 +50,6 @@ public final class GitHubUpdater {
     private static final String PREFS = "exteraless_updater";
     private static final String KEY_LAST_CHECK = "last_check";
     private static final String KEY_SKIPPED = "skipped_tag";
-    private static final Pattern VERSION = Pattern.compile("(\\d+)\\.(\\d+)(?:\\.(\\d+))?");
 
     private static volatile OkHttpClient client;
     private static volatile boolean checking;
@@ -253,32 +250,8 @@ public final class GitHubUpdater {
         return universal != null ? universal : any;
     }
 
-    private static int[] version(String... sources) {
-        for (String source : sources) {
-            if (source == null) {
-                continue;
-            }
-            Matcher matcher = VERSION.matcher(source);
-            if (matcher.find()) {
-                return new int[]{Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)),
-                        matcher.group(3) == null ? 0 : Integer.parseInt(matcher.group(3))};
-            }
-        }
-        return null;
-    }
-
     private static Integer compareVersion(Release release) {
-        int[] remote = version(release.tag, release.name, release.apkName);
-        int[] local = version(BuildConfig.VERSION_NAME);
-        if (remote == null || local == null) {
-            return null;
-        }
-        for (int i = 0; i < 3; i++) {
-            if (remote[i] != local[i]) {
-                return Integer.compare(remote[i], local[i]);
-            }
-        }
-        return 0;
+        return ReleaseVersion.compare(BuildConfig.VERSION_NAME, release.tag, release.name, release.apkName);
     }
 
     private static Boolean isNewer(Release release) throws Exception {
@@ -318,10 +291,10 @@ public final class GitHubUpdater {
             return;
         }
         String size = release.apkSize > 0 ? AndroidUtilities.formatFileSize(release.apkSize) : "";
-        int[] remote = version(release.tag, release.name, release.apkName);
         StringBuilder subtitle = new StringBuilder(TextUtils.isEmpty(release.name) ? release.tag : release.name);
-        if (remote != null) {
-            subtitle.append(" · ").append(remote[0]).append('.').append(remote[1]).append('.').append(remote[2]);
+        String displayVersion = release.displayVersion();
+        if (!TextUtils.isEmpty(displayVersion) && subtitle.indexOf(displayVersion) < 0) {
+            subtitle.append(" · ").append(displayVersion);
         }
         if (!size.isEmpty()) {
             subtitle.append(" · ").append(size);

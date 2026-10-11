@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramQuickTheme">Quick theme tuning</string>
+    <string name="RegramQuickThemeSummary">Transparency, contrast and palette sliders</string>
+    <string name="RegramQuickEnable">Enable theme adjustments</string>
+    <string name="RegramQuickTransparency">Bubble transparency</string>
+    <string name="RegramQuickContrast">Palette contrast</string>
+    <string name="RegramQuickSaturation">Palette saturation</string>
+    <string name="RegramQuickBrightness">Palette brightness</string>
+    <string name="RegramQuickReset">Reset adjustments</string>
+    <string name="RegramQuickPreview">Live preview</string>
+    <string name="RegramQuickIncoming">Incoming message</string>
+    <string name="RegramQuickOutgoing">Your message</string>
+    <string name="RegramQuickInfo">The preview updates while dragging. Changes are saved and applied to the interface when you release the slider. Transparency affects message bubbles, not their text. Brightness, contrast and saturation adjust interface surfaces, accents and bubble colors, not photos or wallpaper images. Contrast is not image sharpening. The original theme is unchanged: disable adjustments or reset to restore it. Translucent bubbles may use more graphics resources.</string>
+</resources>

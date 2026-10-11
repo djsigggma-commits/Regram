@@ -9184,6 +9184,17 @@ public class Theme {
     }
 
     public static int getColor(int key, ResourcesProvider provider) {
+        boolean owner = app.regram.appearance.QuickTheme.beginResolve();
+        int color;
+        try {
+            color = getColorWithProviderRaw(key, provider);
+        } finally {
+            app.regram.appearance.QuickTheme.endResolve(owner);
+        }
+        return owner ? app.regram.appearance.QuickTheme.adjust(key, color) : color;
+    }
+
+    private static int getColorWithProviderRaw(int key, ResourcesProvider provider) {
         Integer monoColor = app.regram.appearance.MonoColor.override(key);
         if (monoColor != null) return monoColor;
         // Скрытие разделителей должно работать и при непустом ResourcesProvider
@@ -9210,6 +9221,17 @@ public class Theme {
     }
 
     public static int getColor(int key, boolean[] isDefault, boolean ignoreAnimation) {
+        boolean owner = app.regram.appearance.QuickTheme.beginResolve();
+        int color;
+        try {
+            color = getColorRaw(key, isDefault, ignoreAnimation);
+        } finally {
+            app.regram.appearance.QuickTheme.endResolve(owner);
+        }
+        return owner ? app.regram.appearance.QuickTheme.adjust(key, color) : color;
+    }
+
+    private static int getColorRaw(int key, boolean[] isDefault, boolean ignoreAnimation) {
         Integer monoColor = app.regram.appearance.MonoColor.override(key);
         if (monoColor != null) {
             if (isDefault != null) isDefault[0] = false;

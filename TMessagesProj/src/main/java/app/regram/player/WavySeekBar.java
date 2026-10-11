@@ -17,6 +17,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
 
+import app.regram.utils.SineWave;
+
 public class WavySeekBar extends View {
 
     public interface Delegate {
@@ -33,6 +35,7 @@ public class WavySeekBar extends View {
     private final Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path path = new Path();
+    private final SineWave wave = new SineWave();
     private final RectF rect = new RectF();
     private Delegate delegate;
     private float progress;
@@ -168,9 +171,9 @@ public class WavySeekBar extends View {
         float dt = lastFrame == 0 ? 0.016f : Math.min(0.05f, (now - lastFrame) / 1000f);
         lastFrame = now;
         float targetAmp = playing ? maxAmplitude : 0f;
-        amplitude += (targetAmp - amplitude) * (1f - (float) Math.pow(0.85, dt / 0.04f));
-        if (Math.abs(amplitude - targetAmp) < dpf2(0.05f)) {
-            amplitude = targetAmp;
+        if (amplitude != targetAmp) {
+            amplitude += (targetAmp - amplitude) * (1f - (float) Math.pow(0.85, dt / 0.04f));
+            if (Math.abs(amplitude - targetAmp) < dpf2(0.05f)) amplitude = targetAmp;
         }
         if (amplitude > 0f) {
             phase = (phase + 6f * dt) % TAU;
@@ -187,23 +190,30 @@ public class WavySeekBar extends View {
         float lambda = dp(34);
         float step = dp(2);
         if (waveEnd > left) {
-            path.rewind();
-            boolean first = true;
-            for (float px = left; ; px += step) {
-                boolean last = px >= waveEnd;
-                float cx = last ? waveEnd : px;
-                float y = cy + amplitude * (float) Math.sin(TAU * cx / lambda - phase);
-                if (first) {
-                    path.moveTo(cx, y);
-                    first = false;
-                } else {
-                    path.lineTo(cx, y);
+            if (amplitude == 0f) {
+                // A paused/flat slider needs neither a path nor wave trigonometry.
+                canvas.drawLine(left, cy, waveEnd, cy, wavePaint);
+            } else {
+                path.rewind();
+                wave.reset(TAU * left / lambda - phase, TAU * step / lambda);
+                boolean first = true;
+                for (float px = left; ; px += step) {
+                    boolean last = px >= waveEnd;
+                    float cx = last ? waveEnd : px;
+                    // Only the fractional endpoint is off the evenly spaced sample grid.
+                    float sample = last ? (float) Math.sin(TAU * cx / lambda - phase) : (float) wave.value();
+                    float y = cy + amplitude * sample;
+                    if (first) {
+                        path.moveTo(cx, y);
+                        first = false;
+                    } else {
+                        path.lineTo(cx, y);
+                    }
+                    if (last) break;
+                    wave.advance();
                 }
-                if (last) {
-                    break;
-                }
+                canvas.drawPath(path, wavePaint);
             }
-            canvas.drawPath(path, wavePaint);
         }
         float stopX = right - dp(1);
         float restX = Math.min(stopX, x + thumbW / 2f + gap);
@@ -214,11 +224,26 @@ public class WavySeekBar extends View {
         rect.set(x - thumbW / 2f, cy - dp(14), x + thumbW / 2f, cy + dp(14));
         canvas.drawRoundRect(rect, dpf2(1.5f), dpf2(1.5f), fillPaint);
 
-        if (amplitude > 0f || targetAmp != amplitude) {
+        if ((amplitude > 0f || targetAmp != amplitude)
+                && isShown() && getWindowVisibility() == VISIBLE) {
             postInvalidateOnAnimation();
         } else {
             lastFrame = 0;
         }
+    }
+
+    @Override
+    protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        lastFrame = 0;
+        if (visibility == VISIBLE) invalidate();
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        lastFrame = 0;
+        if (visibility == VISIBLE) invalidate();
     }
 
     @Override

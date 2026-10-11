@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import tw.nekomimi.nekogram.ui.icons.IconsResources;
 
@@ -44,6 +46,9 @@ import tw.nekomimi.nekogram.ui.icons.IconsResources;
 public class IconPackManager {
 
     private static final IconPackManager instance = new IconPackManager();
+    private static final ExecutorService ICON_IO = Executors.newSingleThreadExecutor(
+            task -> new Thread(task, "regram-icons"));
+    private static final int MAX_PREWARM_ICONS = 64;
 
     public static IconPackManager getInstance() {
         return instance;
@@ -62,13 +67,14 @@ public class IconPackManager {
 
     private volatile boolean initialized;
     private volatile boolean hasReplacements;
+    private volatile int packGeneration;
 
     private IconPackManager() {
         int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-        resolvedCache = new LruCache<Long, Bitmap>(Math.max(2048, maxMemory / 16)) {
+        resolvedCache = new LruCache<Long, Bitmap>(Math.max(2048, Math.min(8192, maxMemory / 16))) {
             @Override
             protected int sizeOf(Long key, Bitmap value) {
-                return value.getByteCount() / 1024;
+                return Math.max(1, (value.getAllocationByteCount() + 1023) / 1024);
             }
         };
     }
@@ -92,7 +98,7 @@ public class IconPackManager {
 
     /** Перечитывает список активных паков (в фоне) и сбрасывает кэши. */
     public void reload() {
-        Utilities.globalQueue.postRunnable(this::reloadInternal);
+        ICON_IO.execute(this::reloadInternal);
     }
 
     /** Синхронная перезагрузка. Retry when app context is not ready yet. */
@@ -112,6 +118,7 @@ public class IconPackManager {
                 }
             }
             synchronized (this) {
+                ++packGeneration;
                 activePacks.clear();
                 activePacks.addAll(packs);
                 rebuildOwnerMap();
@@ -204,8 +211,10 @@ public class IconPackManager {
         if (!hasReplacements || resId == 0) {
             return null;
         }
-        if (missing.contains(resId)) {
-            return null;
+        final int generation;
+        synchronized (this) {
+            generation = packGeneration;
+            if (missing.contains(resId)) return null;
         }
         try {
             if (density == 0) {
@@ -222,30 +231,34 @@ public class IconPackManager {
 
             String name = getResourceName(resources, resId);
             if (name == null) {
-                missing.add(resId);
+                markMissing(resId, generation);
                 return null;
             }
             IconPack pack = iconOwnerMap.get(name);
             if (pack == null) {
-                missing.add(resId);
+                markMissing(resId, generation);
                 return null;
             }
             String relative = pack.getIcons().get(name);
             if (relative == null) {
-                missing.add(resId);
+                markMissing(resId, generation);
                 return null;
             }
             File file = IconPackStorage.resolveIconFile(pack, relative);
             if (file == null) {
-                missing.add(resId);
+                markMissing(resId, generation);
                 return null;
             }
             Bitmap bitmap = createBitmapFromFile(resources, file.getAbsolutePath(), resId, density, theme);
             if (bitmap == null) {
-                missing.add(resId);
+                markMissing(resId, generation);
                 return null;
             }
             synchronized (this) {
+                if (generation != packGeneration) {
+                    bitmap.recycle(); // Unpublished decode from a previous pack selection.
+                    return null;
+                }
                 resolvedCache.put(cacheKey, bitmap);
             }
             return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), bitmap);
@@ -253,6 +266,10 @@ public class IconPackManager {
             FileLog.e("openExtera: icon pack lookup failed", t);
             return null;
         }
+    }
+
+    private synchronized void markMissing(int resId, int generation) {
+        if (generation == packGeneration) missing.add(resId);
     }
 
     /** Предпросмотр иконки конкретного пака (для экрана настроек). */
@@ -676,19 +693,21 @@ public class IconPackManager {
      * экрана не тормозило на синхронном декодировании десятков файлов.
      * Порт {@code IconManager.launchPrewarm} / {@code prefetchCustomPacks}.
      */
-    public void launchPrewarm() {
-        if (prewarmScheduled || !IconPacksConfig.enabled()) {
+    public synchronized void launchPrewarm() {
+        if (prewarmScheduled || !hasReplacements || !IconPacksConfig.enabled()) {
             return;
         }
         prewarmScheduled = true;
-        Utilities.globalQueue.postRunnable(() -> {
+        ICON_IO.execute(() -> {
             try {
                 ensureInitialized();
                 Resources res = ApplicationLoader.applicationContext.getResources();
                 IconsResources iconsResources = res instanceof IconsResources ? (IconsResources) res : null;
                 int density = AndroidUtilities.displayMetrics.densityDpi;
-                int warmed = 0;
+                final int generation = packGeneration;
+                int considered = 0;
                 for (String name : new ArrayList<>(iconOwnerMap.keySet())) {
+                    if (generation != packGeneration || considered++ >= MAX_PREWARM_ICONS) break;
                     int resId = getResourceId(name);
                     if (resId == 0) {
                         continue;
@@ -713,16 +732,11 @@ public class IconPackManager {
                         continue;
                     }
                     synchronized (this) {
-                        resolvedCache.put(key, bitmap);
-                    }
-                    warmed++;
-                    if (warmed % 32 == 0) {
-                        // не занимать очередь надолго
-                        try {
-                            Thread.sleep(4);
-                        } catch (InterruptedException ignore) {
-                            Thread.currentThread().interrupt();
-                            break;
+                        Bitmap existing = resolvedCache.get(key);
+                        if (generation == packGeneration && (existing == null || existing.isRecycled())) {
+                            resolvedCache.put(key, bitmap);
+                        } else {
+                            bitmap.recycle(); // Never published; a foreground decode may have won the race.
                         }
                     }
                 }

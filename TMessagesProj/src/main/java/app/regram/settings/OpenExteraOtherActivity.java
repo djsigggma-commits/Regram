@@ -42,6 +42,7 @@ import java.util.UUID;
 import app.regram.backup.EtgBackup;
 import app.regram.backup.EtgBackupUi;
 import app.regram.general.GeneralConfig;
+import app.regram.glyph.GlyphController;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import app.regram.general.GeneralHelper;
@@ -155,8 +156,13 @@ public class OpenExteraOtherActivity extends BaseNekoSettingsActivity {
         importEtgRow = addRow("importEtgSettings");
         etgDividerRow = addRow();
 
-        glyphRow = -1;
-        glyphDividerRow = -1;
+        if (GlyphController.getInstance().isSupported()) {
+            glyphRow = addRow("glyph");
+            glyphDividerRow = addRow();
+        } else {
+            glyphRow = -1;
+            glyphDividerRow = -1;
+        }
 
         creditsRow = addRow("regramCreatorsAndSources");
         creditsDividerRow = addRow();
