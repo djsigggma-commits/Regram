@@ -12,12 +12,16 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ChatMessageCell;
+import org.telegram.ui.Components.MsgClockDrawable;
 import tw.nekomimi.nekogram.NekoConfig;
 
-/** Native presentation policy inspired by AllLeft 2.0.6 by @limeplug.
+/** Native adaptation of AllLeft 2.0.11 by @limeplug (GPL-3.0).
+ * Source: https://gitlab.com/limezsh/allleft, 7bdbeef90eac9432955d0fe2b8ed7294a90ca6ea.
+ * Modified for re:gram: direct layout/drawing APIs instead of hooks/reflection.
  * Ownership, send_state, peer IDs and read receipts are never changed. */
 public final class AllLeft {
     private AllLeft() {}
+    private static MsgClockDrawable statusClock;
     private static int tintColor;
     private static ColorFilter tintFilter;
     private static ColorFilter tint(int color) {
@@ -42,24 +46,41 @@ public final class AllLeft {
         return active(message) && message.isOutOwner() && NekoConfig.regramAllLeftStatus.Bool()
                 && !message.notime && !message.isSponsored() && message.type != MessageObject.TYPE_PHONE_CALL;
     }
+    public static float pinnedBottomProgress(MessageObject message, float progress) {
+        return active(message) && message.isOutOwner() ? 1f : progress;
+    }
+    /** -1: none, 0: pending, 1: sent, 2: read, 3: error. Never writes read state. */
+    public static int status(MessageObject message) {
+        if (message == null || message.messageOwner == null || message.notime) return -1;
+        if (message.isSendError()) return 3;
+        if (message.isSending() || message.isEditing()) return 0;
+        if (!message.isSent()) return -1;
+        if (message.scheduled) return 1;
+        // Secret messages use local/negative IDs; their protocol read flag remains authoritative.
+        if (DialogObject.isEncryptedDialog(message.getDialogId())) return message.isUnread() ? 1 : 2;
+        if (message.getId() <= 0) return 1;
+        Integer read = MessagesController.getInstance(message.currentAccount).dialogs_read_outbox_max.get(message.getDialogId());
+        return read != null && read >= message.getId() ? 2 : 1;
+    }
     public static void drawStatus(Canvas canvas, ChatMessageCell cell, MessageObject message,
                                   float alpha, float timeLeft, float timeTop, float timeWidth, int height) {
         if (!statusVisible(message) || height <= 0) return;
+        int status = status(message);
+        if (status < 0) return;
         int a = Math.round(Math.max(0, Math.min(1, alpha)) * 255);
         if (a == 0) return;
         boolean media = cell.shouldDrawTimeOnMedia();
         int color = cell.getThemedColor(media ? Theme.key_chat_mediaSentCheck : Theme.key_chat_inTimeText);
         float right = timeLeft + timeWidth;
-        if (message.isSendError()) {
+        if (status == 3) {
             blit(canvas, Theme.chat_msgErrorDrawable, cell.getThemedColor(Theme.key_chat_sentErrorIcon), false, right, timeTop, height, a);
-        } else if (message.isSending() || message.isEditing()) {
-            blit(canvas, Theme.chat_msgClockDrawable, color, false, right, timeTop, height, a);
+        } else if (status == 0) {
+            if (statusClock == null) statusClock = new MsgClockDrawable();
+            statusClock.setColor(color);
+            blit(canvas, statusClock, color, false, right, timeTop, height, a);
             cell.invalidate();
-        } else if (message.isSent()) {
-            Integer read = MessagesController.getInstance(message.currentAccount).dialogs_read_outbox_max.get(message.getDialogId());
-            boolean seen = !message.scheduled && (DialogObject.isEncryptedDialog(message.getDialogId())
-                    ? !message.isUnread() : message.getId() > 0 && (read != null ? read >= message.getId() : !message.isUnread()));
-            if (seen) {
+        } else {
+            if (status == 2) {
                 blit(canvas, media ? Theme.chat_msgMediaCheckDrawable : Theme.chat_msgOutCheckReadDrawable, color,
                         media, right - AndroidUtilities.dp(media ? 4.8f : 5f), timeTop, height, a);
                 blit(canvas, media ? Theme.chat_msgMediaHalfCheckDrawable : Theme.chat_msgOutHalfCheckDrawable,
@@ -79,7 +100,9 @@ public final class AllLeft {
         ColorFilter oldFilter = drawable.getColorFilter();
         try {
             int w = drawable.getIntrinsicWidth(), h = drawable.getIntrinsicHeight();
-            float y = top + (height - h) / 2f + AndroidUtilities.dp(media ? 1 : 0);
+            if (w <= 0) w = AndroidUtilities.dp(11);
+            if (h <= 0) h = w;
+            float y = media ? top + height - h - AndroidUtilities.dp(1.2f) : top + (height - h) / 2f;
             drawable.setColorFilter(tint(color));
             drawable.setAlpha(alpha);
             drawable.setBounds(Math.round(right) - w, Math.round(y), Math.round(right), Math.round(y) + h);

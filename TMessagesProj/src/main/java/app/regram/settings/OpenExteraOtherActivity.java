@@ -93,8 +93,6 @@ public class OpenExteraOtherActivity extends BaseNekoSettingsActivity {
     private int etgDividerRow;
     private int glyphRow;
     private int glyphDividerRow;
-    private int creditsRow;
-    private int creditsDividerRow;
     private int resetSettingsRow;
     private int deleteAccountRow;
     private int bottomDividerRow;
@@ -163,9 +161,6 @@ public class OpenExteraOtherActivity extends BaseNekoSettingsActivity {
             glyphRow = -1;
             glyphDividerRow = -1;
         }
-
-        creditsRow = addRow("regramCreatorsAndSources");
-        creditsDividerRow = addRow();
 
         resetSettingsRow = addRow("resetSettings");
         deleteAccountRow = addRow("deleteAccount");
@@ -248,8 +243,7 @@ public class OpenExteraOtherActivity extends BaseNekoSettingsActivity {
             openEtgFilePicker();
         } else if (position == glyphRow) {
             presentFragment(new OpenExteraGlyphActivity());
-        } else if (position == creditsRow) {
-            presentFragment(new app.regram.ui.RegramCreditsActivity());
+
         } else if (position == resetSettingsRow) {
             showResetSettingsDialog();
         } else if (position == deleteAccountRow) {
@@ -586,9 +580,7 @@ public class OpenExteraOtherActivity extends BaseNekoSettingsActivity {
                     } else if (position == glyphRow) {
                         cell.setColors(Theme.key_windowBackgroundWhiteGrayIcon, Theme.key_windowBackgroundWhiteBlackText);
                         cell.setText(getString(R.string.OEGlyphTitle), false);
-                    } else if (position == creditsRow) {
-                        cell.setColors(Theme.key_windowBackgroundWhiteGrayIcon, Theme.key_windowBackgroundWhiteBlackText);
-                        cell.setTextAndIcon(getString(R.string.RegramCreatorsAndSources), R.drawable.msg_groups, false);
+
                     } else if (position == resetSettingsRow) {
                         cell.setColors(Theme.key_windowBackgroundWhiteGrayIcon, Theme.key_windowBackgroundWhiteBlackText);
                         cell.setTextAndIcon(getString(R.string.OEGeneralResetSettings), R.drawable.msg_reset, true);
@@ -622,14 +614,14 @@ public class OpenExteraOtherActivity extends BaseNekoSettingsActivity {
                     || position == experimentalHeaderRow || position == backupHeaderRow) {
                 return TYPE_HEADER;
             } else if (position == nagramDividerRow || position == experimentalDividerRow
-                    || position == etgDividerRow || position == creditsDividerRow) {
+                    || position == etgDividerRow) {
                 return TYPE_SHADOW;
             } else if (position == googleDividerRow || position == glyphDividerRow
                     || position == bottomDividerRow) {
                 return TYPE_INFO_PRIVACY;
             } else if (position == exportEtgRow || position == importEtgRow
                     || position == resetSettingsRow || position == deleteAccountRow
-                    || position == glyphRow || position == ayuMomentsRow || position == creditsRow) {
+                    || position == glyphRow || position == ayuMomentsRow) {
                 return TYPE_TEXT;
             }
             return TYPE_CHECK;

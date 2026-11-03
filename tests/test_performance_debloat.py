@@ -31,16 +31,6 @@ def test_telemetry_does_not_enqueue_overlapping_measurements():
     assert 'if (!isAttachedToWindow()) return;' in code
 
 
-def test_exitfy_lite_bounds_concurrent_probes_and_ignores_stale_switches():
-    code = (JAVA / "app/regram/ui/ExitFyLite.java").read_text()
-    assert 'MAX_PARALLEL_CHECKS = 4' in code
-    assert 'while (pending.size() < MAX_PARALLEL_CHECKS' in code
-    assert 'CHECK_BATCH_TIMEOUT_MS' in code
-    assert 'originalProxy != SharedConfig.currentProxy' in code
-    assert 'if (activeBatch != this) return;' in code
-    assert 'import org.telegram.utils.proxy.ProxySettings;' in code
-
-
 def test_download_and_badge_fetch_do_not_block_telegram_global_queue():
     badges = (JAVA / 'app/regram/badges/SupporterBadges.java').read_text()
     installer = (JAVA / 'app/regram/plugins/ui/RecommendedPluginsInstaller.java').read_text()
@@ -63,4 +53,3 @@ def test_remote_debugger_opt_in_and_plugin_bundles_kept():
     assert "install 'debugpy'" in build
     assert "install 'requests'" in build
     assert (ROOT / 'TMessagesProj/src/main/assets/regram/custom_profile.py').is_file()
-    assert (ROOT / 'TMessagesProj/src/main/assets/regram/exitFy_v2.py').is_file()

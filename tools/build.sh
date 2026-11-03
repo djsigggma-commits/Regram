@@ -66,7 +66,7 @@ fi
 
 mkdir -p "$BUILD_DIR"
 echo "== $SRC -> $BUILD_DIR"
-rsync -a --delete \
+rsync -a --checksum --delete \
   --exclude '.gradle/' --exclude 'build/' --exclude '.cxx/' \
   --exclude '.pytest_cache/' --exclude '__pycache__/' \
   --exclude '.git/' --exclude 'local.properties' \
@@ -78,6 +78,22 @@ if [[ -f "$SRC/local.properties" ]]; then
   chmod 600 "$BUILD_DIR/local.properties"
 else
   rm -f "$BUILD_DIR/local.properties"
+fi
+
+# Архивы исходников сохраняют старые mtime. Ninja иначе может принять объект
+# от другого дерева за свежий и смешать Java с несовместимой JNI-регистрацией.
+# Неизвестный или изменившийся снимок native-кода требует нового CMake дерева.
+NATIVE_STAMP="$BUILD_DIR/.gradle/regram-native-source.sha256"
+NATIVE_DIGEST="$(python3 "$SRC/tools/native_source_fingerprint.py" "$BUILD_DIR/TMessagesProj/jni")"
+PREVIOUS_NATIVE_DIGEST=""
+if [[ -f "$NATIVE_STAMP" ]]; then
+  read -r PREVIOUS_NATIVE_DIGEST < "$NATIVE_STAMP" || true
+fi
+if [[ "$NATIVE_DIGEST" != "$PREVIOUS_NATIVE_DIGEST" ]]; then
+  echo "Native sources changed or cache provenance unknown: rebuilding CMake outputs."
+  rm -rf "$BUILD_DIR/TMessagesProj/.cxx" "$BUILD_DIR/TMessagesProj/build/intermediates/cxx"
+  mkdir -p "$(dirname "$NATIVE_STAMP")"
+  printf '%s\n' "$NATIVE_DIGEST" > "$NATIVE_STAMP"
 fi
 
 cd "$BUILD_DIR"

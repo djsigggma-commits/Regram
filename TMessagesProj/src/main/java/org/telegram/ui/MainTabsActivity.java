@@ -26,6 +26,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -62,6 +63,7 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.EdgeToEdgeSupportMode;
@@ -90,6 +92,7 @@ import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Components.glass.GlassTabView;
 import org.telegram.ui.Stories.recorder.HintView2;
 import org.telegram.ui.web.WebBrowserSettings;
+import org.telegram.ui.Wallet.WalletActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,7 +143,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     }
 
     private boolean isFeedTabEnabled() {
-        return AppearanceConfig.showFeedTab();
+        return MainTabsHelper.isFeedTabShown();
     }
 
     private boolean hasContactsOrFeedTab() {
@@ -302,7 +305,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         return ColorUtils.blendARGB(
                 getThemedColor(Theme.key_windowBackgroundGray),
                 getThemedColor(Theme.key_windowBackgroundWhite),
-                viewPager != null ? viewPager.getPositionVisibility(0) : 1);
+                viewPager != null ? viewPager.getPositionVisibility(getPositionChats()) : 1);
     }
 
     private boolean tabletLayout;
@@ -431,7 +434,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
         selectTab(viewPager.getCurrentPosition(), false);
 
-        iBlur3SourceColor.setColor(getThemedColor(Theme.key_windowBackgroundWhite));
+        iBlur3SourceColor.setColor(app.regram.appearance.QuickTheme.navigationColor(getThemedColor(Theme.key_windowBackgroundWhite)));
 
         final ViewPositionWatcher viewPositionWatcher = new ViewPositionWatcher(contentView);
 
@@ -447,7 +450,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         BlurredBackgroundDrawableViewFactory iBlur3FactoryFade = new BlurredBackgroundDrawableViewFactory(iBlur3SourceColor);
         iBlur3FactoryFade.setSourceRootView(viewPositionWatcher, contentView);
 
-        fadeView = new View(context);
+        fadeView = new View(context) {
+            @Override public void draw(@NonNull Canvas canvas) {
+                if (getBackground() != null) getBackground().setAlpha(app.regram.appearance.QuickTheme.navigationAlpha());
+                super.draw(canvas);
+            }
+        };
         BlurredBackgroundWithFadeDrawable fadeDrawable = new BlurredBackgroundWithFadeDrawable(iBlur3FactoryFade.create(fadeView, null));
         fadeDrawable.setFadeHeight(dp(60), true);
         fadeView.setBackground(fadeDrawable);
@@ -457,6 +465,17 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         miniPlayer = new app.regram.player.PlayerMiniView(context, this, resourceProvider);
         miniPlayer.setOffsetListener(this::onMiniPlayerOffsetChanged);
         contentView.addView(miniPlayer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, app.regram.player.PlayerMiniView.HEIGHT_DP + 16, Gravity.BOTTOM));
+        contentView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(@NonNull View v) {
+                v.getViewTreeObserver().addOnPreDrawListener(miniPlayerAnchorListener);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(@NonNull View v) {
+                v.getViewTreeObserver().removeOnPreDrawListener(miniPlayerAnchorListener);
+            }
+        });
 
         tabsViewWrapper = new FrameLayout(context);
         tabsViewWrapper.setOnClickListener(v -> {});
@@ -708,15 +727,15 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     }
 
     private void openFolder(int folderId) {
-        if (viewPager.getCurrentPosition() == POSITION_CHATS && dialogsActivity != null) {
+        if (viewPager.getCurrentPosition() == getPositionChats() && dialogsActivity != null) {
             dialogsActivity.scrollToFolder(folderId);
         } else {
             if (dialogsActivity == null) {
                 prepareDialogsActivity(null);
             }
             pendingFolderId = folderId;
-            selectTab(POSITION_CHATS, true);
-            viewPager.scrollToPosition(POSITION_CHATS);
+            selectTab(getPositionChats(), true);
+            viewPager.scrollToPosition(getPositionChats());
         }
     }
 
@@ -862,7 +881,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             if (getPositionProfile() >= 0 && currentPosition != getPositionProfile()) {
                 dropFragmentAtPosition(getPositionProfile());
             }
-            if (pendingFolderId != null && currentPosition == POSITION_CHATS && dialogsActivity != null) {
+            if (pendingFolderId != null && currentPosition == getPositionChats() && dialogsActivity != null) {
                 dialogsActivity.scrollToFolder(pendingFolderId);
                 pendingFolderId = null;
             }
@@ -1048,13 +1067,25 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         default void setMiniPlayerInset(float inset, int padding) {
 
         }
+
+        default void setMiniPlayerTopPadding(int padding) {
+
+        }
+
+        default float getMiniPlayerTopAnchor() {
+            return -1;
+        }
+
+        default float getMiniPlayerTopVisibility() {
+            return 1f;
+        }
     }
 
     private <T extends BaseFragment> T prepareTabFragment(T fragment) {
         if (fragment instanceof TabFragmentDelegate) {
             ((TabFragmentDelegate) fragment).setParentTabsGlassInvalidationCallback(this::invalidateTabsGlass);
             if (miniPlayer != null) {
-                ((TabFragmentDelegate) fragment).setMiniPlayerInset(miniPlayer.getVisibleOffset(), miniPlayer.getTargetOffset());
+                applyMiniPlayerInsets((TabFragmentDelegate) fragment, fragment instanceof DialogsActivity);
             }
         }
         return fragment;
@@ -1264,7 +1295,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         final float isProfile = 1f - MathUtils.clamp(Math.abs(getPositionProfile() - animatedPosition), 0, 1);
         final float hide = 1f - AndroidUtilities.getNavigationBarThirdButtonsFactor(0, 1f, navigationBarHeight);
         float alpha = (1f - isProfile * hide) * animatorTabsVisible.getFloatValue();
-        if (tabletLayout) {
+        if (tabletLayout || app.regram.appearance.QuickTheme.hideNavigationBackdrop()) {
             alpha = 0.0f;
         }
 
@@ -1283,19 +1314,54 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
         final int gap = hidden || MainTabsUiHelper.isMaterial3NavigationBar() ? dp(12) : dp(4);
         final float factor = hidden ? 1f : animatorTabsVisible.getFloatValue();
         miniPlayer.setHostPosition(-(navigationBarHeight + updateLayoutHeight + tabsHeight + gap - dp(12)), factor);
+        updateMiniPlayerTopAnchor();
         onMiniPlayerOffsetChanged();
+    }
+
+    private final ViewTreeObserver.OnPreDrawListener miniPlayerAnchorListener = () -> {
+        updateMiniPlayerTopAnchor();
+        return true;
+    };
+
+    private void updateMiniPlayerTopAnchor() {
+        if (miniPlayer == null || viewPager == null) {
+            return;
+        }
+        final FragmentState state = fragmentsArr.get(getPositionChats());
+        final BaseFragment chats = state != null ? state.fragment : null;
+        final View view = chats != null ? chats.getFragmentView() : null;
+        final View page = view != null && view.getParent() instanceof View ? (View) view.getParent() : null;
+        float shift = 0f;
+        float zone = 0f;
+        if (page != null && page.getParent() == viewPager && page.getVisibility() == View.VISIBLE && viewPager.getMeasuredWidth() > 0) {
+            shift = page.getTranslationX();
+            zone = MathUtils.clamp(1f - Math.abs(shift) / viewPager.getMeasuredWidth(), 0f, 1f);
+        }
+        float anchor = -1;
+        float visibility = 1f;
+        if (chats instanceof TabFragmentDelegate) {
+            anchor = ((TabFragmentDelegate) chats).getMiniPlayerTopAnchor();
+            visibility = ((TabFragmentDelegate) chats).getMiniPlayerTopVisibility();
+        }
+        if (anchor < 0) {
+            anchor = AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight();
+        }
+        miniPlayer.setTopState(anchor, zone, shift, visibility);
+    }
+
+    private void applyMiniPlayerInsets(TabFragmentDelegate delegate, boolean chats) {
+        delegate.setMiniPlayerInset(miniPlayer.getVisibleOffset(chats), miniPlayer.getTargetOffset(chats));
+        delegate.setMiniPlayerTopPadding(miniPlayer.getTargetTopOffset(chats));
     }
 
     private void onMiniPlayerOffsetChanged() {
         if (miniPlayer == null) {
             return;
         }
-        final float inset = miniPlayer.getVisibleOffset();
-        final int padding = miniPlayer.getTargetOffset();
         for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
             final BaseFragment fragment = fragmentsArr.valueAt(a).fragment;
             if (fragment instanceof TabFragmentDelegate) {
-                ((TabFragmentDelegate) fragment).setMiniPlayerInset(inset, padding);
+                applyMiniPlayerInsets((TabFragmentDelegate) fragment, fragment instanceof DialogsActivity);
             }
         }
     }
@@ -1494,7 +1560,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     }
 
     private void blur3_updateFadeColors() {
-        iBlur3SourceColor.setColor(getEstBackgroundColor());
+        iBlur3SourceColor.setColor(app.regram.appearance.QuickTheme.navigationColor(getEstBackgroundColor()));
         if (fadeView != null) {
             fadeView.invalidate();
         }

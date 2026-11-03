@@ -526,7 +526,7 @@ public class TextMessageEnterTransition implements MessageEnterTransitionContain
 
         canvas.save();
         if (drawable != null) {
-            if (currentMessageObject.isOutOwner()) {
+            if (currentMessageObject.isOutOwnerForLayout()) {
                 canvas.clipRect(
                         drawableX + dp(4), drawableTop + dp(4),
                         drawableRight - dp(10), drawableBottom - dp(4)
@@ -576,7 +576,7 @@ public class TextMessageEnterTransition implements MessageEnterTransitionContain
             } else if (messageView.replyLine != null) {
                 replyOwnerMessageColor = messageView.replyLine.nameColorAnimated.get();
                 replyLineColor = messageView.replyLine.getColor();
-            } else if (currentMessageObject.isOutOwner()) {
+            } else if (currentMessageObject.isOutOwnerForLayout()) {
                 replyOwnerMessageColor = getThemedColor(Theme.key_chat_outReplyNameText);
                 replyLineColor = getThemedColor(Theme.key_chat_outReplyLine);
             } else {
@@ -585,7 +585,7 @@ public class TextMessageEnterTransition implements MessageEnterTransitionContain
             }
 
             if (!currentMessageObject.shouldDrawWithoutBackground()) {
-                if (currentMessageObject.isOutOwner()) {
+                if (currentMessageObject.isOutOwnerForLayout()) {
                     if (currentMessageObject.isReplyToStory()) {
                         replyMessageColor = replyOwnerMessageColor;
                     } else {
@@ -721,9 +721,9 @@ public class TextMessageEnterTransition implements MessageEnterTransitionContain
                     final float x = lerp(fromReplayX - messageView.replyTextOffset, left, progressX);
                     final int sz = 12;
                     messageView.replyTaskCheckbox.setBounds((int) x, (int) top + dp(2), dp(sz), dp(sz));
-                    Theme.chat_instantViewRectPaint.setColor(getThemedColor(currentMessageObject.isOutOwner() ? Theme.key_chat_outMenu : Theme.key_chat_inMenu));
+                    Theme.chat_instantViewRectPaint.setColor(getThemedColor(currentMessageObject.isOutOwnerForLayout() ? Theme.key_chat_outMenu : Theme.key_chat_inMenu));
                     canvas.drawCircle(x + dp(sz / 2), top + dp(2 + sz / 2), dp(sz / 2 - 1), Theme.chat_instantViewRectPaint);
-                    messageView.replyTaskCheckbox.setColor(-1, currentMessageObject.isOutOwner() ? Theme.key_chat_outAudioSeekbarFill : Theme.key_chat_inAudioSeekbarFill, Theme.key_checkboxCheck);
+                    messageView.replyTaskCheckbox.setColor(-1, currentMessageObject.isOutOwnerForLayout() ? Theme.key_chat_outAudioSeekbarFill : Theme.key_chat_inAudioSeekbarFill, Theme.key_checkboxCheck);
                     messageView.replyTaskCheckbox.setAlpha(progress);
                     messageView.replyTaskCheckbox.draw(canvas);
                 }

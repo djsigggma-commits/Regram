@@ -120,6 +120,7 @@ public class FilterTabsView extends FrameLayout {
         boolean canPerformActions();
 
         default void onTabSelected(Tab tab, boolean forward, boolean animated) {}
+        default void onChipSettingsRequested() {}
     }
 
     public class Tab {
@@ -170,7 +171,7 @@ public class FilterTabsView extends FrameLayout {
             }
             width += counterResultWidth;
 
-            return Math.max(dp(16), width);
+            return Math.max(dp(16), width) + (nativeChips() ? dp(app.regram.appearance.NativeChipFolders.padding() - FolderIconHelper.getTabPadding()) : 0);
         }
 
         public boolean setTitle(String newTitle, ArrayList<TLRPC.MessageEntity> newEntities, boolean noanimate) {
@@ -245,6 +246,7 @@ public class FilterTabsView extends FrameLayout {
         private boolean animateTextChange;
         private boolean animateTextChangeOut;
         private boolean animateTabWidth;
+        private app.regram.appearance.NativeChipFolders nativeChipPainter;
         private float animateFromWidth;
         private float titleXOffset;
         private int lastTitleWidth;
@@ -322,6 +324,23 @@ public class FilterTabsView extends FrameLayout {
         @SuppressLint("DrawAllocation")
         @Override
         protected void onDraw(@NonNull Canvas canvas) {
+            int nativeSave = nativeChips() ? canvas.save() : -1;
+            if (nativeSave < 0 && nativeChipPainter != null) nativeChipPainter.clearRipple(this);
+            try {
+            if (nativeChips()) {
+                if (nativeChipPainter == null) nativeChipPainter = new app.regram.appearance.NativeChipFolders();
+                float p = nativeProgress(currentTab.id);
+                int index = currentPosition;
+                // Adapter positions can lag during drag/reorder; use the search only then.
+                if (index < 0 || index >= tabs.size() || tabs.get(index) != currentTab) index = tabs.indexOf(currentTab);
+                float previous = index > 0 ? nativeProgress(tabs.get(index - 1).id) : 0;
+                float next = index >= 0 && index < tabs.size() - 1 ? nativeProgress(tabs.get(index + 1).id) : 0;
+                int animation = app.regram.appearance.PluginStyles.number("chip_animation", 0, 0, 4);
+                int speed = app.regram.appearance.PluginStyles.number("chip_speed", 100, 50, 200);
+                float wave = app.regram.appearance.PluginStyleRules.wave(animation, speed, p);
+                canvas.scale(app.regram.appearance.PluginStyleRules.scaleXFromWave(animation, wave), app.regram.appearance.PluginStyleRules.scaleYFromWave(animation, wave), getWidth()/2f, getHeight()/2f);
+                nativeChipPainter.draw(this,canvas,getMeasuredWidth(),getMeasuredHeight(),p,previous,next,index<=0,index>=tabs.size()-1,LocaleController.isRTL,resourcesProvider,unactiveTextColorKey);
+            }
             boolean reorderEnabled = !currentTab.isDefault || UserConfig.getInstance(UserConfig.selectedAccount).isPremiumOrLocal();
             boolean showRemove = !currentTab.isDefault && reorderEnabled;
             if (reorderEnabled && editingAnimationProgress != 0) {
@@ -382,6 +401,7 @@ public class FilterTabsView extends FrameLayout {
                     textPaint.setColor(ColorUtils.blendARGB(color1, color2, animationValue));
                 }
             }
+            if (nativeChips()) textPaint.setColor(app.regram.appearance.NativeChipFolders.label(resourcesProvider, nativeProgress(currentTab.id), unactiveTextColorKey));
             emojiColorFilter = new PorterDuffColorFilter(textPaint.getColor(), PorterDuff.Mode.SRC_IN);
 
             float counterWidth;
@@ -537,6 +557,11 @@ public class FilterTabsView extends FrameLayout {
                     counterPaint.setColor(textPaint.getColor());
                 }
 
+                if (nativeChips()) {
+                    float p = nativeProgress(currentTab.id);
+                    counterPaint.setColor(ColorUtils.blendARGB(counterPaint.getColor(),app.regram.appearance.NativeChipFolders.label(resourcesProvider,1,unactiveTextColorKey),p));
+                    textCounterPaint.setColor(ColorUtils.blendARGB(textCounterPaint.getColor(),app.regram.appearance.NativeChipFolders.active(resourcesProvider),p));
+                }
                 float x;
                 float titleWidth = currentTab.titleWidth;
                 if (animateTextChange) {
@@ -674,6 +699,7 @@ public class FilterTabsView extends FrameLayout {
                 }
 
             }
+            } finally { if (nativeSave >= 0) canvas.restoreToCount(nativeSave); }
         }
 
         private boolean attached;
@@ -900,6 +926,46 @@ public class FilterTabsView extends FrameLayout {
     private final ArrayList<Tab> tabs = new ArrayList<>();
 
     private boolean isEditing;
+    private boolean nativeFolderScope, nativeScrolled, nativeOriginalCaptured;
+    private android.graphics.Typeface nativeOriginalTypeface, nativeOriginalCounterTypeface;
+    private float nativeOriginalTextSize;
+    private final Paint nativeDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private boolean nativeChips() { return nativeFolderScope && app.regram.appearance.PluginStyles.chips(); }
+    private float nativeProgress(int id) {
+        int target = manualScrollingToId != -1 ? manualScrollingToId : selectedTabId;
+        int previous = manualScrollingToId != -1 ? selectedTabId : previousId;
+        if ((animatingIndicator || manualScrollingToId != -1) && target != previous) {
+            if (id == target) return app.regram.appearance.PluginStyleRules.unit(animatingIndicatorProgress);
+            if (id == previous) return 1 - app.regram.appearance.PluginStyleRules.unit(animatingIndicatorProgress);
+            return 0;
+        }
+        return id == selectedTabId ? 1 : 0;
+    }
+    public void setNativeFolderChips(boolean enabled) {
+        nativeFolderScope = enabled;
+        if (nativeChips()) {
+            if (!nativeOriginalCaptured) {
+                nativeOriginalCaptured=true;
+                nativeOriginalTypeface=textPaint.getTypeface();nativeOriginalCounterTypeface=textCounterPaint.getTypeface();nativeOriginalTextSize=textPaint.getTextSize();
+            }
+            listView.setSelectorDrawableColor(android.graphics.Color.TRANSPARENT);
+            setBackground(null);
+            setPadding(0, 0, 0, dp(app.regram.appearance.PluginStyles.number("chip_bottom",0,0,24) + app.regram.appearance.PluginStyles.number("chip_list_gap",5,0,24)));
+            textPaint.setTypeface(AndroidUtilities.getTypeface("fonts/rregular.ttf"));
+            textPaint.setTextSize(dp(15 * app.regram.appearance.NativeChipFolders.scale()));
+            textCounterPaint.setTypeface(AndroidUtilities.getTypeface("fonts/rregular.ttf"));
+        } else if (nativeOriginalCaptured) {
+            setBackground(blurredBackgroundDrawable);setPadding(0,dp(7),0,dp(7));
+            textPaint.setTypeface(nativeOriginalTypeface);textPaint.setTextSize(nativeOriginalTextSize);textCounterPaint.setTypeface(nativeOriginalCounterTypeface);
+            listView.setSelectorDrawableColor(Theme.getColor(Theme.key_listSelector,resourcesProvider));
+        }
+        allTabsWidth = 0;
+        for (Tab tab : tabs) allTabsWidth += tab.getWidth(false) + dp(FolderIconHelper.getTabPadding());
+        for (int i=0;i<listView.getChildCount();i++) if(listView.getChildAt(i) instanceof TabView) ((TabView)listView.getChildAt(i)).currentText=null;
+        listView.getRecycledViewPool().clear();
+        requestLayout(); invalidate();
+    }
+    public void setNativeScrolled(boolean value) { if (value != nativeScrolled) { nativeScrolled=value; invalidate(); } }
     private long lastEditingAnimationTime;
     private boolean editingForwardAnimation;
     private float editingAnimationProgress;
@@ -1246,7 +1312,9 @@ public class FilterTabsView extends FrameLayout {
             scrollToTab(tabView.currentTab, position);
         });
         listView.setOnItemLongClickListener((view, position) -> {
-            if (!delegate.canPerformActions() || isEditing || !delegate.didSelectTab((TabView) view, position == currentPosition)) {
+            if (!delegate.canPerformActions() || isEditing) return false;
+            if (nativeChips() && ((TabView) view).currentTab.isDefault) { delegate.onChipSettingsRequested(); return true; }
+            if (!delegate.didSelectTab((TabView) view, position == currentPosition)) {
                 return false;
             }
             listView.hideSelector(true);
@@ -1273,6 +1341,19 @@ public class FilterTabsView extends FrameLayout {
 
     public void stopAnimatingIndicator() {
         animatingIndicator = false;
+    }
+
+    @Override
+    public void draw(@NonNull Canvas canvas) {
+        if (getBackground() != null) {
+            getBackground().setAlpha(app.regram.appearance.QuickTheme.foldersAlpha());
+            if (getBackground() instanceof BlurredBackgroundDrawable) {
+                BlurredBackgroundDrawable background = (BlurredBackgroundDrawable) getBackground();
+                background.setQuickThemeColor(app.regram.appearance.QuickTheme.folderColor(0));
+                background.setQuickThemeRadius(dp(app.regram.appearance.QuickTheme.folderRadius(18)));
+            }
+        }
+        super.draw(canvas);
     }
 
     BlurredBackgroundDrawable blurredBackgroundDrawable;
@@ -1589,6 +1670,7 @@ public class FilterTabsView extends FrameLayout {
     }
 
     private void drawSelector(Canvas canvas) {
+        if (nativeChips()) return;
         final int height = getMeasuredHeight();
         selectorDrawable.setAlpha((int) (255 * listView.getAlpha()));
         float indicatorX = 0;
@@ -1674,8 +1756,12 @@ public class FilterTabsView extends FrameLayout {
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
         canvas.save();
-        canvas.clipPath(clipPath);
+        if (!nativeChips()) canvas.clipPath(clipPath);
         super.dispatchDraw(canvas);
+        if (nativeChips() && nativeScrolled && app.regram.appearance.PluginStyles.flag("chip_divider",true)) {
+            nativeDividerPaint.setColor(Theme.getColor(Theme.key_divider,resourcesProvider));
+            canvas.drawRect(0,getHeight()-getPaddingBottom()-1,getWidth(),getHeight()-getPaddingBottom(),nativeDividerPaint);
+        }
         canvas.restore();
     }
 
@@ -1688,6 +1774,7 @@ public class FilterTabsView extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (nativeChips()) heightMeasureSpec = MeasureSpec.makeMeasureSpec(dp(app.regram.appearance.PluginStyles.barHeight()) + getPaddingBottom(),MeasureSpec.EXACTLY);
         if (!tabs.isEmpty()) {
             final int width = MeasureSpec.getSize(widthMeasureSpec) - listViewPaddingH * 2;
             int trueTabsWidth;

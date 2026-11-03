@@ -100,6 +100,15 @@ public abstract class BlurredBackgroundDrawable extends Drawable implements Glas
         return boundProps.hasPadding;
     }
 
+    public void setQuickThemeRadius(float radius) {
+        for (int i = 0; i < 8; i++) {
+            if (boundProps.radii[i] != radius || boundProps.shaderRadii[i] != radius) {
+                setRadius(radius);
+                return;
+            }
+        }
+    }
+
     public BlurredBackgroundDrawable setRadius(float radius) {
         Arrays.fill(boundProps.radii, radius);
         Arrays.fill(boundProps.shaderRadii, radius);
@@ -190,6 +199,14 @@ public abstract class BlurredBackgroundDrawable extends Drawable implements Glas
     protected BlurredBackgroundColorProvider colorProvider;
     protected int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom;
     protected int strokeColorFull;
+    private int quickThemeColor;
+
+    /** Local surface override; never changes a shared theme color. Zero restores the provider. */
+    public void setQuickThemeColor(int color) {
+        if (quickThemeColor == color) return;
+        quickThemeColor = color;
+        updateColors();
+    }
 
     public BlurredBackgroundDrawable setColorProvider(BlurredBackgroundColorProvider colorProvider) {
         GlassOutlineStyle.addListener(this);
@@ -243,7 +260,7 @@ public abstract class BlurredBackgroundDrawable extends Drawable implements Glas
             boundProps.build();
         }
 
-        backgroundColor = colorProvider.getBackgroundColor();
+        backgroundColor = quickThemeColor != 0 ? quickThemeColor : colorProvider.getBackgroundColor();
         shadowColor = glare ? colorProvider.getShadowColor() : 0;
         strokeColorTop = glare ? colorProvider.getStrokeColorTop() : 0;
         strokeColorBottom = glare ? colorProvider.getStrokeColorBottom() : 0;

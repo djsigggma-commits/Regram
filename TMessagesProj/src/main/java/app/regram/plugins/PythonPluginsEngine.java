@@ -125,10 +125,13 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
                 return;
             }
             try {
-                if (!Python.isStarted()) {
-                    long t0 = System.currentTimeMillis();
-                    Python.start(new AndroidPlatform(appContext));
-                    FileLog.d("PluginsEngine: Python started in " + (System.currentTimeMillis() - t0) + " ms");
+                // The opt-in native Termux executor shares CPython, not the plugin loader.
+                synchronized (Python.class) {
+                    if (!Python.isStarted()) {
+                        long t0 = System.currentTimeMillis();
+                        Python.start(new AndroidPlatform(appContext));
+                        FileLog.d("PluginsEngine: Python started in " + (System.currentTimeMillis() - t0) + " ms");
+                    }
                 }
                 Python.getInstance().getModule("sys").callAttr("setswitchinterval", 0.001);
                 loader = Python.getInstance().getModule("extera_utils.plugin_loader");
@@ -553,7 +556,7 @@ public class PythonPluginsEngine extends com.exteragram.messenger.plugins.Python
     }
 
     private PyObject callHook(String pluginId, String method, Object... args) {
-        if (!started) {
+        if (!started || org.telegram.ui.Wallet.WalletPluginFreeze.isFrozen()) {
             return null;
         }
         PluginsWatchdog watchdog = PluginsController.getInstance().getWatchdog();

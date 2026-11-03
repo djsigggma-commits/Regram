@@ -1,27 +1,24 @@
-"""Prevent regressions in the Last.fm worker's memory and queue limits."""
+"""Last.fm was removed upstream in Actions 41526234112; keep it out of the runtime."""
 from pathlib import Path
 
-JAVA = Path(__file__).resolve().parents[1] / "TMessagesProj/src/main/java/app/regram/nowplaying"
+MAIN = Path(__file__).resolve().parents[1] / "TMessagesProj/src/main"
+JAVA = MAIN / "java/app/regram/nowplaying"
 
 
-def test_recent_tracks_cache_is_bounded_and_expired_entries_are_removed():
-    code = (JAVA / "LastFmNowPlaying.java").read_text()
-    assert "CACHE_LIMIT = 128" in code
-    assert "size() > CACHE_LIMIT" in code
-    assert "CACHE.remove(nick);" in code
-    assert "new CachedTrack(track, System.currentTimeMillis())" in code
-    assert "STAMPS" not in code
+def test_lastfm_workers_and_stamping_are_removed():
+    for name in ("LastFmNowPlaying", "LastFmWebFetcher", "ProfileMusicMark",
+                 "ProfileMusicStamp", "ZeroWidthCodec"):
+        assert not (JAVA / f"{name}.java").exists()
+    config = (MAIN / "kotlin/app/regram/general/GeneralConfig.kt").read_text()
+    assert "lastfmNick" not in config
+    settings = (MAIN / "java/app/regram/settings/OpenExteraGeneralActivity.java").read_text()
+    assert "LastFm" not in settings
 
 
-def test_html_reader_respects_prefix_limit_even_on_final_read():
-    code = (JAVA / "LastFmNowPlaying.java").read_text()
-    assert "Math.min(buffer.length, PREFIX_LIMIT - sb.length())" in code
-
-
-def test_web_requests_dequeue_without_shifting_and_reset_idle_release():
-    code = (JAVA / "LastFmWebFetcher.java").read_text()
-    assert "ArrayDeque<Pending> queue" in code
-    assert "queue.removeFirst()" in code
-    assert "queue.remove(0)" not in code
-    finish = code.split("private static void finish(", 1)[1].split("@SuppressLint", 1)[0]
-    assert "scheduleRelease();" in finish
+def test_saved_music_card_remains_without_background_web_requests():
+    card = (MAIN / "java/app/regram/components/ProfileMusicCard.java").read_text()
+    assert "public void set(TLRPC.Document document, long emojiDocumentId)" in card
+    assert "LastFm" not in card
+    assert "ZeroWidthCodec" not in card
+    shim = (JAVA / "NowPlayingController.java").read_text()
+    assert "return savedMusic != null;" in shim

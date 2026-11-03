@@ -143,8 +143,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     private int iconPacksRow;
     private int emojiSetsRow;
     private int pillStackRow;
-    private int nativeVisualRow;
-    private int quickThemeRow;
+    private int playerStyleRow;
     private int hidingRow;
     private int linksDividerRow;
 
@@ -202,9 +201,8 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
         appNavigationRow = addRow("appNavigation");
         iconPacksRow = addRow("iconPacks");
         emojiSetsRow = addRow("emojiSets", "EmojiSets");
-        nativeVisualRow = addRow("nativeVisual", "OEAppearanceNativeVisual");
-        quickThemeRow = addRow("quickTheme", "RegramQuickTheme");
         pillStackRow = addRow("pillStack");
+        playerStyleRow = addRow("playerStyle");
         hidingRow = addRow("hiding");
         linksDividerRow = addRow();
 
@@ -553,17 +551,14 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
 
     @Override
     protected void onItemClick(View view, int position, float x, float y) {
-        if (position == quickThemeRow) {
-            presentFragment(new QuickThemeActivity());
-            return;
-        } else if (position == nativeVisualRow) {
-            presentFragment(new NativeVisualSettingsActivity());
-            return;
-        } else if (position == iconPacksRow) {
+        if (position == iconPacksRow) {
             presentFragment(new IconPacksActivity());
             return;
         } else if (position == pillStackRow) {
             presentFragment(new PillStackSettingsActivity());
+            return;
+        } else if (position == playerStyleRow) {
+            app.regram.player.PlayerSheet.openStyleEditor(this);
             return;
         } else if (position == appNavigationRow) {
             presentFragment(new OpenExteraAppNavigationActivity());
@@ -595,8 +590,8 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             return;
         } else if (position == md3SwitchRow) {
             NaConfig.INSTANCE.getSwitchStyle().setConfigInt(
-                    isMd3(NaConfig.INSTANCE.getSwitchStyle().Int()) ? 0 : STYLE_MD3);
-            rebuildAllAndSelf(view, isMd3(NaConfig.INSTANCE.getSwitchStyle().Int()));
+                    isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int()) ? 0 : SWITCH_STYLE_M3);
+            rebuildAllAndSelf(view, isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int()));
             return;
         } else if (position == md3ChatHeaderRow) {
             AppearanceConfig.newChatHeaderStyle.setConfigBool(!AppearanceConfig.newChatHeaderStyle.Bool());
@@ -998,7 +993,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                                 isMd3(NaConfig.INSTANCE.getSliderStyle().Int()), true, true);
                     } else if (position == md3SwitchRow) {
                         cell.setText(getString(R.string.OEAppearanceSwitchStyle), "",
-                                isMd3(NaConfig.INSTANCE.getSwitchStyle().Int()), true, true);
+                                isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int()), true, true);
                     } else if (position == md3ChatHeaderRow) {
                         cell.setText(getString(R.string.OEAppearanceNewChatHeaderStyle), "",
                                 AppearanceConfig.newChatHeaderStyle.Bool(), true, true);
@@ -1061,12 +1056,11 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
                     } else if (position == emojiSetsRow) {
                         cell.setTextAndValueAndIcon(getString(R.string.EmojiSets), getString(NekoConfig.useSystemEmoji.Bool()
                                 ? R.string.OEAppearanceUseSystemEmoji : R.string.OEAppearanceEmojiSetsInfo), R.drawable.msg_emoji_smiles, true);
-                    } else if (position == quickThemeRow) {
-                        cell.setTextAndValueAndIcon(getString(R.string.RegramQuickTheme), getString(R.string.RegramQuickThemeSummary), R.drawable.msg_theme, true);
-                    } else if (position == nativeVisualRow) {
-                        cell.setTextAndValueAndIcon(getString(R.string.OEAppearanceNativeVisual), getString(R.string.OEAppearanceNativeVisualInfo), R.drawable.msg_theme, true);
+
                     } else if (position == pillStackRow) {
                         cell.setTextAndValueAndIcon(getString(R.string.OEAppearancePillStack), getString(R.string.OEAppearancePillStackInfo), R.drawable.outline_header_search, true);
+                    } else if (position == playerStyleRow) {
+                        cell.setTextAndValueAndIcon(getString(R.string.OEPlayerStyleTitle), getString(R.string.OEPlayerStyleInfo), R.drawable.msg_filled_data_music, true);
                     } else if (position == hidingRow) {
                         cell.setTextAndValueAndIcon(getString(R.string.OEAppearanceHiding), getString(R.string.OEAppearanceHidingInfo), R.drawable.msg_archive_hide, false);
                     }
@@ -1137,7 +1131,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             } else if (position == fabShapeRow) {
                 return TYPE_FAB_SHAPE;
             } else if (position == appNavigationRow || position == iconPacksRow
-                    || position == emojiSetsRow || position == nativeVisualRow || position == quickThemeRow || position == pillStackRow || position == hidingRow) {
+                    || position == emojiSetsRow || position == pillStackRow || position == playerStyleRow || position == hidingRow) {
                 return TYPE_DETAIL_SETTINGS;
             } else if (position == md3GroupRow || position == iosGroupRow) {
                 return TYPE_EXPANDABLE_SWITCH;
@@ -1161,15 +1155,21 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
     /** Значение селектора NagramX, соответствующее Material Design 3. */
     private static final int STYLE_MD3 = 2;
 
+    private static final int SWITCH_STYLE_M3 = org.telegram.ui.Components.Switch.SWITCH_STYLE_M3;
+
     private static boolean isMd3(int styleValue) {
         return styleValue == STYLE_MD3;
+    }
+
+    private static boolean isMd3Switch(int styleValue) {
+        return styleValue == STYLE_MD3 || styleValue == SWITCH_STYLE_M3;
     }
 
     private int md3SelectedCount() {
         int n = 0;
         if (AppearanceConfig.newLoadingStyle.Bool()) n++;
         if (isMd3(NaConfig.INSTANCE.getSliderStyle().Int())) n++;
-        if (isMd3(NaConfig.INSTANCE.getSwitchStyle().Int())) n++;
+        if (isMd3Switch(NaConfig.INSTANCE.getSwitchStyle().Int())) n++;
         if (AppearanceConfig.newChatHeaderStyle.Bool()) n++;
         if (AppearanceConfig.newNavigationBarStyle.Bool()) n++;
         if (AppearanceConfig.m3ListItems.Bool()) n++;
@@ -1237,7 +1237,7 @@ public class OpenExteraAppearanceActivity extends BaseNekoSettingsActivity {
             leaveFloatingBottomNavigation();
         }
         NaConfig.INSTANCE.getSliderStyle().setConfigInt(enable ? STYLE_MD3 : 0);
-        NaConfig.INSTANCE.getSwitchStyle().setConfigInt(enable ? STYLE_MD3 : 0);
+        NaConfig.INSTANCE.getSwitchStyle().setConfigInt(enable ? SWITCH_STYLE_M3 : 0);
         if (avatarCornersPreviewCell != null) {
             avatarCornersPreviewCell.invalidate();
         }

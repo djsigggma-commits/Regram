@@ -99,7 +99,7 @@ public final class MonoColor {
             if (key == Theme.key_chats_message || key == Theme.key_chats_messageArchived
                     || key == Theme.key_chats_message_threeLines) role = 10;
         }
-        return role < 0 ? null : palette().colors[role];
+        return role < 0 ? null : palette().overrides[role];
     }
     private static float brightness(int c) {
         return (Color.red(c) * .2126f + Color.green(c) * .7152f + Color.blue(c) * .0722f) / 255f;
@@ -113,6 +113,7 @@ public final class MonoColor {
         final int source;
         final boolean dark, gradient;
         final int[] colors = new int[11], peer = new int[6];
+        final Integer[] overrides = new Integer[11];
         final ColorFilter filter;
         Palette(int c, boolean dark, boolean gradient) {
             source = c; this.dark = dark; this.gradient = gradient;
@@ -132,6 +133,8 @@ public final class MonoColor {
             colors[7] = blend(story, Color.BLACK, .12f);
             colors[8] = gradient ? blend(story, Color.WHITE, .08f) : colors[7];
             colors[9] = name; colors[10] = blend(name, dark ? 0xffe6e6e6 : 0xff3a3a3a, .42f);
+            // Theme.getColor's nullable override API must not box ARGB every frame.
+            for (int i = 0; i < colors.length; i++) overrides[i] = colors[i];
             peer[0] = name; peer[1] = name2; peer[2] = colors[0]; peer[3] = colors[1]; peer[4] = story; peer[5] = story2;
             float r = Color.red(avatar) / 255f, g = Color.green(avatar) / 255f, b = Color.blue(avatar) / 255f;
             filter = new ColorMatrixColorFilter(new float[] {

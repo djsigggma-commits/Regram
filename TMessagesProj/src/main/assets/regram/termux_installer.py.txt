@@ -1,0 +1,19 @@
+import os
+d = os.path.expanduser("~/.tgbridge")
+os.makedirs(d, mode=0o700, exist_ok=True)
+os.chmod(d, 0o700)
+with open(d + "/tgbridge.py", "w", encoding="utf-8") as f:
+    f.write(@@SRC@@)
+os.chmod(d + "/tgbridge.py", 0o600)
+prefix = os.environ.get("PREFIX", "/data/data/com.termux/files/usr")
+path = prefix + "/bin/tgb"
+with open(path, "w") as f:
+    f.write("#!/bin/sh\nexec python3 " + d + "/tgbridge.py \"$@\"\n")
+os.chmod(path, 0o755)
+try:
+    import site
+    with open(os.path.join(site.getsitepackages()[0], "tgbridge.pth"), "w") as f:
+        f.write(d + "\n")
+except Exception:
+    pass
+print("\033[38;5;78m✔ Готово!\033[0m Теперь просто введи:  \033[1mtgb\033[0m")

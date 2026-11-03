@@ -48,17 +48,6 @@
     <string name="RegramCustomProfileFailed">Custom Profile не запустился. Причина — в разделе «Плагины».</string>
     <string name="RegramCustomProfileWarning">Будет включён оригинальный runtime Custom Profile от @roflplugins, встроенный в клиент. Сторонний DEX имеет доступ к процессу Telegram, Java-хукам и данным аккаунта, а также подключается к оригинальному серверу Custom Profile для публикации и получения оформления профилей. Изоляции нет. Включится движок плагинов и другие плагины, которые вы ранее включили. Продолжайте, только если доверяете автору и согласны передавать данные профиля этому серверу.</string>
     <string name="RegramCustomProfileInfo">Создатель оригинального плагина — @roflplugins. DEX и его протокол взаимодействия с сервером не изменены; в настройки плагина добавлена только строка автора. Установка требует подтверждения. После включения откройте настройки плагина или меню профиля для оформления.</string>
-    <string name="RegramExitFy">exitFy</string>
-    <string name="RegramExitFyInstall">Установить полный exitFy 4.2</string>
-    <string name="RegramExitFyOpen">Открыть настройки exitFy</string>
-    <string name="RegramExitFyInstalled">exitFy установлен. Откройте панель через настройки плагина или меню.</string>
-    <string name="RegramExitFyUnsupported">Полный exitFy требует Android 10+ и устройство arm64.</string>
-    <string name="RegramExitFyWarning">Будет установлен оригинальный runtime exitFy 4.2 из этого APK. Он содержит сторонний DEX и нативный код, имеет доступ к сети и полный доступ к приложению через Java-хуки. Установка также включает движок плагинов (и ранее включённые вами плагины). Требуются Android 10+ и arm64. Продолжайте, только если доверяете автору.</string>
-    <string name="RegramExitFyLite">exitFy Lite</string>
-    <string name="RegramExitFyLiteSubscription">Ссылка подписки на прокси</string>
-    <string name="RegramExitFyLiteRefresh">Импортировать Telegram-прокси</string>
-    <string name="RegramExitFyLiteOptimize">Проверить и включить самый быстрый прокси</string>
-    <string name="RegramExitFyLiteInfo">Полный runtime exitFy выше содержит сторонний DEX/native-код и требует явного согласия. Независимые функции Lite ниже импортируют Telegram-прокси и выбирают самый быстрый без запуска этого runtime.</string>
     <string name="RegramCreatorsAndSources">Создатели и источники</string>
     <string name="RegramCreditsArtDescription">Иллюстрация Иви</string>
     <string name="RegramCreators">Создатели</string>

@@ -146,10 +146,23 @@ public class NekoConfig {
 
     // Native MonoColor UI / AllLeft. Masters are opt-in; child defaults match the plugins.
     public static ConfigItem regramQuickTheme = addConfig("RegramQuickTheme", configTypeBool, false);
+    public static ConfigItem regramQuickHideNavigationBackdrop = addConfig("RegramQuickHideNavigationBackdrop", configTypeBool, false);
     public static ConfigItem regramQuickTransparency = addConfig("RegramQuickTransparency", configTypeInt, 0);
+    public static ConfigItem regramQuickFoldersTransparency = addConfig("RegramQuickFoldersTransparency", configTypeInt, 0);
+    public static ConfigItem regramQuickNavigationTransparency = addConfig("RegramQuickNavigationTransparency", configTypeInt, 0);
     public static ConfigItem regramQuickContrast = addConfig("RegramQuickContrast", configTypeInt, 100);
     public static ConfigItem regramQuickSaturation = addConfig("RegramQuickSaturation", configTypeInt, 100);
     public static ConfigItem regramQuickBrightness = addConfig("RegramQuickBrightness", configTypeInt, 0);
+    public static ConfigItem regramQuickIncomingTransparency = addConfig("RegramQuickIncomingTransparency", configTypeInt, -1);
+    public static ConfigItem regramQuickOutgoingTransparency = addConfig("RegramQuickOutgoingTransparency", configTypeInt, -1);
+    public static ConfigItem regramQuickBubbleRadius = addConfig("RegramQuickBubbleRadius", configTypeInt, -1);
+    public static ConfigItem regramQuickFolderRadius = addConfig("RegramQuickFolderRadius", configTypeInt, -1);
+    public static ConfigItem regramQuickNavigationRadius = addConfig("RegramQuickNavigationRadius", configTypeInt, -1);
+    public static ConfigItem regramQuickBlur = addConfig("RegramQuickBlur", configTypeInt, 100);
+    public static ConfigItem regramQuickFolderColor = addConfig("RegramQuickFolderColor", configTypeInt, 0);
+    public static ConfigItem regramQuickNavigationColor = addConfig("RegramQuickNavigationColor", configTypeInt, 0);
+    public static ConfigItem regramQuickIncomingColor = addConfig("RegramQuickIncomingColor", configTypeInt, 0);
+    public static ConfigItem regramQuickOutgoingColor = addConfig("RegramQuickOutgoingColor", configTypeInt, 0);
 
     public static ConfigItem regramMonoColor = addConfig("RegramMonoColor", configTypeBool, false);
     public static ConfigItem regramMonoSource = addConfig("RegramMonoSource", configTypeInt, 0);

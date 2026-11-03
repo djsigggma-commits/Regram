@@ -714,6 +714,15 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
         }
     }
 
+    /** Runs the already validated capture, without changing touch/selection policy. */
+    public boolean startSelectionImmediatelyForPen() {
+        if (!tryCapture || maybeSelectedView == null) return false;
+        Cell wanted = maybeSelectedView;
+        AndroidUtilities.cancelRunOnUIThread(startSelectionRunnable);
+        startSelectionRunnable.run();
+        return selectedView == wanted && isInSelectionMode();
+    }
+
     public void cancelTextSelectionRunnable() {
         AndroidUtilities.cancelRunOnUIThread(startSelectionRunnable);
         tryCapture = false;
@@ -726,6 +735,8 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
     }
 
     public void clear(boolean instant) {
+        scrolling = false;
+        AndroidUtilities.cancelRunOnUIThread(scrollRunnable);
         onExitSelectionMode(instant);
         selectionStart = -1;
         selectionEnd = -1;
@@ -781,6 +792,9 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
     }
 
     public void finishOneTouchSelection() {
+        scrolling = false;
+        AndroidUtilities.cancelRunOnUIThread(scrollRunnable);
+        hideMagnifier();
         if (!isInSelectionMode()) return;
         movingHandle = false;
         movingDirectionSettling = false;
@@ -2173,6 +2187,15 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
 
     public static class ChatListTextSelectionHelper extends TextSelectionHelper<ChatMessageCell> {
 
+        public boolean selectAllForPen() {
+            if (selectedView == null || !isInSelectionMode()) return false;
+            CharSequence text = getText(selectedView, false);
+            if (text == null || text.length() == 0) return false;
+            select(selectedView, 0, text.length());
+            finishOneTouchSelection();
+            return true;
+        }
+
         public boolean isTouched() {
             return movingHandle;
         }
@@ -2197,6 +2220,11 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
             }
             selectedView = cell;
             selectedCellId = selectedView.getMessageObject().getId();
+            isRich = selectedView.getMessageObject().type == MessageObject.TYPE_ARTICLE && selectedView.getMessageObject().richLayout != null;
+            if (isRich) {
+                isDescription = false;
+                isFactCheck = false;
+            }
             selectionStart = start;
             selectionEnd = end;
             invalidate();
@@ -3898,11 +3926,15 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
                 } else {
                     int n = childCountByPosition.get(i);
                     for (int k = startViewChildPosition; k < n; k++) {
+                        CharSequence text = textByPosition.get(i + (k << 16));
+                        if (text == null) {
+                            continue;
+                        }
                         CharSequence prefix = prefixTextByPosition.get(i + (k << 16));
                         if (prefix != null) {
                             stringBuilder.append(prefix).append(' ');
                         }
-                        stringBuilder.append(textByPosition.get(i + (k << 16)));
+                        stringBuilder.append(text);
                         stringBuilder.append('\n');
                     }
                 }

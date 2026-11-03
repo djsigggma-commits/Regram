@@ -224,7 +224,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
 
     private WindowInsetsCompat extendInsetsByTabsHeight(WindowInsetsCompat windowInsets) {
         lastWindowInsets = windowInsets;
-        final int tabsHeight = AndroidUtilities.dp(MainTabsUiHelper.getTabsViewHeightDp());
+        final int tabsHeight = AndroidUtilities.dp(MainTabsUiHelper.getTabsViewHeightDp()) + miniPlayerPadding;
         if (tabsHeight == 0) {
             return windowInsets;
         }
@@ -249,6 +249,19 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
 
     private static Insets extendBottom(Insets insets, int extra) {
         return Insets.of(insets.left, insets.top, insets.right, insets.bottom + extra);
+    }
+
+    private int miniPlayerPadding;
+
+    @Override
+    public void setMiniPlayerInset(float inset, int padding) {
+        if (miniPlayerPadding == padding) {
+            return;
+        }
+        miniPlayerPadding = padding;
+        if (fragmentView != null && lastWindowInsets != null) {
+            ViewCompat.dispatchApplyWindowInsets(fragmentView, lastWindowInsets);
+        }
     }
 
     private void applyFloatingWindowLayout() {

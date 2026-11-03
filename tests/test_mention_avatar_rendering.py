@@ -50,6 +50,19 @@ public class RenderingTest {public static void main(String[] args){
  after.draw(canvas,"@foo",3,4,10,0,14,22,paint);
  assert canvas.text.equals("o") && canvas.textX==10 && canvas.avatarX==20.5f && canvas.paint==paint;
  assert after.getSize(paint,"@foo",3,4,null)==29;
+ // The new mode covers only @: no glyph and no extra gap are painted.
+ for(int size:new int[]{14,16,18}){
+  MentionAvatarSpan instead=new MentionAvatarSpan(0,size,true,true,peer,null);
+  Canvas replacementCanvas=new Canvas(); Paint.FontMetricsInt metrics=new Paint.FontMetricsInt();
+  assert instead.getSize(paint,"@foo",0,1,metrics)==size;
+  assert metrics.ascent<=-12 && metrics.descent>=4 && metrics.top<=metrics.ascent && metrics.bottom>=metrics.descent;
+  instead.draw(replacementCanvas,"@foo",0,1,10,0,14,22,paint);
+  assert replacementCanvas.text==null && replacementCanvas.avatarX==10;
+  // If a caller changes the covered text, never silently hide a non-@ glyph.
+  assert instead.getSize(paint,"xfoo",0,1,null)==size+11;
+  instead.draw(replacementCanvas,"xfoo",0,1,10,0,14,22,paint);
+  assert replacementCanvas.text.equals("x");
+ }
  // A replacement run over a Cyrillic word must keep URL colour and typography.
  android.text.TextPaint base=new android.text.TextPaint(); base.linkColor=42;
  android.text.style.URLSpan url=new android.text.style.URLSpan("https://t.me/lab") {

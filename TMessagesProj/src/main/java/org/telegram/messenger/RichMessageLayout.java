@@ -45,7 +45,6 @@ import android.text.style.ClickableSpan;
 import android.text.style.MetricAffectingSpan;
 import android.text.style.ReplacementSpan;
 import android.text.style.URLSpan;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -128,6 +127,7 @@ import org.telegram.ui.iv.RichTextStyle;
 import org.telegram.ui.iv.Latex;
 import org.telegram.ui.PremiumPreviewFragment;
 import org.telegram.ui.web.WebInstantView;
+import org.telegram.utils.code.highlight.CodeHighlighting;
 
 import java.io.File;
 import java.net.URLDecoder;
@@ -135,6 +135,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
@@ -399,6 +400,7 @@ public class RichMessageLayout {
         }
         applyListPaddingFromBlocks();
         this.prev = null;
+        copyStateInternal(prev);
 
         if (typingAnimator != null) {
             for (int i = 0; i < blocks.size(); ++i) {
@@ -415,6 +417,128 @@ public class RichMessageLayout {
 
         reposition();
         snapshotForDetailsAnimation();
+    }
+
+    private static void copyTextState(RichBlock current, RichBlock previous) {
+        final TextSelectionHelper.TextLayoutBlock[] currentTexts = current.getText();
+        final TextSelectionHelper.TextLayoutBlock[] previousTexts = previous.getText();
+        if (currentTexts == null || previousTexts == null || currentTexts.length != previousTexts.length) return;
+        for (int i = 0; i < currentTexts.length; ++i) {
+            if (currentTexts[i] instanceof Text && previousTexts[i] instanceof Text && ((Text) previousTexts[i]).spoilers.isEmpty()) {
+                ((Text) currentTexts[i]).spoilers.clear();
+            }
+        }
+    }
+
+    private static void copySpoilerReveal(SpoilerReveal current, SpoilerReveal previous) {
+        if (!previous.isRevealing()) return;
+        current.progress = 1f;
+        current.revealed = true;
+    }
+
+    private static boolean isSameMedia(TL_iv.PageBlock current, TL_iv.PageBlock previous) {
+        if (current == null || previous == null || current.getClass() != previous.getClass()) return false;
+        if (current instanceof TL_iv.pageBlockPhoto) {
+            return ((TL_iv.pageBlockPhoto) current).photo_id == ((TL_iv.pageBlockPhoto) previous).photo_id;
+        }
+        if (current instanceof TL_iv.pageBlockVideo) {
+            return ((TL_iv.pageBlockVideo) current).video_id == ((TL_iv.pageBlockVideo) previous).video_id;
+        }
+        return false;
+    }
+
+    private static void copyMediaCellState(MediaCell current, MediaCell previous) {
+        if (!isSameMedia(current.pageBlock, previous.pageBlock)) return;
+        copySpoilerReveal(current.spoilerReveal, previous.spoilerReveal);
+        current.mediaForced = previous.mediaForced;
+        if (current.mediaForced) current.applyImage(true);
+    }
+
+    private boolean copyStateInternal(RichMessageLayout previous) {
+        if (previous == null) return false;
+        if (blocks.size() != previous.blocks.size()) return false;
+        for (int i = 0; i < blocks.size(); ++i) {
+            if (blocks.get(i).getClass() != previous.blocks.get(i).getClass()) return false;
+        }
+        for (int i = 0; i < blocks.size(); ++i) {
+            final RichBlock block = blocks.get(i);
+            final RichBlock oldBlock = previous.blocks.get(i);
+            copyTextState(block, oldBlock);
+            if (block instanceof RichDetailsBlock) {
+                final RichDetailsBlock details = (RichDetailsBlock) block;
+                details.block.open = ((RichDetailsBlock) oldBlock).isOpen();
+                details.arrow.setAnimationProgress(details.block.open ? 0f : 1f);
+            } else if (block instanceof RichTextBlockQuote) {
+                final RichTextBlockQuote quote = (RichTextBlockQuote) block;
+                quote.prevCollapsed = quote.currentCollapsed = ((RichTextBlockQuote) oldBlock).currentCollapsed;
+            } else if (block instanceof RichTableBlock) {
+                final RichTableBlock table = (RichTableBlock) block;
+                table.scrollX = Utilities.clamp(((RichTableBlock) oldBlock).scrollX, table.maxScrollX, 0);
+            } else if (block instanceof RichPreformattedBlock) {
+                final RichPreformattedBlock pre = (RichPreformattedBlock) block;
+                pre.scrollX = Utilities.clamp(((RichPreformattedBlock) oldBlock).scrollX, pre.maxScrollX, 0);
+            } else if (block instanceof RichMathBlock) {
+                final RichMathBlock math = (RichMathBlock) block;
+                math.scrollX = Utilities.clamp(((RichMathBlock) oldBlock).scrollX, math.maxScrollX, 0);
+            } else if (block instanceof RichMediaBlock) {
+                final RichMediaBlock media = (RichMediaBlock) block;
+                final RichMediaBlock oldMedia = (RichMediaBlock) oldBlock;
+                if (isSameMedia(media.getBlock(), oldMedia.getBlock())) {
+                    copySpoilerReveal(media.spoilerReveal, oldMedia.spoilerReveal);
+                    media.mediaForced = oldMedia.mediaForced;
+                    if (media.mediaForced) media.applyImage(true);
+                }
+            } else if (block instanceof RichCollageBlock) {
+                final RichCollageBlock collage = (RichCollageBlock) block;
+                final RichCollageBlock oldCollage = (RichCollageBlock) oldBlock;
+                if (collage.cells.size() == oldCollage.cells.size()) {
+                    for (int j = 0; j < collage.cells.size(); ++j) {
+                        copyMediaCellState(collage.cells.get(j), oldCollage.cells.get(j));
+                    }
+                }
+            } else if (block instanceof RichSlideshowBlock) {
+                final RichSlideshowBlock slideshow = (RichSlideshowBlock) block;
+                final RichSlideshowBlock oldSlideshow = (RichSlideshowBlock) oldBlock;
+                if (slideshow.cells.size() == oldSlideshow.cells.size()) {
+                    boolean sameMedia = true;
+                    for (int j = 0; j < slideshow.cells.size(); ++j) {
+                        if (!isSameMedia(slideshow.cells.get(j).pageBlock, oldSlideshow.cells.get(j).pageBlock)) {
+                            sameMedia = false;
+                            break;
+                        }
+                    }
+                    if (sameMedia) {
+                        final int oldPage = Math.round(oldSlideshow.currentPage + oldSlideshow.pageOffset);
+                        slideshow.currentPage = Math.max(0, Math.min(oldPage, slideshow.cells.size() - 1));
+                        slideshow.pageOffset = 0;
+                        for (int j = 0; j < slideshow.cells.size(); ++j) {
+                            copyMediaCellState(slideshow.cells.get(j), oldSlideshow.cells.get(j));
+                        }
+                    }
+                }
+            } else if (block instanceof RichAudioBlock) {
+                final MessageObject audio = ((RichAudioBlock) block).currentMessageObject;
+                final MessageObject oldAudio = ((RichAudioBlock) oldBlock).currentMessageObject;
+                if (audio != null && oldAudio != null && audio.getDocument() != null && oldAudio.getDocument() != null && audio.getDocument().id == oldAudio.getDocument().id) {
+                    audio.audioProgress = oldAudio.audioProgress;
+                    audio.audioProgressMs = oldAudio.audioProgressMs;
+                    audio.audioProgressSec = oldAudio.audioProgressSec;
+                    audio.audioPlayerDuration = oldAudio.audioPlayerDuration;
+                    audio.bufferedProgress = oldAudio.bufferedProgress;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void copyState(RichMessageLayout previous) {
+        if (!copyStateInternal(previous)) return;
+        reposition();
+        snapshotForDetailsAnimation();
+        if (view != null) {
+            view.requestLayout();
+            view.invalidate();
+        }
     }
 
     private boolean prefixEquals(String oldText, String newText) {
@@ -642,6 +766,25 @@ public class RichMessageLayout {
     public void snapshotForDetailsAnimation() {
         for (int i = 0; i < blocks.size(); ++i) {
             blocks.get(i).snapshot();
+        }
+    }
+
+    /** Opens collapsed details blocks (e.g. to show a highlighted quote inside them) */
+    public void openDetails(List<RichDetailsBlock> details) {
+        if (details == null || details.isEmpty()) return;
+        snapshotForDetailsAnimation();
+        for (RichDetailsBlock d : details) {
+            if (d.block.open) continue;
+            d.block.open = true;
+            d.arrow.setAnimationProgressAnimated(0f);
+        }
+        detailsAnimating = true;
+        reposition();
+        if (view != null) {
+            view.invalidate();
+        }
+        if (cell != null && delegate != null) {
+            delegate.forceUpdate(cell, true, true);
         }
     }
 
@@ -1064,7 +1207,12 @@ public class RichMessageLayout {
             blocks.add(block);
             return block;
         } else if (pageBlock instanceof TL_iv.pageBlockTable) {
-            final RichBlock block = new RichTableBlock(this, padding, maxWidth, (TL_iv.pageBlockTable) pageBlock);
+            final RichBlock block;
+            try {
+                block = new RichTableBlock(this, padding, maxWidth, (TL_iv.pageBlockTable) pageBlock);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
             block.accessibilityLabelResId = R.string.AccDescrIVTable;
             blocks.add(block);
             return block;
@@ -1718,6 +1866,23 @@ public class RichMessageLayout {
         return pressedBlock != null && pressedBlock.isHorizontallyDragging();
     }
 
+    public boolean canScrollHorizontallyAt(float y) {
+        int yAcc = 0;
+        boolean lastVisible = false;
+        for (int i = 0; i < blocks.size(); i++) {
+            final RichBlock block = blocks.get(i);
+            if (!block.isVisible()) continue;
+            if (lastVisible) yAcc += getGap();
+            final int h = block.getHeight();
+            if (y >= yAcc && y < yAcc + h) {
+                return block.canDragHorizontally();
+            }
+            yAcc += h;
+            lastVisible = true;
+        }
+        return false;
+    }
+
     public boolean isPressingLink() {
         return pressedBlock != null && pressedBlock.isPressingLink();
     }
@@ -1964,13 +2129,41 @@ public class RichMessageLayout {
     }
 
     public CharSequence formatText(TL_iv.RichText text) {
-        return formatText(text, new SpannableStringBuilder(), 0);
+        return formatText(text, 0);
     }
     public CharSequence formatText(TL_iv.RichText text, int flags) {
+        final SpannableStringBuilder out = new SpannableStringBuilder();
         if (flags == 0)
-            return formatText(text, new SpannableStringBuilder(), 0);
+            formatText(text, out, 0);
         else
-            return formatTextAndSetSpan(text, new SpannableStringBuilder(), flags, new StyleSpan(this, flags));
+            formatTextAndSetSpan(text, out, flags, new StyleSpan(this, flags));
+        if (text != null && out.length() > 0) {
+            out.setSpan(new QuoteRootSpan(text, flags), 0, out.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return out;
+    }
+
+    /** Marks the text produced from a root RichText node, so a selection can be mapped back to it for quoting. */
+    public static class QuoteRootSpan {
+        public final TL_iv.RichText text;
+        public final int flags;
+        public QuoteRootSpan(TL_iv.RichText text, int flags) {
+            this.text = text;
+            this.flags = flags;
+        }
+    }
+
+    private IdentityHashMap<TL_iv.RichText, int[]> quoteRecorder;
+
+    /** Formats text the same way formatText(text, flags) does, recording the [start, end) range produced by every node. */
+    public CharSequence formatTextRecording(TL_iv.RichText text, int flags, IdentityHashMap<TL_iv.RichText, int[]> recorder) {
+        final IdentityHashMap<TL_iv.RichText, int[]> prev = quoteRecorder;
+        quoteRecorder = recorder;
+        try {
+            return formatText(text, new SpannableStringBuilder(), flags);
+        } finally {
+            quoteRecorder = prev;
+        }
     }
     private void setSpansWithoutClash(Object span, SpannableStringBuilder out, int start, int end) {
         if (span instanceof StyleSpan) {
@@ -2029,6 +2222,14 @@ public class RichMessageLayout {
         return run;
     }
     public CharSequence formatText(TL_iv.RichText text, SpannableStringBuilder out, int flags) {
+        final int start = out.length();
+        formatTextNode(text, out, flags);
+        if (quoteRecorder != null && text != null) {
+            quoteRecorder.put(text, new int[] { start, out.length() });
+        }
+        return out;
+    }
+    private CharSequence formatTextNode(TL_iv.RichText text, SpannableStringBuilder out, int flags) {
         if (text instanceof TL_iv.textEmpty) {
 
         } else if (text instanceof TL_iv.textPlain) {
@@ -2174,6 +2375,9 @@ public class RichMessageLayout {
                 tel = "+" + tel;
             }
             formatTextAndSetSpan(text.text, out, flags, new URLSpanReplacement("tel:" + tel, getTextStyleRun(TextStyleSpan.FLAG_STYLE_TEXT_URL)));
+        } else if (text instanceof TL_iv.textTonAddress) {
+            final String address = getString(text);
+            formatTextAndSetSpan(text.text, out, flags, new URLSpanNoUnderline("tonaddress:" + address));
         } else if (text instanceof TL_iv.textBankCard) {
             final String bankCard = getString(text);
             formatTextAndSetSpan(text.text, out, flags, new URLSpanNoUnderline("card:" + bankCard));
@@ -4202,14 +4406,7 @@ public class RichMessageLayout {
             }
             tableLayout.setMinimumCellHeight(dp(block.compact ? 18 : 36));
 
-            int maxCols = 0;
-            if (!block.rows.isEmpty()) {
-                final TL_iv.pageTableRow row0 = block.rows.get(0);
-                for (int c = 0; c < row0.cells.size(); ++c) {
-                    final TL_iv.pageTableCell cell = row0.cells.get(c);
-                    maxCols += (cell.colspan != 0 ? cell.colspan : 1);
-                }
-            }
+            int maxCols = TableLayout.sanitizeSpans(block.rows);
             for (int r = 0; r < block.rows.size(); ++r) {
                 final TL_iv.pageTableRow row = block.rows.get(r);
                 int cols = 0;
@@ -4605,6 +4802,11 @@ public class RichMessageLayout {
         @Override
         public boolean isHorizontallyDragging() {
             return dragging || (scroller != null && !scroller.isFinished());
+        }
+
+        @Override
+        public boolean canDragHorizontally() {
+            return maxScrollX > 0;
         }
 
         @Override
@@ -5886,6 +6088,7 @@ public class RichMessageLayout {
             content = new SpannableString(plain);
             if (content.length() > 0) {
                 content.setSpan(new StyleSpan(root, TEXT_FLAG_BLOCK_CODE), 0, content.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                content.setSpan(new QuoteRootSpan(block.text, 0), 0, content.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 if (prevBlock != null) {
                     final SpannableString oldContent = prevBlock.content;
                     final boolean prevIsLocked = oldContent instanceof CodeHighlighting.LockedWithFallbackSpannableString;
@@ -6178,6 +6381,11 @@ public class RichMessageLayout {
         }
 
         @Override
+        public boolean canDragHorizontally() {
+            return maxScrollX > 0;
+        }
+
+        @Override
         public boolean findLink(CharacterStyle link, int blockY, FoundLink out) {
             if (text.fillFoundLink(link, out)) {
                 out.x = padding.left + dp(HPAD) - scrollX - text.left;
@@ -6402,6 +6610,11 @@ public class RichMessageLayout {
         @Override
         public boolean isHorizontallyDragging() {
             return dragging || (scroller != null && !scroller.isFinished());
+        }
+
+        @Override
+        public boolean canDragHorizontally() {
+            return maxScrollX > 0;
         }
     }
 
@@ -9633,6 +9846,7 @@ public class RichMessageLayout {
             root.getDelegate().didToggleRichMessageCheckbox(root.getCell(), newChecked, revertOnError);
         }
         public boolean isHorizontallyDragging() { return false; }
+        public boolean canDragHorizontally() { return false; }
         public boolean isPressingLink() {
             final TextSelectionHelper.TextLayoutBlock[] texts = getText();
             if (texts == null) return false;

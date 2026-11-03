@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="OEAppearanceNativeVisual">Native appearance</string>
-    <string name="OEAppearanceNativeVisualInfo">Single-color interface and left-aligned messages, built into the client</string>
+    <string name="OEAppearanceNativeVisualInfo">Single-color interface, left-aligned messages and folder chips, built into the client</string>
     <string name="RegramMonoColor">Enable MonoColor UI</string>
     <string name="RegramMonoSource">Color source</string>
     <string name="RegramMonoCustomColor">Custom color</string>
@@ -21,18 +21,19 @@
     <string name="RegramAllLeft">Enable AllLeft</string>
     <string name="RegramAllLeftPrivate">Private chats only</string>
     <string name="RegramAllLeftStatus">Delivery and read marks on my messages</string>
-    <string name="RegramAllLeftInfo">Messages appear on the left with sender names and avatars. Consecutive messages from the same sender stay grouped. Saved Messages and sponsored messages are unchanged. Ownership and sending behavior stay intact. Disable the original AllLeft plugin before using this setting. Inspired by AllLeft by @limeplug.</string>
+    <string name="RegramAllLeftInfo">Messages appear on the left with sender names and avatars. Consecutive messages from the same sender stay grouped. Saved Messages and sponsored messages are unchanged. Ownership and sending behavior stay intact. Disable the original AllLeft plugin before using this setting. Based on AllLeft 2.0.11 by @limeplug.</string>
     <string name="RegramMentionAvatars">Show avatars next to mentions</string>
     <string name="RegramMentionPosition">Avatar position</string>
     <string name="RegramMentionBefore">Before username</string>
     <string name="RegramMentionAfter">After username</string>
+    <string name="RegramMentionInstead">Instead of @</string>
     <string name="RegramMentionSize">Avatar size</string>
     <string name="RegramMentionSmall">Small (14 dp)</string>
     <string name="RegramMentionMedium">Medium (16 dp)</string>
     <string name="RegramMentionLarge">Large (18 dp)</string>
     <string name="RegramMentionChats">Channels and groups</string>
     <string name="RegramMentionBots">Bots</string>
-    <string name="RegramMentionInfo">Avatars next to mentions in messages and media captions. Uses peers already known to this account; no username lookup requests or cross-account fallback. Hidden spoilers and code are excluded. Text, copying and entity offsets remain unchanged. Disable the original MentionAvatars plugin. Inspired by MentionAvatars 1.1.1 by @limeplug.</string>
+    <string name="RegramMentionInfo">Avatars next to mentions in messages and media captions. Uses peers already known to this account; no username lookup requests or cross-account fallback. Hidden spoilers and code are excluded. Text, copying and entity offsets remain unchanged. Disable the original MentionAvatars plugin. Includes the Instead of @ mode from MentionAvatars 1.1.3 by @limeplug.</string>
     <string name="RegramPlayerColor">Custom player color</string>
     <string name="RegramPlayerPreset">Preset</string>
     <string name="RegramPlayerHex">Custom color (HEX)</string>

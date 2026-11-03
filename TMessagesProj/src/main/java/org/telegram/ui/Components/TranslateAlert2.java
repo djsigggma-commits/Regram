@@ -93,6 +93,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
     private TLRPC.InputPeer reqPeer;
     private int reqMessageId;
     private boolean reqSum;
+    private Runnable aiReplacementCancel;
     private TL_iv.RichMessage reqRichMessage;
     private RichMessageLayout.PreviewView richLoadingPreviewView;
     private RichMessageLayout.PreviewView richPreviewView;
@@ -315,6 +316,10 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
             ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
             reqId = null;
         }
+        if (aiReplacementCancel != null) {
+            aiReplacementCancel.run();
+            aiReplacementCancel = null;
+        }
 
         if (nekoProviders && reqRichMessage == null && !reqSum
                 && sheetProvider != tw.nekomimi.nekogram.translate.Translator.providerTelegram) {
@@ -382,7 +387,7 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
             req.peer = reqPeer;
             req.id = reqMessageId;
             req.to_lang = normalizeLanguage(lang);
-            reqId = ConnectionsManager.getInstance(currentAccount).sendRequestTyped(req, AndroidUtilities::runOnUIThread, (res, err) -> {
+            final Utilities.Callback2<TLRPC.TL_textWithEntities, TLRPC.TL_error> onResult = (res, err) -> {
                 reqId = null;
                 if (err != null && "TRANSLATIONS_DISABLED_ALT".equalsIgnoreCase(err.text)) {
                     translateAlt();
@@ -402,7 +407,25 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
                     headerView.toLanguageTextView.setText(languageName(toLanguage = prevToLanguage));
                     adapter.updateMainView(textViewContainer);
                 }
-            });
+            };
+            if (app.regram.ai.TelegramAiReplacement.replacesSummaries(currentAccount)) {
+                aiReplacementCancel = app.regram.ai.TelegramAiReplacement.translate(textWithEntities.text, lang, res -> {
+                    aiReplacementCancel = null;
+                    onResult.run(res, null);
+                }, (code, message) -> {
+                    aiReplacementCancel = null;
+                    if (firstTranslation) {
+                        dismiss();
+                        com.exteragram.messenger.ai.AiController.showErrorBulletin(org.telegram.ui.LaunchActivity.getSafeLastFragment(), code);
+                    } else {
+                        com.exteragram.messenger.ai.AiController.showErrorBulletin((FrameLayout) containerView, resourcesProvider, code);
+                        headerView.toLanguageTextView.setText(languageName(toLanguage = prevToLanguage));
+                        adapter.updateMainView(textViewContainer);
+                    }
+                });
+            } else {
+                reqId = ConnectionsManager.getInstance(currentAccount).sendRequestTyped(req, AndroidUtilities::runOnUIThread, onResult);
+            }
             return;
         }
 
@@ -1077,6 +1100,10 @@ public class TranslateAlert2 extends BottomSheet implements NotificationCenter.N
         if (reqId != null) {
             ConnectionsManager.getInstance(currentAccount).cancelRequest(reqId, true);
             reqId = null;
+        }
+        if (aiReplacementCancel != null) {
+            aiReplacementCancel.run();
+            aiReplacementCancel = null;
         }
         super.dismissInternal();
     }

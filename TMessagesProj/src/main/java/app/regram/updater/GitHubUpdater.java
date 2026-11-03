@@ -228,26 +228,13 @@ public final class GitHubUpdater {
         if (assets == null) {
             return null;
         }
-        JSONObject universal = null;
-        JSONObject any = null;
-        String abi = Build.SUPPORTED_ABIS.length > 0 ? Build.SUPPORTED_ABIS[0] : "";
+        String[] names = new String[assets.length()];
         for (int i = 0; i < assets.length(); i++) {
             JSONObject asset = assets.optJSONObject(i);
-            String name = asset == null ? "" : asset.optString("name").toLowerCase(Locale.ROOT);
-            if (!name.endsWith(".apk")) {
-                continue;
-            }
-            if (!abi.isEmpty() && name.contains(abi.toLowerCase(Locale.ROOT))) {
-                return asset;
-            }
-            if (name.contains("universal") && universal == null) {
-                universal = asset;
-            }
-            if (any == null && !name.contains("armeabi") && !name.contains("x86")) {
-                any = asset;
-            }
+            names[i] = asset == null ? null : asset.optString("name");
         }
-        return universal != null ? universal : any;
+        int selected = UpdateArtifact.select(names, Build.SUPPORTED_ABIS);
+        return selected < 0 ? null : assets.optJSONObject(selected);
     }
 
     private static Integer compareVersion(Release release) {
@@ -365,17 +352,22 @@ public final class GitHubUpdater {
                 if (!response.isSuccessful() || body == null) {
                     throw new IllegalStateException("HTTP " + response.code());
                 }
-                long total = body.contentLength() > 0 ? body.contentLength() : release.apkSize;
+                long contentLength = body.contentLength();
+                long total = contentLength > 0 ? contentLength : release.apkSize;
+                long done = 0;
                 try (InputStream input = body.byteStream(); OutputStream output = new FileOutputStream(target)) {
                     byte[] buffer = new byte[64 * 1024];
-                    long done = 0;
                     int read;
-                    while ((read = input.read(buffer)) > 0) {
+                    while ((read = input.read(buffer)) != -1) {
+                        if (call.isCanceled()) {
+                            throw new java.io.InterruptedIOException("cancelled");
+                        }
                         output.write(buffer, 0, read);
                         done += read;
                         progress.update(done, total);
                     }
                 }
+                UpdateArtifact.verifyLength(done, contentLength, release.apkSize);
                 ok = true;
             } catch (Exception e) {
                 if (!call.isCanceled()) {
@@ -386,7 +378,7 @@ public final class GitHubUpdater {
             AndroidUtilities.runOnUIThread(() -> {
                 progress.finish();
                 download = null;
-                if (success) {
+                if (success && !call.isCanceled()) {
                     listener.onFinished(true, false);
                     install(activity, target);
                 } else {

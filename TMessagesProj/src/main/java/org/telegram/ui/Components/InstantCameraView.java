@@ -49,6 +49,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -211,6 +212,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     private volatile app.regram.camera.CameraXSession cameraXSession;
     private app.regram.camera.CameraXSession.CameraLifecycle camLifecycle;
     private boolean needDrawFlickerStub;
+    private volatile long legacyCameraSwitchStartedNs;
+    private volatile int legacyCameraSwitchSequence;
+    private volatile int legacyCameraSwitchTargetSurface;
+    private volatile boolean legacyCameraSwitchAwaitingFrame;
+    private volatile String legacyCameraSwitchPath;
 
     private boolean isCameraSessionInitiated() {
         if (useCameraX) {
@@ -221,6 +227,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         } else {
             return cameraSession != null && cameraSession.isInitied();
         }
+    }
+
+    public boolean isCameraReady() {
+        return cameraReady && isCameraSessionInitiated() && cameraThread != null;
     }
 
     private float panTranslationY;
@@ -549,8 +559,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 cameraXSession.setTorchEnabled(flashing && recording);
             }
         } else if (useCamera2) {
-            if (camera2Sessions[!initialCameraFront ? 0 : 1] != null) {
-                camera2Sessions[!initialCameraFront ? 0 : 1].setFlash(flashing && !isFrontface && recording);
+            final boolean torch = flashing && !isFrontface && recording;
+            for (Camera2Session session : camera2Sessions) {
+                if (session != null) {
+                    session.setFlash(torch && session == camera2SessionCurrent);
+                }
             }
         } else {
             if (cameraSession != null) {
@@ -923,6 +936,12 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 camera2SessionCurrent = camera2Sessions[isFrontface == initialCameraFront ? 0 : 1];
                 if (camera2SessionCurrent != null && camera2Sessions[isFrontface == initialCameraFront ? 1 : 0] == null) {
                     bothCameras = false;
+                }
+                if (BuildVars.LOGS_ENABLED) {
+                    FileLog.d("InstantCamera legacy switch capability: dual=" + bothCameras
+                            + ", initialFacing=" + (isFrontface ? "FRONT" : "BACK")
+                            + ", frontSession=" + (camera2Sessions[0] != null)
+                            + ", backSession=" + (camera2Sessions[1] != null));
                 }
                 if (camera2SessionCurrent == null) return;
             } else {
@@ -1297,6 +1316,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         }
         cancelZoomAnimations();
         zoomSlider.beginCameraSwitch();
+        resetZoomOnCameraSwitch();
         final boolean dual = cameraXSession != null && cameraXSession.isDualMode();
         isFrontface = !isFrontface;
         app.regram.chats.ChatsConfig.ensureLoaded();
@@ -1344,6 +1364,20 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             switchCameraX();
             return;
         }
+        legacyCameraSwitchStartedNs = SystemClock.elapsedRealtimeNanos();
+        legacyCameraSwitchSequence++;
+        legacyCameraSwitchTargetSurface = useCamera2 && bothCameras
+                ? 1 - surfaceIndex
+                : 0;
+        legacyCameraSwitchAwaitingFrame = true;
+        legacyCameraSwitchPath = useCamera2
+                ? bothCameras ? "DUAL_PREOPENED" : "SEQUENTIAL_CAMERA2"
+                : "SEQUENTIAL_CAMERA1";
+        logLegacyCameraSwitchStage("requested: from="
+                + (isFrontface ? "FRONT" : "BACK")
+                + ", to=" + (isFrontface ? "BACK" : "FRONT")
+                + ", currentSurface=" + surfaceIndex
+                + ", targetSurface=" + legacyCameraSwitchTargetSurface);
         if (!(useCamera2 && bothCameras)) {
             saveLastCameraBitmap();
             if (lastBitmap != null) {
@@ -1362,6 +1396,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             NaConfig.INSTANCE.getCameraInVideoMessages().setConfigInt(isFrontface ? 0 : 1);
         }
         updateFlash();
+        resetZoomOnCameraSwitch();
         if (useCamera2) {
             if (bothCameras) {
                 camera2SessionCurrent = camera2Sessions[isFrontface == initialCameraFront ? 0 : 1];
@@ -1375,7 +1410,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                     camera2Sessions[isFrontface ? 1 : 0] = null;
                 }
                 camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = Camera2Session.create(isFrontface, com.exteragram.messenger.utils.system.SystemUtils.getRoundVideoResolution(), com.exteragram.messenger.utils.system.SystemUtils.getRoundVideoResolution());
-                if (camera2SessionCurrent == null) return;
+                if (camera2SessionCurrent == null) {
+                    legacyCameraSwitchAwaitingFrame = false;
+                    logLegacyCameraSwitchStage("failed: Camera2Session.create returned null");
+                    return;
+                }
                 camera2SessionCurrent.setRecordingVideo(true);
                 previewSize[0] = new Size(camera2SessionCurrent.getPreviewWidth(), camera2SessionCurrent.getPreviewHeight());
                 cameraThread.setCurrentSession(camera2SessionCurrent);
@@ -1391,6 +1430,18 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         initCamera();
         cameraReady = false;
         cameraThread.reinitForNewCamera();
+    }
+
+    private void logLegacyCameraSwitchStage(String stage) {
+        if (!BuildVars.LOGS_ENABLED) return;
+        long startedNs = legacyCameraSwitchStartedNs;
+        long elapsedMs = startedNs == 0L
+                ? 0L
+                : (SystemClock.elapsedRealtimeNanos() - startedNs) / 1_000_000L;
+        FileLog.d("InstantCamera legacy switch[" + legacyCameraSwitchSequence + "] "
+                + stage + ", path=" + legacyCameraSwitchPath
+                + ", elapsedMs=" + elapsedMs
+                + ", thread=" + Thread.currentThread().getName());
     }
 
     // Old Camera1 API
@@ -1553,6 +1604,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             }
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.d("InstantCamera create camera session " + index);
+            }
+            if (legacyCameraSwitchAwaitingFrame
+                    && index == legacyCameraSwitchTargetSurface) {
+                logLegacyCameraSwitchStage("camera open submitted: surface=" + index);
             }
 
             if (useCameraX) {
@@ -2101,6 +2156,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 FileLog.e(e);
                 return;
             }
+            boolean completesCameraSwitch = legacyCameraSwitchAwaitingFrame
+                    && surfaceIndex == legacyCameraSwitchTargetSurface
+                    && (surfaceIndex == 0 && updateTexImage1
+                    || surfaceIndex == 1 && updateTexImage2);
 
             boolean captureFirstFrameThumb = false;
             VideoRecorder recorder = videoEncoder;
@@ -2161,6 +2220,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             GLES20.glUseProgram(0);
 
             egl10.eglSwapBuffers(eglDisplay, eglSurface);
+            if (completesCameraSwitch && legacyCameraSwitchAwaitingFrame) {
+                legacyCameraSwitchAwaitingFrame = false;
+                logLegacyCameraSwitchStage("first target frame presented: surface="
+                        + surfaceIndex);
+            }
 
             if (captureFirstFrameThumb) {
                 AndroidUtilities.runOnUIThread(() -> {
@@ -2230,6 +2294,9 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
                     cameraSurface[0] = new SurfaceTexture(cameraTexture[0]);
                     cameraSurface[0].setOnFrameAvailableListener(surfaceTexture -> requestRender(true, false));
+                    if (legacyCameraSwitchAwaitingFrame) {
+                        logLegacyCameraSwitchStage("GL input recreated: surface=0");
+                    }
                     createCamera(0, cameraSurface[0]);
 
                     updateScale();
@@ -2273,6 +2340,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 }
                 case DO_FLIP: {
                     surfaceIndex = 1 - surfaceIndex;
+                    if (legacyCameraSwitchAwaitingFrame) {
+                        logLegacyCameraSwitchStage("GL surface flip applied: surface="
+                                + surfaceIndex);
+                    }
                     updateTextureBuffer();
                     break;
                 }
@@ -2524,6 +2595,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         private int texelSizeHandle;
         private int alphaHandle;
         private int zeroTimeStamps;
+        private long cameraClockOffsetNs = Long.MIN_VALUE;
         private Integer lastCameraId = 0;
         private InstantCameraVideoEncoderOverlayHelper overlayHelper;
 
@@ -2547,6 +2619,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 boolean done = false;
                 AudioTimestamp audioTimestamp = new AudioTimestamp();
                 boolean shouldUseTimestamp = true;
+                long audioFramesRead = 0;
+                final int audioFrameBytes = 2 * Math.max(1, audioRecorder.getChannelCount());
 
                 while (!done) {
                     if ((!running || pauseRecorder) && audioRecorder.getRecordingState() != AudioRecord.RECORDSTATE_STOPPED) {
@@ -2602,7 +2676,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                         if (shouldUseTimestamp) {
                             try {
                                 audioRecorder.getTimestamp(audioTimestamp, AudioTimestamp.TIMEBASE_MONOTONIC);
-                                timestamp = audioTimestamp.nanoTime / 1000;
+                                timestamp = (audioTimestamp.nanoTime
+                                        - (audioTimestamp.framePosition - audioFramesRead) * 1_000_000_000L / audioSampleRate) / 1000;
                             } catch (Exception e) {
                                 FileLog.e(e);
                                 shouldUseTimestamp = false;
@@ -2612,6 +2687,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                             timestamp = audioPresentationTimeUs;
                         }
                         buffer.offset[a] = timestamp;
+                        audioFramesRead += readResult / audioFrameBytes;
 
                         buffer.read[a] = readResult;
                         int bufferDurationUs = 1000000 * readResult / audioSampleRate / 2;
@@ -2692,6 +2768,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
             keyframeThumbs.clear();
             frameCount = 0;
+            cameraClockOffsetNs = Long.MIN_VALUE;
             DispatchQueue queue = generateKeyframeThumbsQueue;
             if (queue != null) {
                 queue.cleanupQueue();
@@ -2738,8 +2815,17 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 }
             } else {
                 zeroTimeStamps = 0;
+                if (cameraClockOffsetNs == Long.MIN_VALUE) {
+                    final long boottimeNs = SystemClock.elapsedRealtimeNanos();
+                    final long monotonicNs = System.nanoTime();
+                    cameraClockOffsetNs = Math.abs(timestamp - boottimeNs) < Math.abs(timestamp - monotonicNs)
+                            ? boottimeNs - monotonicNs
+                            : 0;
+                }
+                timestamp -= cameraClockOffsetNs;
             }
             prevTimestamp = timestamp;
+            handler.removeMessages(MSG_VIDEOFRAME_AVAILABLE);
             handler.sendMessage(handler.obtainMessage(MSG_VIDEOFRAME_AVAILABLE, (int) (timestamp >> 32), (int) timestamp, cameraId));
         }
 
@@ -2837,7 +2923,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                         for (int a = input.lastWroteBuffer; a <= input.results; a++) {
                             if (a < input.results) {
                                 long totalTime = input.offset[a] - audioStartTime;
-                                if (!running && (input.offset[a] >= videoLast - desyncTime || totalTime >= 60_000000)) {
+                                if (!running && (input.offset[a] >= videoLast / 1000 - desyncTime || totalTime >= 60_000000)) {
                                     if (BuildVars.LOGS_ENABLED) {
                                         if (totalTime >= 60_000000) {
                                             FileLog.d("InstantCamera stop audio encoding because recorded time more than 60s");
@@ -3736,7 +3822,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
             ByteBuffer[] encoderOutputBuffers = null;
             while (true) {
-                int encoderStatus = videoEncoder.dequeueOutputBuffer(videoBufferInfo, 10000);
+                int encoderStatus = videoEncoder.dequeueOutputBuffer(videoBufferInfo, endOfStream ? 10000 : 0);
                 if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     if (!endOfStream || pauseRecorder) {
                         break;
@@ -4200,6 +4286,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
         final float from;
         final float target;
+        final float rawTarget;
         if (useRatioZoom) {
             if (!hasRatioZoomSession()) {
                 return;
@@ -4209,17 +4296,39 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             if (maxZoom <= minZoom) {
                 return;
             }
-            from = Utilities.clamp(pinchScale <= 0f ? minZoom : pinchScale, maxZoom, minZoom);
-            int steps = (int) Math.round(Math.log(maxZoom) / Math.log(ZOOM_STEP_BASE));
-            if (steps < 1) {
-                steps = 1;
+            from = Utilities.clamp(currentCameraZoomRatio(), maxZoom, minZoom);
+            if (useCameraX) {
+                final float oneZoom = Utilities.clamp(
+                        cameraXSession.isActiveCameraFrontface() ? minZoom : 1f,
+                        maxZoom, minZoom);
+                final double zoomRange = maxZoom / oneZoom;
+                int steps = (int) Math.round(Math.log(zoomRange) / Math.log(ZOOM_STEP_BASE));
+                if (steps < 1) {
+                    steps = 1;
+                }
+                final float factor = (float) Math.pow(zoomRange, 1.0d / steps);
+                if (up) {
+                    rawTarget = from >= oneZoom ? from * factor : oneZoom;
+                } else if (from > oneZoom) {
+                    rawTarget = from / factor;
+                } else {
+                    rawTarget = minZoom;
+                }
+            } else {
+                int steps = (int) Math.round(Math.log(maxZoom) / Math.log(ZOOM_STEP_BASE));
+                if (steps < 1) {
+                    steps = 1;
+                }
+                final float factor = (float) Math.pow(maxZoom, 1.0d / steps);
+                rawTarget = up ? from * factor : from / factor;
             }
-            final float factor = (float) Math.pow(maxZoom, 1.0d / steps);
-            final float raw = up ? from * factor : Math.max(minZoom, from / factor);
-            target = Utilities.clamp(raw, maxZoom, minZoom);
+            target = Utilities.clamp(
+                    useCameraX && !up && rawTarget < minZoom ? minZoom : rawTarget,
+                    maxZoom, minZoom);
         } else {
-            from = Utilities.clamp(pinchScale, 1f, 0f);
-            target = Utilities.clamp(from + (up ? 0.125f : -0.125f), 1f, 0f);
+            from = Utilities.clamp(pinchScale <= 0f ? 0f : pinchScale, 1f, 0f);
+            rawTarget = from + (up ? 0.125f : -0.125f);
+            target = Utilities.clamp(rawTarget, 1f, 0f);
         }
 
         if (Math.abs(from - target) < 0.0001f) {
@@ -4237,6 +4346,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 cameraSession.setZoom(zoom);
             }
             pinchScale = zoom;
+            lockedZoom = useRatioZoom ? getZoomControlValueFromRatio(zoom) : zoom;
             syncZoomControlView(zoom);
         });
         volumeZoomAnimator.addListener(new AnimatorListenerAdapter() {
@@ -4273,7 +4383,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         if (useRatioZoom) {
             if (!hasRatioZoomSession()) return;
             fromZoom = Utilities.clamp(pinchScale, zoomMaxRatio(), zoomMinRatio());
-            toZoom = getLockedZoomRatio();
+            toZoom = lockedZoom > 0f ? getLockedZoomRatio() : defaultZoomRatio();
         } else {
             fromZoom = Utilities.clamp(pinchScale, 1f, 0f);
             toZoom = lockedZoom;
@@ -4386,6 +4496,24 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         return min + lockedZoom * (max - min);
     }
 
+    private float defaultZoomRatio() {
+        if (useCameraX) {
+            return zoomSlider.getCameraXResetZoom();
+        }
+        final Camera2Session session = camera2SessionCurrent;
+        if (session == null) {
+            return 1f;
+        }
+        final float min = session.getMinZoom();
+        final float max = session.getMaxZoom();
+        // Пока зум не трогали: основная — 1×, ширик только по настройке; фронталка —
+        // полный сенсор (её минимум), как в CameraXSession.wantsWideAngleStart.
+        if (session.isFront() || app.regram.chats.ChatsConfig.startWithWideAngleCamera.Bool()) {
+            return min;
+        }
+        return Utilities.clamp(1f, max, min);
+    }
+
     private float getZoomControlValueFromRatio(float zoom) {
         if (!hasRatioZoomSession()) {
             return lockedZoom;
@@ -4455,6 +4583,13 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         applyLockedZoomToCamera();
     }
 
+    private void resetZoomOnCameraSwitch() {
+        cancelZoomAnimations();
+        pinchScale = 0f;
+        lockedZoom = 0f;
+        zoomControlView.setZoom(0f, false);
+    }
+
     private void cancelFinishZoomTransition() {
         if (finishZoomTransition != null) {
             finishZoomTransition.cancel();
@@ -4469,11 +4604,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             if (session == null) {
                 return;
             }
-            // Широкий угол на старте — это зум меньше единицы, и его ставит сама
-            // сессия; трогаем зум, только когда пользователь сам его двигал.
-            if (lockedZoom > 0f) {
-                session.setZoomRatio(getLockedZoomRatio());
-            }
+            final float zoom = lockedZoom > 0f
+                    ? getLockedZoomRatio()
+                    : zoomSlider.getCameraXResetZoom();
+            session.setZoomRatio(zoom);
+            pinchScale = zoom;
             return;
         }
         if (useCamera2) {
@@ -4481,22 +4616,13 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             if (session == null) {
                 return;
             }
-            final float min = session.getMinZoom();
-            final float max = session.getMaxZoom();
-            // Пока зум не трогали: основная — 1×, ширик только по настройке; фронталка —
-            // полный сенсор (её минимум), как в CameraXSession.wantsWideAngleStart.
-            final float zoom;
-            if (lockedZoom > 0f && max > min) {
-                zoom = min + lockedZoom * (max - min);
-            } else if (session.isFront() || app.regram.chats.ChatsConfig.startWithWideAngleCamera.Bool()) {
-                zoom = min;
-            } else {
-                zoom = Utilities.clamp(1f, max, min);
-            }
+            final float zoom = lockedZoom > 0f ? getLockedZoomRatio() : defaultZoomRatio();
             session.setZoom(zoom);
+            pinchScale = zoom;
         } else {
             if (cameraSession != null) {
                 cameraSession.setZoom(lockedZoom);
+                pinchScale = lockedZoom;
             }
         }
     }

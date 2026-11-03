@@ -125,4 +125,5 @@
     <string name="OEAppearanceHidingInfo">动态、按钮、标签页和 AI 功能</string>
     <string name="OEAppearanceHidingInChats">对话中</string>
     <string name="OEAppearanceHidingAiPremium">AI 和 Premium</string>
+    <string name="OEKillApp">关闭应用</string>
 </resources>

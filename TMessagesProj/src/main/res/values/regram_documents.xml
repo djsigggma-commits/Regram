@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramDocTitle">Doc Viewer</string>
+    <string name="RegramDocEnabled">Open documents inside re:gram</string>
+    <string name="RegramDocPdf">PDF</string>
+    <string name="RegramDocDocs">Office documents, RTF and EML</string>
+    <string name="RegramDocBooks">EPUB and FB2 books</string>
+    <string name="RegramDocText">Text, code, JSON, CSV and Jupyter</string>
+    <string name="RegramDocWeb">Markdown, HTML and SVG (offline)</string>
+    <string name="RegramDocImage">Images sent as files</string>
+    <string name="RegramDocArchive">Archive contents (ZIP and TAR)</string>
+    <string name="RegramDocInvert">Toggle night mode for PDF / images</string>
+    <string name="RegramDocFit">Toggle fit page / fit width</string>
+    <string name="RegramDocRemember">Remember last page</string>
+    <string name="RegramDocVolume">Navigate with volume buttons</string>
+    <string name="RegramDocKeepOn">Keep screen on in viewer</string>
+    <string name="RegramDocWrap">Toggle long-line wrapping</string>
+    <string name="RegramDocPrettyJson">Pretty-print JSON</string>
+    <string name="RegramDocCsv">Display CSV as a table</string>
+    <string name="RegramDocSettingsInfo">Native integration of Doc Viewer 2.0.0 by Daxo-Developer / @Daxo_OS, without hooks or plugin loading. Disabled by default. Office documents and books are text previews, not full-fidelity page layouts. HTML cannot run scripts, navigate or load external/local resources. Archives are listed only: nothing is extracted. Supported image formats depend on Android. Invalid or oversized files show an error; you can explicitly choose another app. Existing file handlers, themes and plugin installation are retained. Protected documents cannot be copied or shared from this viewer.</string>
+    <string name="RegramDocSearch">Search…</string>
+    <string name="RegramDocJump">Go to page…</string>
+    <string name="RegramDocNoMatches">No matches</string>
+    <string name="RegramDocFont">Change font</string>
+    <string name="RegramDocLarger">Larger text</string>
+    <string name="RegramDocSmaller">Smaller text</string>
+    <string name="RegramDocTheme">Change theme: dark / light / sepia</string>
+    <string name="RegramDocEncoding">Text encoding</string>
+    <string name="RegramDocAuto">Automatic</string>
+    <string name="RegramDocRotate">Rotate 90°</string>
+    <string name="RegramDocCopyPage">Copy page</string>
+    <string name="RegramDocCopyAll">Copy all text</string>
+    <string name="RegramDocCopyLimit">Text is too large. Copy it page by page.</string>
+    <string name="RegramDocSource">View source</string>
+    <string name="RegramDocShare">Share file…</string>
+    <string name="RegramDocExternal">Open in another app…</string>
+    <string name="RegramDocExternalError">Could not open an external app</string>
+    <string name="RegramDocInfo">File information</string>
+    <string name="RegramDocReadError">Could not preview this file. Use the menu to open it in another app.</string>
+    <string name="RegramDocReadProtectedError">Could not preview this protected document.</string>
+    <string name="RegramDocMemory">Preview exceeded its memory budget</string>
+    <string name="RegramDocUnsupportedImage">Android could not decode this image format</string>
+</resources>

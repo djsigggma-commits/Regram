@@ -36,6 +36,21 @@ def test_mention_native_calls_lifecycle_and_persistence():
         assert 'NekoConfig.' + field in settings
 
 
+def test_third_position_settings_and_editor_preserve_literal_text():
+    settings = (JAVA / 'app/regram/settings/NativeVisualSettingsActivity.java').read_text()
+    assert 'getString(R.string.RegramMentionInstead)' in settings
+    editor = (JAVA / 'org/telegram/ui/Components/ChatActivityEnterView.java').read_text()
+    body = editor.split('public static CharSequence applyMessageEntities(', 1)[1]
+    body = body.split('public ImageView getAttachButton()', 1)[0]
+    # The native implementation adds no placeholders, so the existing editor's
+    # span cleanup already handles all three modes without offset surgery/hooks.
+    assert body.index('stringBuilder.removeSpan(spansToRemove[a])') < body.index('if (entities != null)')
+    import xml.etree.ElementTree as ET
+    for qualifier in ('values', 'values-ru'):
+        strings = ET.parse(ROOT / f'TMessagesProj/src/main/res/{qualifier}/regram_native_visual.xml').getroot()
+        assert strings.find("string[@name='RegramMentionInstead']") is not None
+
+
 def test_actual_mention_policy_spans_and_url_parser(tmp_path):
     source = (JAVA / 'app/regram/chats/MentionAvatars.java').read_text()
     files = {
@@ -73,8 +88,8 @@ public class SpannableStringBuilder implements Spanned {
         'org/telegram/ui/Components/TextStyleSpan.java': 'package org.telegram.ui.Components; public class TextStyleSpan {public static final int FLAG_STYLE_SPOILER=1, FLAG_STYLE_MONO=2, FLAG_STYLE_CODE=4; public static class TextStyleRun {public int flags;} boolean spoiler,mono; public TextStyleSpan(boolean s,boolean m){spoiler=s;mono=m;} public boolean isSpoiler(){return spoiler;} public boolean isMono(){return mono;}}',
         'app/regram/chats/MentionAvatarSpan.java': '''package app.regram.chats; import android.view.View; import org.telegram.tgnet.TLObject;
 public class MentionAvatarSpan extends android.text.style.ReplacementSpan {
- public final TLObject peer; public final float size; public final boolean before; public View parent; public final android.text.style.URLSpan link;
- public MentionAvatarSpan(int account,float size,boolean before,TLObject peer,android.text.style.URLSpan link){this.size=size;this.before=before;this.peer=peer;this.link=link;}
+ public final TLObject peer; public final float size; public final boolean before,replaceAt; public View parent; public final android.text.style.URLSpan link;
+ public MentionAvatarSpan(int account,float size,boolean before,boolean replaceAt,TLObject peer,android.text.style.URLSpan link){this.size=size;this.before=before;this.replaceAt=replaceAt;this.peer=peer;this.link=link;}
  public void setParent(View v){parent=v;}
 }''',
         'tw/nekomimi/nekogram/NekoConfig.java': '''package tw.nekomimi.nekogram; public class NekoConfig {
@@ -123,6 +138,35 @@ public class MentionTest {
   int sig=MentionAvatars.signature(); NekoConfig.regramMentionPosition.value=1; NekoConfig.regramMentionSize.value=2;
   assert sig!=MentionAvatars.signature(); avatar=avatars(MentionAvatars.apply(original,0))[0];
   assert !avatar.before && avatar.size==18;
+  NekoConfig.regramMentionPosition.value=2;
+  Spanned instead=(Spanned)MentionAvatars.apply(original,0); avatar=avatars(instead)[0];
+  assert avatar.replaceAt && avatar.before && avatar.size==18;
+  assert instead.toString().equals("hi @foo!") && original.toString().equals("hi @foo!");
+  assert instead.getSpanStart(avatar)==3 && instead.getSpanEnd(avatar)==4;
+  assert instead.getSpanStart(clickable)==3 && instead.getSpanEnd(clickable)==7;
+  assert avatars(MentionAvatars.apply(instead,0)).length==1;
+  SpannableStringBuilder bareName=new SpannableStringBuilder("hi @foo!");
+  bareName.setSpan(new URLSpan("@foo"),4,7,33); // @ is just outside the entity.
+  Spanned bareDecorated=(Spanned)MentionAvatars.apply(bareName,0);
+  avatar=avatars(bareDecorated)[0]; assert avatar.replaceAt;
+  assert bareDecorated.getSpanStart(avatar)==3 && bareDecorated.getSpanEnd(avatar)==4;
+  bareName.setSpan(new TextStyleSpan(true,false),3,4,33);
+  assert avatars(MentionAvatars.apply(bareName,0)).length==0;
+  bareName=new SpannableStringBuilder("hi @foo!"); bareName.setSpan(new URLSpan("@foo"),4,7,33);
+  bareName.setSpan(new ReplacementSpan(),3,4,33);
+  assert avatars(MentionAvatars.apply(bareName,0)).length==0;
+  avatar=avatars(MentionAvatars.apply(longLink,0))[0]; assert !avatar.replaceAt && avatar.before;
+  java.util.Set<Integer> signatures=new java.util.HashSet<>();
+  for(int bots=0;bots<2;bots++)for(int chats=0;chats<2;chats++)for(int pos=0;pos<3;pos++)for(int sz=0;sz<3;sz++){
+   NekoConfig.regramMentionBots.value=bots!=0; NekoConfig.regramMentionChats.value=chats!=0;
+   NekoConfig.regramMentionPosition.value=pos;NekoConfig.regramMentionSize.value=sz;
+   assert signatures.add(MentionAvatars.signature());
+  }
+  assert signatures.size()==36;
+  for(int bad:new int[]{-1,3,Integer.MAX_VALUE}){
+   NekoConfig.regramMentionPosition.value=bad;assert MentionAvatars.position()==0;
+  }
+  NekoConfig.regramMentionPosition.value=2;
   user.bot=true; NekoConfig.regramMentionBots.value=false; assert avatars(MentionAvatars.apply(original,0)).length==0;
   user.bot=false; TLRPC.Chat chat=new TLRPC.Chat(); MessagesController.getInstance(0).peers.put("foo",chat);
   NekoConfig.regramMentionChats.value=false; assert avatars(MentionAvatars.apply(original,0)).length==0;
@@ -137,10 +181,17 @@ public class MentionTest {
   original=mention("@foo"); original.setSpan(new ReplacementSpan(),3,7,33); assert avatars(MentionAvatars.apply(original,0)).length==0;
   MessagesController.getInstance(0).user=user;
   original=new SpannableStringBuilder("Alice"); original.setSpan(new URLSpanUserMention("123"),0,5,33);
-  assert avatars(MentionAvatars.apply(original,0)).length==1;
+  avatar=avatars(MentionAvatars.apply(original,0))[0]; assert !avatar.replaceAt && avatar.before;
   original=new SpannableStringBuilder("@foo ".repeat(60)); for(int i=0;i<60;i++)original.setSpan(new URLSpan("@foo"),i*5,i*5+4,33);
   assert avatars(MentionAvatars.apply(original,0)).length==40;
-  NekoConfig.regramMentionAvatars.value=false; CharSequence plain=MentionAvatars.apply(decorated,0);
+  NekoConfig.regramMentionPosition.value=0;
+  Spanned switched=(Spanned)MentionAvatars.apply(instead,0);
+  assert avatars(switched).length==1 && !avatars(switched)[0].replaceAt;
+  assert switched.toString().equals(instead.toString());
+  NekoConfig.regramMentionAvatars.value=false;
+  CharSequence unwrapped=MentionAvatars.apply(instead,0);
+  assert unwrapped.toString().equals("hi @foo!") && avatars(unwrapped).length==0;
+  assert ((Spanned)unwrapped).getSpans(0,unwrapped.length(),URLSpan.class).length==1; CharSequence plain=MentionAvatars.apply(decorated,0);
   assert plain.toString().equals(decorated.toString()) && avatars(plain).length==0;
   assert ((Spanned)plain).getSpans(0,plain.length(),URLSpan.class).length==1;
   assert MentionAvatars.signature()==0;

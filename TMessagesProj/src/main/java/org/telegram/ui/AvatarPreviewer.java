@@ -232,7 +232,7 @@ public class AvatarPreviewer {
                 videoFileName = null;
             }
             final String videoFilter = videoLocation != null && videoLocation.imageType == FileLoader.IMAGE_TYPE_ANIMATION ? ImageLoader.AUTOPLAY_FILTER : null;
-            return new Data(imageLocation, thumbImageLocation, videoLocation, null, thumbFilter, videoFilter, videoFileName, thumb, peerUser, menuItems, null);
+            return new Data(imageLocation, thumbImageLocation, videoLocation, null, thumbFilter, videoFilter, videoFileName, thumb, peerUser != null ? "avatar_" + peerUser.id : null, menuItems, null);
         }
 
         public static Data of(TLRPC.Chat chat, int classGuid, MenuItem... menuItems) {
@@ -259,7 +259,7 @@ public class AvatarPreviewer {
                 videoFileName = null;
             }
             final String videoFilter = videoLocation != null && videoLocation.imageType == FileLoader.IMAGE_TYPE_ANIMATION ? ImageLoader.AUTOPLAY_FILTER : null;
-            return new Data(imageLocation, thumbImageLocation, videoLocation, null, thumbFilter, videoFilter, videoFileName, thumb, chat, menuItems, null);
+            return new Data(imageLocation, thumbImageLocation, videoLocation, null, thumbFilter, videoFilter, videoFileName, thumb, "avatar_" + (-chat.id), menuItems, null);
         }
 
         private final ImageLocation imageLocation;

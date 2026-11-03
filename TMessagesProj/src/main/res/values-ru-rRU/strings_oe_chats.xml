@@ -57,11 +57,14 @@
     <string name="OEChatsTapToSwitchRecord">Нажатие переключает голос и видео</string>
     <string name="OEChatsKeepAttachButton">Сохранять кнопку вложения при наборе</string>
     <string name="OEChatsRemoveMessageTail">Убрать «хвостик» пузыря</string>
+    <string name="OEChatsUnreadCapsule">Компактная плашка «Непрочитанные»</string>
     <string name="OEChatsReplaceEditedWithIcon">Заменять «изменено» иконкой</string>
     <string name="OEChatsShowOnlineStatus">Показывать индикатор онлайна</string>
     <string name="OEChatsHideShareButton">Скрыть боковую кнопку «Поделиться»</string>
     <string name="OEChatsHideGiftButton">Скрыть кнопку подарков в каналах</string>
     <string name="OEChatsHideSearchButton">Скрыть кнопку поиска в каналах</string>
+    <string name="OEChatsHideCallButton">Скрыть кнопку звонка</string>
+    <string name="OEChatsHideMoneyButton">Скрыть «%1$s» в меню вложений</string>
     <string name="OEChatsShowResultsBeforeVoting">Показывать результаты до голосования</string>
     <string name="OEChatsHideReactions">Скрывать реакции</string>
     <string name="OEChatsHideReactionsChannels">Каналы</string>
@@ -164,4 +167,6 @@
     <string name="OEChatsMenusHeader">Меню</string>
     <string name="OEChatsPlaybackHeader">Воспроизведение</string>
     <string name="OEChatsVoiceHeader">Голосовые сообщения</string>
+    <string name="OEDoubleTapSaveToDevice">Сохранить на устройство</string>
+    <string name="OESendAfterSlowMode">Отправить после слоумода</string>
 </resources>

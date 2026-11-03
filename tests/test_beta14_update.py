@@ -4,14 +4,14 @@ ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / 'TMessagesProj/src/main'
 
 
-def test_beta14_version_and_chaquopy_revision():
+def test_current_base_version_and_chaquopy_revision():
     props = (ROOT / 'gradle.properties').read_text()
-    assert 'APP_VERSION_NAME=12.10.6\n' in props
-    assert 'APP_VERSION_CODE=7112\n' in props
-    assert 'REGRAM_VERSION=1.1.6.1\n' in props
+    assert 'APP_VERSION_NAME=13.1.1\n' in props
+    assert 'APP_VERSION_CODE=7237\n' in props
+    assert 'REGRAM_VERSION=1.4.8.8\n' in props
     restore = (ROOT / 'tools/restore_submodules.sh').read_text()
-    assert 'v12.10.6-beta14' in restore
-    assert 'c217deac1c2df5ab879b9844d911e1c90e59a4c1' in restore
+    assert '4771c553' in restore
+    assert 'eab341a401913ac50254ff20e9efeebeaae872ef' in restore
 
 
 def test_new_kotlin_code_uses_fork_namespace_without_duplicate_configs():

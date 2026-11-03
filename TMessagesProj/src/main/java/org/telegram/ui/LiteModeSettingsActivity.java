@@ -155,6 +155,12 @@ public class LiteModeSettingsActivity extends BaseFragment {
                     SharedConfig.setAnimationsEnabled(!animations);
                     editor.commit();
                     ((TextCell) view).setChecked(!animations);
+                } else if (item.type == SWITCH_TYPE_FOLLOW_SYSTEM_SAVER) {
+                    boolean follow = !LiteMode.isFollowSystemPowerSaver();
+                    LiteMode.setFollowSystemPowerSaver(follow);
+                    ((TextCell) view).setChecked(follow);
+                    updateItems();
+                    updateValues();
                 }
             } else if (item.viewType == VIEW_TYPE_VALUE) {
                 if (item.type == TYPE_PERFORMANCE_CLASS) {
@@ -268,8 +274,13 @@ public class LiteModeSettingsActivity extends BaseFragment {
 
         items.clear();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            items.add(Item.asSlider());
+            if (!LiteMode.isFollowSystemPowerSaver()) {
+                items.add(Item.asSlider());
+            }
+            items.add(Item.asSwitch(LocaleController.getString(R.string.OELiteFollowSystemSaver), SWITCH_TYPE_FOLLOW_SYSTEM_SAVER));
             items.add(Item.asInfo(
+                LiteMode.isFollowSystemPowerSaver() ?
+                    LocaleController.getString(R.string.OELiteFollowSystemSaverInfo) :
                 LiteMode.getPowerSaverLevel() <= 0 ?
                     LocaleController.getString(R.string.LiteBatteryInfoDisabled) :
                 LiteMode.getPowerSaverLevel() >= 100 ?
@@ -415,6 +426,7 @@ public class LiteModeSettingsActivity extends BaseFragment {
     private static final int VIEW_TYPE_VALUE = 6;
 
     public static final int SWITCH_TYPE_SMOOTH_TRANSITIONS = 1;
+    public static final int SWITCH_TYPE_FOLLOW_SYSTEM_SAVER = 2;
     public static final int TYPE_PERFORMANCE_CLASS = 2;
 
     private class Adapter extends AdapterWithDiffUtils {
@@ -491,6 +503,8 @@ public class LiteModeSettingsActivity extends BaseFragment {
                     SharedPreferences preferences = MessagesController.getGlobalMainSettings();
                     boolean animations = preferences.getBoolean("view_animations", true);
                     textCell.setTextAndCheck(item.text, animations, false);
+                } else if (item.type == SWITCH_TYPE_FOLLOW_SYSTEM_SAVER) {
+                    textCell.setTextAndCheck(item.text, LiteMode.isFollowSystemPowerSaver(), false);
                 }
             } else if (viewType == VIEW_TYPE_VALUE) {
                 TextCell textCell = (TextCell) holder.itemView;

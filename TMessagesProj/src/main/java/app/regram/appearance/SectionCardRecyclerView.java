@@ -39,6 +39,9 @@ public class SectionCardRecyclerView extends BlurredRecyclerView {
 
     // Тень-elevation включена всегда — именно она даёт «экстеровский» вид карточки.
     private boolean forceShadows = true;
+    private float shadowDensity = -1f;
+    private int strokeShadowColor;
+    private int fillShadowColor;
 
     public SectionCardRecyclerView(Context context) {
         super(context);
@@ -64,9 +67,17 @@ public class SectionCardRecyclerView extends BlurredRecyclerView {
             return;
         }
 
-        strokePaint.setColor(0);
-        strokePaint.setShadowLayer(AndroidUtilities.dpf2(0.33f), 0, 0, Theme.multAlpha(0x0C000000, alpha));
-        fillPaint.setShadowLayer(AndroidUtilities.dpf2(2f), 0, AndroidUtilities.dpf2(0.33f), Theme.multAlpha(0x0A000000, alpha));
+        int strokeColor = Theme.multAlpha(0x0C000000, alpha);
+        int fillColor = Theme.multAlpha(0x0A000000, alpha);
+        float density = AndroidUtilities.density;
+        if (shadowDensity != density || strokeShadowColor != strokeColor || fillShadowColor != fillColor) {
+            shadowDensity = density;
+            strokeShadowColor = strokeColor;
+            fillShadowColor = fillColor;
+            strokePaint.setColor(0);
+            strokePaint.setShadowLayer(AndroidUtilities.dpf2(0.33f), 0, 0, strokeColor);
+            fillPaint.setShadowLayer(AndroidUtilities.dpf2(2f), 0, AndroidUtilities.dpf2(0.33f), fillColor);
+        }
         fillPaint.setColor(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider), alpha));
 
         if (topRadius == bottomRadius) {

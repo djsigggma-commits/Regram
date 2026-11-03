@@ -1,0 +1,1669 @@
+{
+  "archive": "exteraless-1302.zip",
+  "archive_sha256": "c72d81f0170686c9fbdf61ea6aaaa9a5025de7c13823e2f87b52091b50555449",
+  "upstream_commit": "1ad6a60a6834ffca722b1a22f4fba27ecb29a061",
+  "base_version": "13.0.2",
+  "base_version_code": 7175,
+  "previous_base": "12.10.6-beta14",
+  "gitlinks": {
+    "TMessagesProj/chaquopy": "d47b4a1e1817b4590b9c56dfd4ee5fcfdd6f0cbd",
+    "TMessagesProj/jni/tgcalls": "ccbb57965020768c94f5b205ea08547a7e0fe49d",
+    "TMessagesProj/jni/third_party/absl": "54fac219c4ef0bc379dfffb0b8098725d77ac81b",
+    "TMessagesProj/jni/third_party/boost-regex": "4cbcd3078e6ae10d05124379623a1bf03fcb9350",
+    "TMessagesProj/jni/third_party/dav1d": "54706fc6bc0cdecab7e9593974a4039cc038fca7",
+    "TMessagesProj/jni/third_party/ffmpeg": "45f1910444f34b02621f9f0426ea1a538a613c41",
+    "TMessagesProj/jni/third_party/libprisma": "31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d",
+    "TMessagesProj/jni/third_party/libvpx": "1024874c5919305883187e2953de8fcb4c3d7fa6",
+    "TMessagesProj/jni/third_party/wamr": "25bd7eb63e828e4bd242cc9b38d260b4b31c6605",
+    "TMessagesProj/jni/third_party/xiph/ogg": "be05b13e98b048f0b5a0f5fa8ce514d56db5f822",
+    "TMessagesProj/jni/third_party/xiph/opus": "22244de5a79bd1d6d623c32e72bf1954b56235be",
+    "TMessagesProj/jni/third_party/xiph/opusfile": "a55c164e9891a9326188b7d4d216ec9a88373739",
+    "TMessagesProj/jni/tlottie": "31f1b542f88e7b4be9a01e749920d857535fc715",
+    "TMessagesProj/jni/wallet-engine": "5c65e47cb8d68727c20d89382d0bc51292486b9a",
+    "TMessagesProj/lib/jlatexmath": "f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4",
+    "TMessagesProj_Modules/media": "c430d207677071b1873f9f18266d55ec45722180"
+  },
+  "delta": [
+    {
+      "path": ".gitmodules",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/build.gradle",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/jni/CMakeLists.txt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/TgNetWrapper.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/.gitignore",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/Cargo.lock",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/Cargo.toml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/rust-toolchain.toml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/src/lib.rs",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/src/ton_connect.rs",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/gram-wallet/wallet-engine.patch",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/build_prisma.sh",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/build_wallet_engine.sh",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/include/wallet-engine/gram_wallet.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/include/wallet-engine/gram_wallet.hpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/include/wallet-engine/gram_wallet_scaffolding.hpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/include/wallet-engine/wallet_engine.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/include/wallet-engine/wallet_engine.hpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/include/wallet-engine/wallet_engine_scaffolding.hpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/arm64-v8a/libprisma.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/arm64-v8a/libwallet_engine.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/armeabi-v7a/libprisma.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/armeabi-v7a/libwallet_engine.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/x86/libprisma.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/x86/libwallet_engine.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/x86_64/libprisma.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prebuild/lib/x86_64/libwallet_engine.a",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/CMakeLists.txt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/bridge/PrismaEngine.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/bridge/PrismaEngine.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/bridge/PrismaIncludes.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/bridge/PrismaJni.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/generate.js",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/generate_prisma_grammars.sh",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/libprisma/Highlight.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/libprisma/Highlight.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/prisma/libprisma/SyntaxHighlighter.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tde2e/bridge.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/ConnectionSocket.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/ConnectionsManager.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/ConnectionsManager.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/Defines.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/DownloadRequestBudget.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/Handshake.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/MTProtoScheme.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/CMakeLists.txt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/org_telegram_messenger_voip_Instance.cpp",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/media/engine/webrtc_voice_engine.cc",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/wallet/GramWalletAdapter.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/wallet/GramWalletAdapter.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/wallet/WalletEngineBridge.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/wallet/WalletJournal.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/proguard-rules.pro",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/AndroidManifest.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/darkblue.attheme",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/fonts/currency_symbols.txt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/fonts/gram.ttf",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/fonts/rmono_var.ttf",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/grammars.dat",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card.binobj",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card.obj",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card_back.binobj",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card_edge.binobj",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card_front.binobj",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/anchors.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/camera.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/facetProjection.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/frames.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/main.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/planes.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/small.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/vertices.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/diamond_ios/widths.bin",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/night.attheme",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/diamond/copyFragment.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/diamond/diamondFragment.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/diamond/diamondVertex.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/diamond/fullscreenVertex.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/diamond/sparkleFragment.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/diamond/sparkleVertex.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_content_fragment.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_diamond_fragment.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_fragment.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_vertex.glsl",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/MainMenuHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/MainMenuItem.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/MainMenuLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginsConstants.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/xposed/XposedHooks.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/AppGlobalConfig.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/Bitmaps.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/DialogObject.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/DownloadRequestPacer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/FileLoadOperation.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/FileLog.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessageCustomParamsHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/PasskeysController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/RichMessageLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/TelegramQRCodeWriter.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/utils/Choreographer60FpsContent.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/utils/CopyUtilities.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/utils/CustomHtml.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/utils/tlutils/TlUtils.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/video/TextureRenderer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/voip/ConferenceCall.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPService.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/voip/VoipAudioManager.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/TLClassStore.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/TLParseException.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/TLRPC.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_account.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_bots.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_iv.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_toncenter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_update.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_wallet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/AdjustPanLayoutHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/AlertDialog.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheetTabs.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/INavigationLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ThemeColors.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Adapters/DialogsSearchAdapter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ArticleViewer.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Business/ChatAttachAlertQuickRepliesLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatActionCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/HeaderCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/StickerSetCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/TextCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/UserInfoCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ChannelMonetizationLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AnimatedTextView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/BottomSheetWithRecyclerListView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/BulletinFactory.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ButtonBounce.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ButtonSpan.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertGramLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ColoredImageSpan.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/CreateBotAlert.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/EdgeEffectTrackerFactory.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextBoldCursor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/EditTextCaption.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/EllipsizeSpanAnimator.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/FlickerLoadingView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ForegroundDetector.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraViewBase.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/LoadingDrawable.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/Views/MessageEntityView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/PasscodeView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/CoolDiamondIcon.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/DiamondProgram.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/DiamondRenderer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/DiamondSurfaceView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/GLIconRenderer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/GLIconTextureView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/GLProgramCache.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/Icon3D.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/ObjLoader.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/WalletDiamondTextureView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/TableLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/TableView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/UItem.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/UniversalAdapter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/BlurredBackgroundDrawableViewFactory.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/inset/WindowInsetsStateHolder.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/spoilers/SpoilersTextView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/FragmentUsernameBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Gifts/GiftSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/GradientHeaderActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LinkManager.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PasscodeActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PhotoCropActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PremiumPreviewFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/GiftOfferSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/MessageSuggestionOfferSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/SellGiftEnterPriceSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsIntroActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stories/UploadingDotsSpannable.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/ButtonWithCounterView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/StoryCellFactory.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/TON/TONIntroActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/TwoStepVerificationSetupActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/CollectibleCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/CurrenciesController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletDns.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletPolling.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletStorage.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletStorageAuth.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletStreaming.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletTonConnect.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/NavBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/NewBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/PasswordRequest.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/TransactionCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletActionLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCard2DView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCard3D.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardComponent.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardFlecks.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardFrameHistory.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardGLRenderer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardGeometry.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardMotion.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardQrBounds.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardTiltBaseline.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletChatSendTransition.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletDiamondView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletEngine2.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletImportFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletKeysBackupFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletRecipientView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSecretPhraseFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendEnterAmount.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendParticles.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendSelectSender.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendTransition.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletTestPhraseFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletTonConnectSessionsFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletTransactionAmountView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletWordCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/bots/BotWebViewSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/iv/RichEditor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/iv/RichEditorListView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/iv/RichMessageConvert.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/iv/RichTextCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCameraController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoGlProcessor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoMp4Writer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoOverlayRenderer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/code/highlight/CodeHighlighting.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/code/highlight/PrismaHighlighter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/code/highlight/PrismaHighlightingService.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/code/highlight/PrismaTokenStyles.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/proxy/WebProxyTransport.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/settings/BooleanSetting.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/settings/SharedSettings.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/EntitiesHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/ui/MessageDetailsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/ui/cells/NekoMessageCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/plugin_loader.py",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/dialog_gram_transfer.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_gram_earnings.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/ic_gram.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/mini_gram_16.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/mini_gram_24.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/mini_gram_72.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/scan_qr.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/settings_wallet.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/settings_wallet_dark.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/verified2_bg.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/verified2_fg.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_apps.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_buy.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_card_info.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_card_qr.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_comment_locked.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_comment_unlocked.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_copy.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_currency_exchange.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_globe.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_gram_14.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_gram_large.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_gram_small.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_help.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_intro_arrow.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_intro_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_intro_options.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_intro_store.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_intro_telegram.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_intro_trade.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_key.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_learn_fees.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_learn_hidden.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_learn_instant.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_learn_protected.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_learn_verified.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_learn_warn.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_lock.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_nft.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_nft_placeholder.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_protect.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_provider_moonpay.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_provider_wallet.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_sell.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_tooltip_arrow.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_transaction_in.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_transaction_key.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_transaction_out.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_transaction_topup.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_transaction_walt.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_transfer.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-nodpi/wallet_action_card_gradient.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-nodpi/wallet_card_diamond.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/raw/gram.json",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/raw/gram_reverse.json",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/raw/wallet_diamond_blue.json",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/raw/wallet_diamond_white.json",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "gradle.properties",
+      "mode": "conflict"
+    }
+  ],
+  "deletions": {
+    "removed": [
+      "TMessagesProj/jni/voip/tgcalls/TurnCustomizerImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/ChannelManager.cpp",
+      "TMessagesProj/jni/voip/tgcalls/CryptoHelper.h",
+      "TMessagesProj/jni/voip/tgcalls/MediaManager.cpp",
+      "TMessagesProj/jni/voip/tgcalls/Instance.cpp",
+      "TMessagesProj/jni/voip/tgcalls/ThreadLocalObject.h",
+      "TMessagesProj/jni/voip/tgcalls/PlatformContext.h",
+      "TMessagesProj/jni/voip/tgcalls/SctpDataChannelProviderInterfaceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/Stats.h",
+      "TMessagesProj/jni/voip/tgcalls/ThreadLocalObject.cpp",
+      "TMessagesProj/jni/voip/tgcalls/InstanceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/VideoCaptureInterfaceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/VideoCaptureInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/LogSinkImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/VideoCapturerInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/FakeAudioDeviceModule.h",
+      "TMessagesProj/jni/voip/tgcalls/VideoCaptureInterface.cpp",
+      "TMessagesProj/jni/voip/tgcalls/InstanceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/Instance.h",
+      "TMessagesProj/jni/voip/tgcalls/FakeVideoTrackSource.cpp",
+      "TMessagesProj/jni/voip/tgcalls/EncryptedConnection.h",
+      "TMessagesProj/jni/voip/tgcalls/NetworkManager.cpp",
+      "TMessagesProj/jni/voip/tgcalls/DirectConnectionChannel.h",
+      "TMessagesProj/jni/voip/tgcalls/FieldTrialsConfig.h",
+      "TMessagesProj/jni/voip/tgcalls/EncryptedConnection.cpp",
+      "TMessagesProj/jni/voip/tgcalls/CodecSelectHelper.cpp",
+      "TMessagesProj/jni/voip/tgcalls/AudioDeviceHelper.h",
+      "TMessagesProj/jni/voip/tgcalls/CryptoHelper.cpp",
+      "TMessagesProj/jni/voip/tgcalls/ChannelManager.h",
+      "TMessagesProj/jni/voip/tgcalls/CodecSelectHelper.h",
+      "TMessagesProj/jni/voip/tgcalls/FakeAudioDeviceModule.cpp",
+      "TMessagesProj/jni/voip/tgcalls/MediaManager.h",
+      "TMessagesProj/jni/voip/tgcalls/TurnCustomizerImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/Message.cpp",
+      "TMessagesProj/jni/voip/tgcalls/StaticThreads.cpp",
+      "TMessagesProj/jni/voip/tgcalls/LogSinkImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/Message.h",
+      "TMessagesProj/jni/voip/tgcalls/AudioFrame.h",
+      "TMessagesProj/jni/voip/tgcalls/Manager.h",
+      "TMessagesProj/jni/voip/tgcalls/FakeVideoTrackSource.h",
+      "TMessagesProj/jni/voip/tgcalls/VideoCaptureInterfaceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/NetworkManager.h",
+      "TMessagesProj/jni/voip/tgcalls/AudioDeviceHelper.cpp",
+      "TMessagesProj/jni/voip/tgcalls/FieldTrialsConfig.cpp",
+      "TMessagesProj/jni/voip/tgcalls/StaticThreads.h",
+      "TMessagesProj/jni/voip/tgcalls/Manager.cpp",
+      "TMessagesProj/jni/voip/tgcalls/SctpDataChannelProviderInterfaceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2_4_0_0/Signaling_4_0_0.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2_4_0_0/Signaling_4_0_0.h",
+      "TMessagesProj/jni/voip/tgcalls/third-party/json11.hpp",
+      "TMessagesProj/jni/voip/tgcalls/third-party/json11.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/PlatformInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/VariantCallCore.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CallCoreBackend.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/variant_core_factory.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/NativeCoreBackend.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/WamrCoreBackend.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/SignalingFraming.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/wasm_module_entry.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/WamrCoreBackend.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/NativeCoreBackend.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CLAUDE.md",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CoreFactory.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/EmbeddedCoreModule.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/VariantCallCore.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CallCoreABI.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/InstanceV2PumpImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/InstanceV2PumpImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/SignalingFraming.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CallCoreHost.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CallCoreHost.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/ReferenceCallCore.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/HostCompressionService.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CoreBase64.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CoreGzip.h",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/CoreGzip.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/reference_core_factory.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2wasm/ReferenceCallCore.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupFrameTransformerTest.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupInstanceReferenceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupInstanceReferenceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupAudioCapturePostProcessor.h",
+      "TMessagesProj/jni/voip/tgcalls/group/StreamingMediaContext.h",
+      "TMessagesProj/jni/voip/tgcalls/group/VideoStreamingPart.h",
+      "TMessagesProj/jni/voip/tgcalls/group/StreamingAudioRendererTest.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupNetworkManager.h",
+      "TMessagesProj/jni/voip/tgcalls/group/StreamingAudioRenderer.h",
+      "TMessagesProj/jni/voip/tgcalls/group/AudioStreamingPartPersistentDecoder.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/AVIOContextImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupJoinPayloadInternal.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupInstanceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupAudioCapturePostProcessor.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupFrameTransformer.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/AVIOContextImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupInstanceCustomImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/group/AudioStreamingPartInternal.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/StreamingMediaContext.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/AudioStreamingPart.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupNetworkManager.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupJoinPayload.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupFrameTransformer.h",
+      "TMessagesProj/jni/voip/tgcalls/group/AudioStreamingPartPersistentDecoder.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupInstanceCustomImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/StreamingAudioRenderer.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/AudioStreamingPart.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/VideoStreamingPart.cpp",
+      "TMessagesProj/jni/voip/tgcalls/group/AudioStreamingPartInternal.h",
+      "TMessagesProj/jni/voip/tgcalls/group/GroupJoinPayloadInternal.h",
+      "TMessagesProj/jni/voip/tgcalls/utils/gzip.cpp",
+      "TMessagesProj/jni/voip/tgcalls/utils/gzip.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/ExternalSignalingConnection.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/CustomDcSctpSocket.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceV2ReferenceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingTranslator.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/ContentNegotiation.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/CustomParameters.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/RawTcpSocket.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/ReflectorPort.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingEncryption.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/NativeNetworkingImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceV2ReferenceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingConnection.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/MtProtoIceTransport.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/DirectNetworkingImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingTranslator.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingSctpConnection.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceV2CompatImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/NativeNetworkingImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/ReflectorRelayPortFactory.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/ContentNegotiation.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceV2Impl.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingEncryption.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/CustomDcSctpSocket.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/MtProtoIceTransport.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/ReflectorPort.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/Signaling.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceNetworking.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingSctpConnection.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/MtProtoIceTransportTest.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/RawTcpSocket.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/SignalingConnection.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceV2Impl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/ExternalSignalingConnection.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/InstanceV2CompatImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/DirectNetworkingImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/v2/Signaling.cpp",
+      "TMessagesProj/jni/voip/tgcalls/v2/ReflectorRelayPortFactory.h",
+      "TMessagesProj/jni/voip/tgcalls/desktop_capturer/DesktopCaptureSource.cpp",
+      "TMessagesProj/jni/voip/tgcalls/desktop_capturer/DesktopCaptureSourceHelper.h",
+      "TMessagesProj/jni/voip/tgcalls/desktop_capturer/DesktopCaptureSourceManager.cpp",
+      "TMessagesProj/jni/voip/tgcalls/desktop_capturer/DesktopCaptureSourceHelper.cpp",
+      "TMessagesProj/jni/voip/tgcalls/desktop_capturer/DesktopCaptureSource.h",
+      "TMessagesProj/jni/voip/tgcalls/desktop_capturer/DesktopCaptureSourceManager.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/uwp/UwpScreenCapturer.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/uwp/UwpContext.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/uwp/UwpScreenCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/AndroidContext.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/VideoCameraCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/AndroidInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/VideoCapturerInterfaceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/VideoCameraCapturer.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/AndroidContext.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/VideoCapturerInterfaceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/android/AndroidInterface.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/fake/FakeInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/fake/FakeInterface.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/VideoCapturerTrackSource.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/VideoCameraCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/DesktopInterface.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/VideoCapturerTrackSource.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/VideoCapturerInterfaceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/DesktopInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/VideoCameraCapturer.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/tdesktop/VideoCapturerInterfaceImpl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/objc_video_decoder_factory.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DesktopSharingCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCameraCapturerMac.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGCMIOCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/ExtractCVPixelBuffer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoMetalViewMac.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/CustomExternalCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/RTCH265ProfileLevelId.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoMetalView.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoDecoderH265.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DarwinVideoSource.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoSampleBufferView.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/RTCCodecSpecificInfoH265+Private.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCameraCapturer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCameraCapturer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/ExtractCVPixelBuffer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DesktopCaptureSourceViewMac.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DarwinVideoSource.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/h265_nalu_rewriter.cc",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/SQueueLocalObject.m",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoEncoderH265.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/AudioDeviceModuleMacos.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCaptureView.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/objc_video_decoder_factory.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCapturerInterfaceImpl.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DesktopCaptureSourceViewMac.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCCVPixelBuffer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/objc_video_encoder_factory.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCCVPixelBuffer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoDecoderH264.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DarwinFFMpeg.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/h264_encoder_impl.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCameraCapturerMac.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoMetalViewMac.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/CustomExternalCapturer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoEncoderH265.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGCMIODevice.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGCMIODevice.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoEncoderH264.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/SQueueLocalObject.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCapturerInterfaceImpl.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DarwinInterface.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/RTCH265ProfileLevelId.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DarwinFFMpeg.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGCMIOCapturer.m",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoMetalView.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoSampleBufferViewMac.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/h264_encoder_impl.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoDecoderH264.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/CustomSimulcastEncoderAdapter.cpp",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCMIOCapture.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCDefaultVideoDecoderFactory.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoSampleBufferViewMac.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoDecoderH265.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCaptureView.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/objc_video_encoder_factory.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCDefaultVideoEncoderFactory.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/SQueue.m",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoSampleBufferView.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCDefaultVideoEncoderFactory.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/SQueue.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DarwinInterface.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/AudioDeviceModuleIOS.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/RTCCodecSpecificInfoH265.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/CustomSimulcastEncoderAdapter.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCDefaultVideoDecoderFactory.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/h265_nalu_rewriter.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/RTCCodecSpecificInfoH265.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/TGRTCVideoEncoderH264.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/DesktopSharingCapturer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/VideoCMIOCapture.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMTLI420Renderer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMTLRenderer+Private.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMTLI420Renderer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMTLRenderer.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMetalContextHolder.m",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMTLRenderer.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/macOS/TGRTCMetalContextHolder.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCNativeAudioSessionDelegateAdapter.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/tgcalls_voice_processing_audio_unit.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/tgcalls_audio_device_module_ios.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCAudioSession+Private.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/tgcalls_audio_device_module_ios.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCAudioSession.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCNativeAudioSessionDelegateAdapter.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCAudioSession.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCAudioSessionConfiguration.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/tgcalls_audio_device_ios.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/CallAudioTone.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCAudioSession+Configuration.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/tgcalls_voice_processing_audio_unit.mm",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/tgcalls_audio_device_ios.h",
+      "TMessagesProj/jni/voip/tgcalls/platform/darwin/iOS/RTCAudioSessionConfiguration.h",
+      "TMessagesProj/src/main/java/org/telegram/messenger/CodeHighlighting.java",
+      "TMessagesProj/src/main/assets/models/diamond.binobj",
+      "TMessagesProj/src/main/assets/models/diamond_outer.binobj",
+      "TMessagesProj/src/main/assets/models/diamond_outer_2.binobj",
+      "TMessagesProj/src/main/assets/shaders/fragment5.glsl"
+    ],
+    "kept_modified": []
+  }
+}

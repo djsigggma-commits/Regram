@@ -732,10 +732,21 @@ def _install_reflection_gate() -> None:
     except Exception:
         return
     try:
-        set_reflection_policy(_reflection_gate)
+        from java.chaquopy import get_reflection_policy
+    except Exception:
+        get_reflection_policy = None
+    try:
+        if get_reflection_policy is None or get_reflection_policy() is not _reflection_gate:
+            set_reflection_policy(_reflection_gate)
     except Exception as e:
         print(f"[exteraless:plugin_loader] reflection gate install failed: {e}",
               file=sys.stderr)
+        return
+    try:
+        from java.chaquopy import seal_reflection_policy
+        seal_reflection_policy()
+    except Exception:
+        pass
 
 
 def _log(message: str) -> None:
@@ -2508,6 +2519,7 @@ def _import_module(path: str, plugin_id: str):
     # имени модуля в кадре, а импорты верхнего уровня выполняются уже внутри
     # exec_module — после него регистрировать было бы поздно.
     _register_owner(path, plugin_id)
+    before = set(sys.modules)
     try:
         # Контекст нужен и на верхнем уровне модуля: плагины каталога создают там
         # джавовые подклассы и трогают SDK, а проверки разрешений отказывают,
@@ -2516,9 +2528,22 @@ def _import_module(path: str, plugin_id: str):
             spec.loader.exec_module(module)
     except Exception:
         sys.modules.pop(module_name, None)
+        _drop_orphaned_modules(before)
         _forget_owner(path)
         raise
     return module, module_name
+
+
+def _drop_orphaned_modules(before) -> None:
+    for name in list(sys.modules):
+        if name in before or "." not in name:
+            continue
+        parent = name.rpartition(".")[0]
+        while parent:
+            if parent not in sys.modules:
+                sys.modules.pop(name, None)
+                break
+            parent = parent.rpartition(".")[0]
 
 
 def _class_owner(obj) -> Optional[str]:
@@ -2691,8 +2716,13 @@ def _load_elyx_plugin(path: str, plugin_id: str, clock=None) -> str:
         record = PluginRecord(module=None, instance=None, path=path)
         record.__dict__["_elyx"] = True
         record.__dict__["_clock"] = clock
-        with plugin_context(plugin_id):
-            elyx_runtime.load_plugin_record(record, path)
+        before = set(sys.modules)
+        try:
+            with plugin_context(plugin_id):
+                elyx_runtime.load_plugin_record(record, path)
+        except Exception:
+            _drop_orphaned_modules(before)
+            raise
         record.__dict__.pop("_clock", None)
         if record.instance is None:
             raise RuntimeError("elyx_runtime did not populate the plugin record")
@@ -3575,6 +3605,36 @@ def start_dev_server() -> None:
               file=sys.stderr)
     return None
 
+
+def _extract_native_assets() -> None:
+    try:
+        from java.android import importer
+        from pkgutil import get_importer
+        prefix = importer.ASSET_PREFIX
+    except Exception:
+        return
+    for entry in list(sys.path):
+        if not isinstance(entry, str) or not entry.startswith(prefix + os.sep):
+            continue
+        try:
+            finder = get_importer(entry)
+        except Exception:
+            continue
+        if not isinstance(finder, importer.AssetFinder) or finder.prefix:
+            continue
+        for zip_file in finder.zip_files:
+            for info in zip_file.infolist():
+                name = info.filename
+                if info.is_dir() or not name.endswith(".so") or name.startswith("debugpy/"):
+                    continue
+                try:
+                    zip_file.extract_if_changed(info, finder.extract_root)
+                except Exception as e:
+                    print(f"[exteraless:plugin_loader] extract {name} failed: {e}",
+                          file=sys.stderr)
+
+
+_extract_native_assets()
 
 # Песочницу ставим на импорте модуля: враппер builtins.__import__ должен
 # оказаться в цепочке ДО того, как elyx_runtime.namespace захватит себе

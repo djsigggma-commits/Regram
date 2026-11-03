@@ -45,7 +45,8 @@ class ReleaseCandidateTests(unittest.TestCase):
         with zipfile.ZipFile(self.apk, "w") as archive:
             archive.writestr("classes.dex", "Landroidx/media3/decoder/ffmpeg/FfmpegLibrary;")
             for abi in abis:
-                archive.writestr(f"lib/{abi}/libtmessages.49.so", "example")
+                archive.writestr(f"lib/{abi}/libtmessages.49.so",
+                                 b'\0' + b'\0'.join(name.encode() for name in sorted(verifier.tgnet_registered_names())) + b'\0')
             if plugins:
                 archive.writestr("assets/chaquopy/bootstrap-native/bootstrap.so", "example")
 
@@ -120,6 +121,31 @@ class ReleaseCandidateTests(unittest.TestCase):
         self.dex_xml.find("package").clear()
         with self.assertRaisesRegex(ValueError, "FFmpeg JNI contract mismatch"):
             verifier.verify(self.apk, "arm64-v8a", self.root, self.run_tool)
+
+    def test_rejects_stale_native_registration_table(self):
+        self.make_apk()
+        with zipfile.ZipFile(self.apk) as archive:
+            entries = {name: archive.read(name) for name in archive.namelist()}
+        library = 'lib/arm64-v8a/libtmessages.49.so'
+        entries[library] += b'\0native_setDeviceMetadata\0'
+        with zipfile.ZipFile(self.apk, 'w') as archive:
+            for name, data in entries.items():
+                archive.writestr(name, data)
+        with self.assertRaisesRegex(ValueError, 'unexpected=.*native_setDeviceMetadata'):
+            verifier.verify(self.apk, 'arm64-v8a', self.root, self.run_tool)
+        self.assertFalse(any(Path(call[0]).name == 'apksigner' for call in self.calls))
+
+    def test_rejects_missing_native_registration(self):
+        self.make_apk()
+        with zipfile.ZipFile(self.apk) as archive:
+            entries = {name: archive.read(name) for name in archive.namelist()}
+        library = 'lib/arm64-v8a/libtmessages.49.so'
+        entries[library] = entries[library].replace(b'native_setJava\0', b'\0')
+        with zipfile.ZipFile(self.apk, 'w') as archive:
+            for name, data in entries.items():
+                archive.writestr(name, data)
+        with self.assertRaisesRegex(ValueError, 'missing=.*native_setJava'):
+            verifier.verify(self.apk, 'arm64-v8a', self.root, self.run_tool)
 
     def test_missing_sdk_tools_fail_closed(self):
         self.make_apk()

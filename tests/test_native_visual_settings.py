@@ -47,12 +47,16 @@ def test_native_controls_and_translations_are_complete():
         assert 'NekoConfig.' + field in settings
     for master in ('regramMonoColor', 'regramAllLeft'):
         assert re.search(r'ConfigItem ' + master + r'.*configTypeBool, false\)', config)
-    english = ET.parse(ROOT / 'TMessagesProj/src/main/res/values/regram_native_visual.xml').getroot()
-    russian = ET.parse(ROOT / 'TMessagesProj/src/main/res/values-ru/regram_native_visual.xml').getroot()
-    en = {e.get('name') for e in english}
-    assert en == {e.get('name') for e in russian}
+    names = []
+    for locale in ('values', 'values-ru'):
+        translated = set()
+        for file in ('regram_native_visual.xml', 'regram_chip_folders.xml'):
+            translated.update(e.get('name') for e in ET.parse(ROOT / f'TMessagesProj/src/main/res/{locale}/{file}').getroot())
+        names.append(translated)
+    en = names[0]
+    assert en == names[1]
     assert set(re.findall(r'R.string.(\w+)', settings)) - {'Save', 'Cancel'} <= en
-    route = (JAVA / 'app/regram/settings/OpenExteraAppearanceActivity.java').read_text()
+    route = (JAVA / 'app/regram/settings/RegramFeaturesActivity.java').read_text()
     assert 'presentFragment(new NativeVisualSettingsActivity())' in route
 
 
@@ -85,7 +89,7 @@ def test_real_ownership_sender_identity_and_layout_caches_are_separate():
     assert 'currentMessageObject.isOutOwner()' in identity
     assert '!currentMessageObject.isOutOwner() && currentMessageObject.getDialogId() >= 0 && !media.todo.others_can_complete' in cell
     assert cell.count('.isOutOwnerForLayout()') > 300
-    assert 'timeWidth += dp(20)' in cell and 'drawAllLeftStatus(canvas, alpha, timeLayout)' in cell
+    assert 'timeWidth += dp(20)' in cell and 'drawAllLeftStatus(canvas, alpha, timeLayout,' in cell
     chat = (JAVA / 'org/telegram/ui/ChatActivity.java').read_text()
     assert 'groupedMessages.ensurePresentationLayout()' in chat
     assert 'nextMessage.isOutOwner() == message.isOutOwner()' in chat
@@ -193,6 +197,8 @@ public class PaletteTest {
   assert MonoColor.avatarColor(false)==0xffff0000;
   assert MonoColor.avatarColor(false)==MonoColor.avatarColor(true);
   assert MonoColor.peerColor(0)==MonoColor.peerColor(1); assert MonoColor.peerColor(4)==MonoColor.peerColor(5);
+  Integer label=MonoColor.override(Theme.key_chats_name);
+  for(int i=0;i<100000;i++) assert label==MonoColor.override(Theme.key_chats_name);
   ColorFilter filter=MonoColor.avatarFilter(); assert filter==MonoColor.avatarFilter();
   float[] matrix=((ColorMatrixColorFilter)filter).values; assert matrix[18]==1 && matrix[19]==0;
   assert matrix[0]==.213f && matrix[5]==0 && matrix[10]==0;

@@ -24,6 +24,7 @@
     <string name="QrWifiPasswordCopied">Password copied</string>
     <string name="QrWifiUnknownNetwork">Network name is missing from the code</string>
     <string name="QrLoginHint">This code logs into an account. Use Settings → Devices → Link Desktop Device — that screen checks the code and protects your account.</string>
+    <string name="QrLoginConfirm">This code signs a new device into your account. Allow only if you are logging in on your own device.</string>
     <string name="AppIconRegram" translatable="false">re:gram</string>
     <string name="AppIconBlueprint" translatable="false">Blueprint</string>
     <string name="AppIconRed" translatable="false">Red</string>
@@ -73,7 +74,6 @@
     <string name="ProxyDisableOnVpn" translatable="false">VPN</string>
     <string name="ProxyDisableOnMobileData">Mobile data</string>
     <string name="ProxyDisableOnWiFi" translatable="false">Wi-Fi</string>
-    <string name="OENowPlayingScrobbling">Scrobbling now</string>
     <string name="MainTabsHideCallsSettings">Hide Calls tab</string>
     <string name="MainTabsHideProfile">Hide Profile tab</string>
     <string name="OEBotWebViewUpdate">Update WebView</string>

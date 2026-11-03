@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="regram_spen_hover_state" />
+    <string name="RegramSPenTitle">S Pen</string>
+    <string name="RegramSPenEnabled">Enable S Pen gestures</string>
+    <string name="RegramSPenInstant">Select text with the pen button</string>
+    <string name="RegramSPenDouble">Double-tap to select all text</string>
+    <string name="RegramSPenMessages">Select messages by dragging on the background</string>
+    <string name="RegramSPenHover">Click with the button while hovering</string>
+    <string name="RegramSPenInfo">Hold the pen button to select text or drag beside message bubbles. Double-tap the same message with the button held to select its text. While hovering, press and release the button to tap at the pen position. Requires compatible stylus input; Bluetooth Air Actions are not supported. Protected text cannot be selected. Disabled by default. Disable the original plugin if installed. Based on S-Pen Support 1.6.0 by @huecoder.</string>
+</resources>

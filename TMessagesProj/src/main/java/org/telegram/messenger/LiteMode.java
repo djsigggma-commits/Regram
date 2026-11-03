@@ -91,6 +91,10 @@ public class LiteMode {
 
     private static int powerSaverLevel;
     private static boolean lastPowerSaverApplied;
+    private static boolean followSystemSaver;
+    private static boolean lastSystemSaver;
+    private static long lastSystemSaverChecked;
+    private static BroadcastReceiver systemSaverReceiver;
 
     private static int value;
     private static boolean loaded;
@@ -104,7 +108,7 @@ public class LiteMode {
             loadPreference();
         }
         if (!ignorePowerSaving && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (getBatteryLevel() <= powerSaverLevel && powerSaverLevel > 0) {
+            if (followSystemSaver ? isSystemPowerSaveMode() : getBatteryLevel() <= powerSaverLevel && powerSaverLevel > 0) {
                 if (!lastPowerSaverApplied) {
                     onPowerSaverApplied(lastPowerSaverApplied = true);
                 }
@@ -282,11 +286,93 @@ public class LiteMode {
             onFlagsUpdate(prevValue, value);
         }
         powerSaverLevel = preferences.getInt("lite_mode_battery_level", batteryDefaultValue);
+        followSystemSaver = preferences.getBoolean("lite_mode_follow_system", false);
         loaded = true;
+        if (followSystemSaver) {
+            AndroidUtilities.runOnUIThread(LiteMode::updateSystemSaverReceiver);
+        }
     }
 
     public static void savePreference() {
-        MessagesController.getGlobalMainSettings().edit().putInt("lite_mode6", value).putInt("lite_mode_battery_level", powerSaverLevel).apply();
+        MessagesController.getGlobalMainSettings().edit().putInt("lite_mode6", value).putInt("lite_mode_battery_level", powerSaverLevel).putBoolean("lite_mode_follow_system", followSystemSaver).apply();
+    }
+
+    public static boolean isFollowSystemPowerSaver() {
+        if (!loaded) {
+            loadPreference();
+        }
+        return followSystemSaver;
+    }
+
+    public static void setFollowSystemPowerSaver(boolean value) {
+        if (!loaded) {
+            loadPreference();
+        }
+        followSystemSaver = value;
+        lastSystemSaverChecked = 0;
+        savePreference();
+        updateSystemSaverReceiver();
+        getValue(false);
+    }
+
+    private static boolean isSystemPowerSaveMode() {
+        long now = System.currentTimeMillis();
+        if (lastSystemSaverChecked != 0 && now - lastSystemSaverChecked < 3000) {
+            return lastSystemSaver;
+        }
+        lastSystemSaverChecked = now;
+        boolean saver = false;
+        Context context = ApplicationLoader.applicationContext;
+        try {
+            android.os.PowerManager powerManager = (android.os.PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            saver = powerManager != null && powerManager.isPowerSaveMode();
+        } catch (Throwable ignore) {
+        }
+        if (!saver) {
+            try {
+                android.content.ContentResolver resolver = context.getContentResolver();
+                int smartMode = android.provider.Settings.System.getInt(resolver, "SmartModeStatus", 0);
+                saver = android.provider.Settings.System.getInt(resolver, "POWER_SAVE_MODE_OPEN", 0) == 1
+                        || smartMode == 1 || smartMode == 4
+                        || "1".equals(android.provider.Settings.System.getString(resolver, "psm_switch"))
+                        || android.provider.Settings.Global.getInt(resolver, "low_power", 0) == 1;
+            } catch (Throwable ignore) {
+            }
+        }
+        lastSystemSaver = saver;
+        return saver;
+    }
+
+    private static void updateSystemSaverReceiver() {
+        Context context = ApplicationLoader.applicationContext;
+        if (context == null) {
+            return;
+        }
+        if (followSystemSaver && systemSaverReceiver == null) {
+            systemSaverReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context c, Intent intent) {
+                    lastSystemSaverChecked = 0;
+                    AndroidUtilities.runOnUIThread(() -> getValue(false));
+                }
+            };
+            android.content.IntentFilter filter = new android.content.IntentFilter();
+            filter.addAction(android.os.PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+            filter.addAction("miui.intent.action.POWER_SAVE_MODE_CHANGED");
+            filter.addAction("huawei.intent.action.POWER_MODE_CHANGED_ACTION");
+            try {
+                androidx.core.content.ContextCompat.registerReceiver(context, systemSaverReceiver, filter, androidx.core.content.ContextCompat.RECEIVER_EXPORTED);
+            } catch (Throwable e) {
+                systemSaverReceiver = null;
+                FileLog.e(e);
+            }
+        } else if (!followSystemSaver && systemSaverReceiver != null) {
+            try {
+                context.unregisterReceiver(systemSaverReceiver);
+            } catch (Throwable ignore) {
+            }
+            systemSaverReceiver = null;
+        }
     }
 
     public static int getPowerSaverLevel() {

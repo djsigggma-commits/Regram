@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -51,7 +52,8 @@ public final class VoskManager {
     private static volatile String downloadingCode;
     private static volatile long downloadedBytes;
     private static volatile long totalBytes;
-    private static AtomicBoolean cancelled = new AtomicBoolean();
+    private static volatile AtomicBoolean cancelled = new AtomicBoolean();
+    private static volatile Call downloadingCall;
 
     private VoskManager() {
     }
@@ -135,6 +137,8 @@ public final class VoskManager {
 
     public static void cancelDownload() {
         cancelled.set(true);
+        Call call = downloadingCall;
+        if (call != null) call.cancel();
     }
 
     public static void download(VoskModel model) {
@@ -153,16 +157,21 @@ public final class VoskManager {
             try {
                 downloadInternal(model, cancelFlag, progress);
             } catch (Throwable e) {
-                error = e;
-                if (!(e instanceof InterruptedException)) {
+                error = cancelFlag.get() ? new InterruptedException("cancelled") : e;
+                if (!(error instanceof InterruptedException)) {
                     FileLog.e(e);
                 }
+            } finally {
+                downloadingCall = null;
             }
             final Throwable result = error;
             AndroidUtilities.runOnUIThread(() -> {
-                progress.finish();
-                downloadingCode = null;
-                notifyFinished(model, result);
+                try {
+                    progress.finish();
+                } finally {
+                    downloadingCode = null;
+                    notifyFinished(model, result);
+                }
             });
         });
     }
@@ -179,13 +188,30 @@ public final class VoskManager {
         deleteRecursive(staging);
         archive.delete();
 
+        try {
+            downloadAndInstall(model, cancelFlag, progress, archive, staging, target);
+        } finally {
+            archive.delete();
+            deleteRecursive(staging);
+        }
+    }
+
+    private static void downloadAndInstall(VoskModel model, AtomicBoolean cancelFlag,
+                                           DownloadProgress progress, File archive,
+                                           File staging, File target) throws Exception {
         OkHttpClient client = HttpClient.INSTANCE.getInstance().newBuilder()
                 .callTimeout(0, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(0, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                 .build();
         Request request = new Request.Builder().url(model.url).build();
         MessageDigest digest = MessageDigest.getInstance("MD5");
-        try (Response response = client.newCall(request).execute()) {
+        Call call = client.newCall(request);
+        downloadingCall = call;
+        if (cancelFlag.get()) {
+            call.cancel();
+            throw new InterruptedException("cancelled");
+        }
+        try (Response response = call.execute()) {
             if (!response.isSuccessful()) {
                 throw new IOException("http " + response.code());
             }
@@ -221,24 +247,29 @@ public final class VoskManager {
                 hash.append(String.format(Locale.US, "%02x", b));
             }
             if (!model.md5.equalsIgnoreCase(hash.toString())) {
-                archive.delete();
                 throw new IOException("checksum mismatch");
             }
         }
 
         unzipStripRoot(archive, staging, cancelFlag);
-        archive.delete();
+        if (cancelFlag.get()) {
+            throw new InterruptedException("cancelled");
+        }
+        if (!new File(staging, READY_MARKER).createNewFile()) {
+            throw new IOException("cannot mark model ready");
+        }
         deleteRecursive(target);
         if (!staging.renameTo(target)) {
-            deleteRecursive(staging);
             throw new IOException("cannot move model");
         }
-        new File(target, READY_MARKER).createNewFile();
     }
 
     private static void unzipStripRoot(File archive, File target, AtomicBoolean cancelFlag) throws Exception {
-        target.mkdirs();
+        if (!target.isDirectory() && !target.mkdirs()) {
+            throw new IOException("cannot create staging dir");
+        }
         String canonicalTarget = target.getCanonicalPath() + File.separator;
+        boolean extractedFile = false;
         byte[] buffer = new byte[BUFFER_SIZE];
         try (ZipInputStream zip = new ZipInputStream(new java.io.BufferedInputStream(
                 new java.io.FileInputStream(archive), BUFFER_SIZE))) {
@@ -272,7 +303,11 @@ public final class VoskManager {
                         output.write(buffer, 0, read);
                     }
                 }
+                extractedFile = true;
             }
+        }
+        if (!extractedFile) {
+            throw new IOException("empty model archive");
         }
     }
 
@@ -326,14 +361,22 @@ public final class VoskManager {
     }
 
     private static void notifyProgress(long done, long total) {
-        for (int i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onProgress(done, total);
+        for (DownloadListener listener : new ArrayList<>(listeners)) {
+            try {
+                listener.onProgress(done, total);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
         }
     }
 
     private static void notifyFinished(VoskModel model, Throwable error) {
-        for (int i = 0; i < listeners.size(); i++) {
-            listeners.get(i).onFinished(model, error);
+        for (DownloadListener listener : new ArrayList<>(listeners)) {
+            try {
+                listener.onFinished(model, error);
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
         }
     }
 }

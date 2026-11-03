@@ -736,7 +736,22 @@ public class UniversalAdapter extends AdapterWithDiffUtils {
                 } else {
                     cell.setColors(Theme.key_windowBackgroundWhiteGrayIcon, Theme.key_windowBackgroundWhiteBlackText);
                 }
+                cell.setDrawLoading(item.locked, 45, true);
                 cell.setEnabled(item.enabled, true);
+                if (!TextUtils.isEmpty(item.subtext)) {
+                    if (item.pad > 0) {
+                        cell.setOffsetFromImage(item.pad);
+                    }
+                    if (item.intValue > 0) {
+                        cell.heightDp = item.intValue;
+                    }
+                    cell.setSubtitle(item.subtext);
+                    cell.getImageView().setTranslationY(dp(2));
+                } else {
+                    cell.setSubtitle(null);
+                    cell.heightDp = 50;
+                    cell.getImageView().setTranslationY(0);
+                }
                 break;
             case VIEW_TYPE_CHECK:
             case VIEW_TYPE_CHECKRIPPLE:

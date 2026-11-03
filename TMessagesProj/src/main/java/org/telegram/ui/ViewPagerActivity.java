@@ -275,6 +275,17 @@ public abstract class ViewPagerActivity extends BaseFragment {
     }
 
     @Override
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        for (int a = 0, N = fragmentsArr.size(); a < N; a++) {
+            final FragmentState state = fragmentsArr.valueAt(a);
+            if (state.fragment.getFragmentView() != null && state.fragment.getParentActivity() != null) {
+                state.fragment.onConfigurationChanged(newConfig);
+            }
+        }
+    }
+
+    @Override
     public void onTransitionAnimationProgress(boolean isOpen, float progress) {
         super.onTransitionAnimationProgress(isOpen, progress);
         visibilityByParent = isOpen ? progress : (1f - progress);

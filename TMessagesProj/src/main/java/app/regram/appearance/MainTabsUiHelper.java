@@ -49,16 +49,19 @@ public final class MainTabsUiHelper {
         return isIosNavigationBar() ? AndroidUtilities.dp(8) : 0;
     }
 
-    /** M3 — 64dp, иначе высота из MainTabsHelper. */
+    public static int getGlassBarHeightDp() {
+        return MainTabsHelper.getMainTabsHeight();
+    }
+
     public static int getTabsViewHeightDp() {
-        return isMaterial3NavigationBar() ? 64 : MainTabsHelper.getMainTabsHeightWithMargins();
+        return isMaterial3NavigationBar() ? 64 : getGlassBarHeightDp() + MainTabsHelper.getMainTabsMargin() * 2;
     }
 
     /** M3 — dp(64) плюс системный отступ снизу, иначе высота из MainTabsHelper. */
     public static int getTabsViewHeight(int bottomInset) {
         return isMaterial3NavigationBar()
                 ? AndroidUtilities.dp(64) + bottomInset
-                : AndroidUtilities.dp(MainTabsHelper.getMainTabsHeightWithMargins());
+                : AndroidUtilities.dp(getTabsViewHeightDp());
     }
 
     /** В iOS-стиле капсула на 4dp выше, но таб внутри остаётся 48dp — лишнее уходит в паддинг. */
@@ -80,7 +83,7 @@ public final class MainTabsUiHelper {
 
     /** В M3 подложка прямоугольная, иначе скругление в половину высоты. */
     public static float getBackgroundRadius() {
-        return isMaterial3NavigationBar() ? 0 : AndroidUtilities.dp(MainTabsHelper.getMainTabsHeight() / 2f);
+        return isMaterial3NavigationBar() ? 0 : AndroidUtilities.dp(getGlassBarHeightDp() / 2f);
     }
 
     /** В M3 и iOS-стиле панель растянута на всю ширину. */
@@ -90,7 +93,7 @@ public final class MainTabsUiHelper {
 
     /** Сдвиг кнопки «написать» над панелью: в M3 всегда 64. */
     public static int getTabsFabOffsetDp() {
-        return isMaterial3NavigationBar() ? 64 : MainTabsHelper.getMainTabsHeight() + MainTabsHelper.getMainTabsMargin();
+        return isMaterial3NavigationBar() ? 64 : getGlassBarHeightDp() + MainTabsHelper.getMainTabsMargin();
     }
 
     /** В M3 и iOS-стиле панель во всю ширину (в M3 ещё и без внутренних отступов). */
@@ -146,7 +149,7 @@ public final class MainTabsUiHelper {
             top = bottom - AndroidUtilities.dp(64) - bottomInset;
         } else {
             bottom = view.getMeasuredHeight() - bottomInset - AndroidUtilities.dp(MainTabsHelper.getMainTabsMargin());
-            top = bottom - AndroidUtilities.dp(MainTabsHelper.getMainTabsHeight());
+            top = bottom - AndroidUtilities.dp(getGlassBarHeightDp());
         }
         rectF.set(0, top, view.getMeasuredWidth(), bottom);
     }
@@ -166,7 +169,7 @@ public final class MainTabsUiHelper {
     }
 
     public static float getMaterial3MainTabIconTopDp() {
-        return 10.0f;
+        return 10f;
     }
 
     public static float getMaterial3MainTabAvatarTopDp() {

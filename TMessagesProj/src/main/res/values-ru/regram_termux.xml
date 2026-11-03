@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramTermuxTitle">Termux Bridge</string>
+    <string name="RegramTermuxEnabled">Включить локальный сервер</string>
+    <string name="RegramTermuxPair">Подключить Termux</string>
+    <string name="RegramTermuxPort">Порт</string>
+    <string name="RegramTermuxRestart">Перезапустить сервер</string>
+    <string name="RegramTermuxTest">Проверить оверлей</string>
+    <string name="RegramTermuxEndpoint">Эндпоинт ИИ (HTTPS)</string>
+    <string name="RegramTermuxKey">API-ключ</string>
+    <string name="RegramTermuxModel">Модель</string>
+    <string name="RegramTermuxExtra">Дополнительные инструкции для ИИ</string>
+    <string name="RegramTermuxAiTest">Проверить ИИ (сервер должен быть включён)</string>
+    <string name="RegramTermuxDocs">Скопировать документацию для ИИ</string>
+    <string name="RegramTermuxExec">Разрешить Python и Java внутри клиента</string>
+    <string name="RegramTermuxRotate">Отозвать подключения / обновить токен</string>
+    <string name="RegramTermuxPairInfo">Вставьте команду в Termux, затем запустите tgb. Ссылка одноразовая и действует 5 минут. Не передавайте ссылку и ~/.tgbridge/tgbridge.py другим. Не устанавливайте старый плагин одновременно со встроенным мостом.</string>
+    <string name="RegramTermuxEnableWarning">Сервер принимает команды с токеном на 127.0.0.1. Другие приложения Android тоже имеют доступ к localhost: обладатель токена сможет выводить оверлеи, копировать текст и использовать настроенный API ИИ. Включайте только для работы с Termux.</string>
+    <string name="RegramTermuxExecWarning">Только доверенные скрипты! Python и Java выполняются со всеми правами re:gram и могут получить доступ ко всем аккаунтам, сообщениям, файлам и ключам. Это не песочница. Отзыв блокирует новые запросы, но не отменяет действия и не может безопасно остановить уже запущенный код. Продолжить?</string>
+    <string name="RegramTermuxRotateWarning">Все подключения моста, панели и Java-объекты будут закрыты. Потребуется заново подключить Termux. Уже выполняющийся произвольный код этим не остановить.</string>
+    <string name="RegramTermuxInfo">Нативная интеграция Termux Bridge 1.0.0 от @S1mclick, без хуков и загрузки плагина. Работает, пока существует окно re:gram; Android может завершить процесс в фоне. Разрешение на системные оверлеи не требуется. ИИ отправляет запрос и недавний диалог tgb выбранному провайдеру, но не собирает сообщения автоматически. API-ключ и токен хранятся в закрытых настройках приложения, без отдельного шифрования. Не запускайте чужой или непроверенный код ИИ.</string>
+</resources>

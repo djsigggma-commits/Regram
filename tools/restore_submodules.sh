@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Восстанавливает отсутствующие подмодули re:gram по ревизиям, закреплённым в
-# upstream-теге exteraless v12.10.6-beta14 (gitlink SHA получены через GitHub
+# upstream-коммите exteraless 4771c553 (Actions 41526234112, 13.1.1; SHA через GitHub
 # git trees API). Каталог проекта не является git-репозиторием, поэтому
 # используется git init + fetch по SHA вместо `git submodule update`.
 set -uo pipefail
@@ -39,10 +39,14 @@ fetch_one() {
 }
 
 failures=0
-fetch_one TMessagesProj/chaquopy            https://github.com/exteraless/chaquopy.git         c217deac1c2df5ab879b9844d911e1c90e59a4c1 || failures=$((failures + 1))
-fetch_one TMessagesProj_Modules/media        https://github.com/Arseny271/media.git            c430d207677071b1873f9f18266d55ec45722180 || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/tgcalls https://github.com/TelegramMessenger/tgcalls.git 1398c1648f52666b3249111ec3c5b531946e41e4 || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/wallet-engine https://github.com/dkaraush/wallet-engine.git 5c65e47cb8d68727c20d89382d0bc51292486b9a || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/third_party/boost-regex https://github.com/boostorg/regex.git 4cbcd3078e6ae10d05124379623a1bf03fcb9350 || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/third_party/libprisma https://github.com/TelegramMessenger/libprisma.git 31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d || failures=$((failures + 1))
+fetch_one TMessagesProj/chaquopy            https://github.com/exteraless/chaquopy.git         eab341a401913ac50254ff20e9efeebeaae872ef || failures=$((failures + 1))
+fetch_one TMessagesProj_Modules/media        https://github.com/Arseny271/media.git            09b6c97c0d691c50cd4541e1573995d4066d6f5c || failures=$((failures + 1))
 fetch_one TMessagesProj/lib/jlatexmath       https://github.com/dkaraush/jlatexmath-android.git f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4 || failures=$((failures + 1))
-fetch_one TMessagesProj/jni/tlottie          https://github.com/dkaraush/tlottie.git            92df98dc209bc39b1e567ec74a8c86a0af5239de || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/tlottie          https://github.com/dkaraush/tlottie.git            31f1b542f88e7b4be9a01e749920d857535fc715 || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/third_party/absl https://github.com/abseil/abseil-cpp.git           54fac219c4ef0bc379dfffb0b8098725d77ac81b || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/third_party/wamr https://github.com/wasm-micro-runtime/wasm-micro-runtime.git 25bd7eb63e828e4bd242cc9b38d260b4b31c6605 || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/third_party/dav1d https://github.com/videolan/dav1d.git             54706fc6bc0cdecab7e9593974a4039cc038fca7 || failures=$((failures + 1))

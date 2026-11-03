@@ -30,17 +30,18 @@ object GeneralConfig {
     fun getPreferences(): SharedPreferences = NekoConfig.getPreferences()
 
     @JvmField
-    val lastfmNick = addConfig("OEGeneralLastFmNick", ConfigItem.configTypeString, "")
+    val botPrivacyEnabled = addConfig("OEGeneralBotPrivacyEnabled", ConfigItem.configTypeBool, false)
 
     @JvmField
-    val lastfmExplained = addConfig("OEGeneralLastFmExplained", ConfigItem.configTypeBool, false)
+    val botPrivacyAlwaysAsk = addConfig("OEGeneralBotPrivacyAlwaysAsk", ConfigItem.configTypeBool, false)
 
     /** Показывать новые push-уведомления без задержки 1–3 секунды. */
     @JvmField
     val disableNotificationDelay = addConfig("OEGeneralDisableNotificationDelay", ConfigItem.configTypeBool, false)
 
-    @JvmStatic
-    fun lastfmNick(): String = lastfmNick.String() ?: ""
+    // Telegram user ID, never an account slot (slots are reused after logout).
+    @JvmField
+    val botPrivacyUserId = addConfig("OEGeneralBotPrivacyUserId", ConfigItem.configTypeLong, 0L)
 
     /**
      * «Download Speed Boost» — трёхпозиционный выбор (0: обычный, 1: быстрый,
@@ -127,6 +128,10 @@ object GeneralConfig {
                 } catch (e: Exception) {
                     FileLog.e(e)
                 }
+            }
+            // Older test builds used the dedicated-account flag as the master switch for Always ask.
+            if (botPrivacyAlwaysAsk.Bool() && botPrivacyEnabled.Bool()) {
+                botPrivacyEnabled.setConfigBool(false)
             }
             configLoaded = true
         }

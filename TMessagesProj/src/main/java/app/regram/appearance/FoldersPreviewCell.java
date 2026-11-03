@@ -108,6 +108,7 @@ public class FoldersPreviewCell extends FrameLayout {
         background.setPadding(dp(6.666f));
         tabsView.setPadding(0, dp(7), 0, dp(7));
         tabsView.setBlurredBackground(background);
+        tabsView.setNativeFolderChips(true);
 
         addView(tabsView, LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT, 50, Gravity.CENTER, 21, 0, 21, 0));
@@ -132,6 +133,13 @@ public class FoldersPreviewCell extends FrameLayout {
                 "\uD83D\uDCE2", null, false, false, false);
         tabsView.finishAddingTabs(animated);
         tabsView.requestLayout();
+    }
+
+    public void refreshNativeStyle() {
+        tabsView.setNativeFolderChips(true);
+        tabsView.updateColors();
+        updateTabCounter(false);
+        requestLayout();invalidate();
     }
 
     public void updateAllChatsTabName(boolean animate) {

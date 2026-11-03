@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Local command capability and AI credentials must not migrate or enter cloud backups. -->
+    <exclude domain="sharedpref" path="regram_termux.xml" />
+</full-backup-content>

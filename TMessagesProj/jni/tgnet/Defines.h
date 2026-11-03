@@ -24,9 +24,10 @@
 #define DC_UPDATE_TIME 60 * 60
 #define TEMP_AUTH_KEY_EXPIRE_TIME 24 * 60 * 60
 #define PROXY_CONNECTIONS_COUNT 10
-#define DOWNLOAD_CONNECTIONS_COUNT 2
+#define DOWNLOAD_CONNECTIONS_COUNT 8
 #define UPLOAD_CONNECTIONS_COUNT 4
 #define CONNECTION_BACKGROUND_KEEP_TIME 10000
+#define CONNECTION_BACKGROUND_PENDING_KEEP_TIME 120000
 #define MAX_ACCOUNT_COUNT 10
 #define USE_DELEGATE_HOST_RESOLVE
 
@@ -178,7 +179,9 @@ enum RequestFlag {
     RequestFlagIgnoreFloodWait = 1024,
     RequestFlagListenAfterCancel = 2048,
     RequestFlagIsCancel = 32768,
-    RequestFlagFailOnServerErrorsExceptFloodWait = 65536
+    RequestFlagFailOnServerErrorsExceptFloodWait = 65536,
+    RequestFlagSmallDownload = 131072,
+    RequestFlagDownloadByteBudget = 262144
 };
 
 inline std::string to_string_int32(int32_t value) {

@@ -8,9 +8,10 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.tgnet.TLObject;
 import org.telegram.ui.AvatarSpan;
 
-/** Decorates an existing edge grapheme/word; adds width, not characters, to the display. */
+/** Decorates an edge grapheme/word or visually replaces @; never changes characters. */
 public final class MentionAvatarSpan extends AvatarSpan {
     private final boolean before;
+    private final boolean replaceAt;
     private final URLSpan link;
     private final TextPaint linkPaint = new TextPaint();
 
@@ -19,8 +20,13 @@ public final class MentionAvatarSpan extends AvatarSpan {
     }
 
     public MentionAvatarSpan(int account, float size, boolean before, TLObject peer, URLSpan link) {
+        this(account, size, before, false, peer, link);
+    }
+
+    public MentionAvatarSpan(int account, float size, boolean before, boolean replaceAt, TLObject peer, URLSpan link) {
         super(null, account, size);
         this.before = before;
+        this.replaceAt = replaceAt;
         this.link = link;
         needDrawShadow = false;
         setLoadOnlyWhenAttached(true);
@@ -46,15 +52,24 @@ public final class MentionAvatarSpan extends AvatarSpan {
             fm.top = Math.min(fm.top, fm.ascent);
             fm.bottom = Math.max(fm.bottom, fm.descent);
         }
+        if (replacesAt(text, start, end)) return avatar;
         return (int) Math.ceil(paint.measureText(text, start, end)) + avatar + AndroidUtilities.dp(3);
     }
     @Override public void draw(Canvas canvas, CharSequence text, int start, int end, float x,
                                int top, int y, int bottom, Paint paint) {
+        if (replacesAt(text, start, end)) {
+            super.draw(canvas, text, start, end, x, top, y, bottom, paint);
+            return;
+        }
         Paint labelPaint = textPaint(paint);
         float textWidth = labelPaint.measureText(text, start, end);
         int avatarWidth = super.getSize(paint, text, start, end, null);
         float gap = AndroidUtilities.dp(3);
         canvas.drawText(text, start, end, before ? x + avatarWidth + gap : x, y, labelPaint);
         super.draw(canvas, text, start, end, before ? x : x + textWidth + gap, top, y, bottom, paint);
+    }
+
+    private boolean replacesAt(CharSequence text, int start, int end) {
+        return replaceAt && end - start == 1 && text.charAt(start) == '@';
     }
 }

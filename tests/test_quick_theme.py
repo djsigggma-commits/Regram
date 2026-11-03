@@ -23,7 +23,7 @@ def method(source, signature):
 
 
 def test_settings_are_reachable_translated_and_disabled_by_default():
-    route = (JAVA / 'app/regram/settings/OpenExteraAppearanceActivity.java').read_text()
+    route = (JAVA / 'app/regram/settings/RegramFeaturesActivity.java').read_text()
     assert 'quickThemeRow = addRow("quickTheme", "RegramQuickTheme")' in route
     assert 'presentFragment(new QuickThemeActivity())' in route
     config = (JAVA / 'tw/nekomimi/nekogram/NekoConfig.java').read_text()
@@ -64,6 +64,27 @@ def test_opacity_wraps_all_bubble_paths_but_not_text_or_blur_masks():
         assert prohibited not in policy
 
 
+def test_folder_and_navigation_opacity_only_changes_backgrounds():
+    config = (JAVA / 'tw/nekomimi/nekogram/NekoConfig.java').read_text()
+    settings = (JAVA / 'app/regram/settings/QuickThemeActivity.java').read_text()
+    for name in ('Folders', 'Navigation'):
+        assert f'addConfig("RegramQuick{name}Transparency", configTypeInt, 0)' in config
+        assert f'NekoConfig.regramQuick{name}Transparency' in settings
+        assert f'R.string.RegramQuick{name}Transparency' in settings
+    for path, alpha in (
+        ('org/telegram/ui/MainTabsLayout.java', 'navigationAlpha'),
+        ('org/telegram/ui/Components/FilterTabsView.java', 'foldersAlpha'),
+    ):
+        source = (JAVA / path).read_text()
+        draw = method(source, 'public void draw(@NonNull Canvas canvas)')
+        assert f'getBackground().setAlpha(app.regram.appearance.QuickTheme.{alpha}())' in draw
+        assert 'super.draw(canvas)' in draw
+        assert 'setAlpha(' not in draw.split('super.draw(canvas)')[1]
+    chips = (JAVA / 'app/regram/appearance/NativeChipFolders.java').read_text()
+    assert 'float opacity = QuickTheme.foldersAlpha() / 255f' in chips
+    assert 'Theme.multAlpha(ColorUtils.blendARGB(idle,selected,progress),opacity)' in chips
+
+
 def test_real_policy_math_and_provider_recursion(tmp_path):
     javac, java = shutil.which('javac'), shutil.which('java')
     if not javac or not java:
@@ -82,8 +103,15 @@ def test_real_policy_math_and_provider_recursion(tmp_path):
         'tw/nekomimi/nekogram/NekoConfig.java': '''package tw.nekomimi.nekogram;
             public class NekoConfig {
                 public static final Item regramQuickTheme = new Item(0),
+                    regramQuickHideNavigationBackdrop = new Item(0),
                     regramQuickTransparency = new Item(0), regramQuickContrast = new Item(100),
-                    regramQuickSaturation = new Item(100), regramQuickBrightness = new Item(0);
+                    regramQuickFoldersTransparency = new Item(0), regramQuickNavigationTransparency = new Item(0),
+                    regramQuickSaturation = new Item(100), regramQuickBrightness = new Item(0),
+                    regramQuickIncomingTransparency = new Item(-1), regramQuickOutgoingTransparency = new Item(-1),
+                    regramQuickBubbleRadius = new Item(-1), regramQuickFolderRadius = new Item(-1),
+                    regramQuickNavigationRadius = new Item(-1), regramQuickBlur = new Item(100),
+                    regramQuickIncomingColor = new Item(0), regramQuickOutgoingColor = new Item(0),
+                    regramQuickFolderColor = new Item(0), regramQuickNavigationColor = new Item(0);
                 public static class Item {
                     public int value;
                     Item(int value) { this.value = value; }
@@ -135,7 +163,10 @@ def test_real_policy_math_and_provider_recursion(tmp_path):
                     check(QuickTheme.transform(0xffffffff,999,999,999) == 0xffffffff);
                     check(QuickTheme.bubbleAlpha() == 255);
                     check(!QuickTheme.beginResolve());
+                    NekoConfig.regramQuickHideNavigationBackdrop.value = 1;
+                    check(!QuickTheme.hideNavigationBackdrop());
                     NekoConfig.regramQuickTheme.value = 1;
+                    check(QuickTheme.hideNavigationBackdrop());
                     NekoConfig.regramQuickTransparency.value = 80;
                     check(QuickTheme.bubbleAlpha() == 51);
                     NekoConfig.regramQuickTransparency.value = 999;
@@ -143,6 +174,33 @@ def test_real_policy_math_and_provider_recursion(tmp_path):
                     NekoConfig.regramQuickTransparency.value = -1;
                     check(QuickTheme.bubbleAlpha() == 255);
                     check(!QuickTheme.beginResolve()); // Transparency alone needs no palette guard.
+                    check(QuickTheme.foldersAlpha() == 255 && QuickTheme.navigationAlpha() == 255);
+                    NekoConfig.regramQuickFoldersTransparency.value = 50;
+                    NekoConfig.regramQuickNavigationTransparency.value = 100;
+                    check(QuickTheme.foldersAlpha() == 128 && QuickTheme.navigationAlpha() == 0);
+                    NekoConfig.regramQuickFoldersTransparency.value = 999;
+                    NekoConfig.regramQuickNavigationTransparency.value = -10;
+                    check(QuickTheme.foldersAlpha() == 0 && QuickTheme.navigationAlpha() == 255);
+                    NekoConfig.regramQuickTheme.value = 0;
+                    check(QuickTheme.foldersAlpha() == 255 && QuickTheme.navigationAlpha() == 255);
+                    NekoConfig.regramQuickTheme.value = 1;
+                    check(QuickTheme.bubbleAlpha(true) == QuickTheme.bubbleAlpha());
+                    NekoConfig.regramQuickOutgoingTransparency.value = 80;
+                    check(QuickTheme.bubbleAlpha(true) == 51 && QuickTheme.bubbleAlpha(false) == 255);
+                    check(QuickTheme.bubbleRadius(18) == 18);
+                    NekoConfig.regramQuickBubbleRadius.value = 999;
+                    check(QuickTheme.bubbleRadius(18) == 24);
+                    NekoConfig.regramQuickFolderRadius.value = 0;
+                    check(QuickTheme.folderRadius(18) == 0);
+                    NekoConfig.regramQuickBlur.value = 250;
+                    check(QuickTheme.blurPercent() == 200);
+                    NekoConfig.regramQuickFolderColor.value = 0xff123456;
+                    check(QuickTheme.folderColor(0xffabcdef) == 0xff123456);
+                    NekoConfig.regramQuickIncomingColor.value = 0xff123456;
+                    check(QuickTheme.beginResolve());
+                    QuickTheme.endResolve(true);
+                    check(Theme.getColor(Theme.key_chat_inBubble) == 0xff123456);
+                    NekoConfig.regramQuickIncomingColor.value = 0;
                     NekoConfig.regramQuickContrast.value = 125;
                     check(QuickTheme.beginResolve());
                     check(!QuickTheme.beginResolve());
@@ -216,6 +274,15 @@ def test_real_policy_math_and_provider_recursion(tmp_path):
                     check(NekoConfig.regramQuickContrast.Int() == 100);
                     check(NekoConfig.regramQuickSaturation.Int() == 100);
                     check(NekoConfig.regramQuickBrightness.Int() == 0);
+                    check(NekoConfig.regramQuickFoldersTransparency.Int() == 0);
+                    check(NekoConfig.regramQuickNavigationTransparency.Int() == 0);
+                    check(NekoConfig.regramQuickIncomingTransparency.Int() == -1);
+                    check(NekoConfig.regramQuickOutgoingTransparency.Int() == -1);
+                    check(NekoConfig.regramQuickBubbleRadius.Int() == -1);
+                    check(NekoConfig.regramQuickFolderColor.Int() == 0);
+                    check(QuickTheme.blurPercent() == 100);
+                    check(!QuickTheme.hideNavigationBackdrop());
+                    check(!NekoConfig.regramQuickHideNavigationBackdrop.Bool());
                 }
             }''',
     }

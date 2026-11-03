@@ -55,6 +55,7 @@ import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BackDrawable;
 import org.telegram.ui.ActionBar.BaseFragment;
+import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ActionBar.ThemeDescription;
 import org.telegram.ui.Cells.HeaderCell;
@@ -363,7 +364,6 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
     }
 
     private final static int na_menu_other = 1001;
-    private final static int na_menu_add_input_telegram = 1002;
     private final static int na_menu_add_import_from_clipboard = 1003;
     private final static int na_menu_retest_ping = 1004;
     private final static int na_menu_delete_all = 1005;
@@ -391,18 +391,8 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         ActionBarMenu menu = actionBar.createMenu();
         otherItem = menu.addItem(na_menu_other, R.drawable.ic_ab_other);
         otherItem.setContentDescription(LocaleController.getString("AccDescrMoreOptions", R.string.AccDescrMoreOptions));
-        otherItem.addSubItem(na_menu_add_input_telegram, LocaleController.getString("AddProxyTelegram", R.string.AddProxyTelegram)).setOnClickListener((v) -> presentFragment(new ProxySettingsActivity()));
         otherItem.addSubItem(na_menu_add_import_from_clipboard, LocaleController.getString("ImportProxyFromClipboard", R.string.ImportProxyFromClipboard)).setOnClickListener((v) -> ProxyUtil.importFromClipboard(getParentActivity()));
-        otherItem.addSubItem(na_menu_retest_ping, LocaleController.getString("RetestPing", R.string.RetestPing)).setOnClickListener((v) -> {
-            checkProxyList(true);
-            for (int a = proxyStartRow; a < proxyEndRow; a++) {
-                RecyclerListView.Holder holder = (RecyclerListView.Holder) listView.findViewHolderForAdapterPosition(a);
-                if (holder != null) {
-                    TextDetailProxyCell cell = (TextDetailProxyCell) holder.itemView;
-                    cell.updateStatus();
-                }
-            }
-        });
+        otherItem.addSubItem(na_menu_retest_ping, LocaleController.getString("RetestPing", R.string.RetestPing)).setOnClickListener((v) -> retestProxies());
         otherItem.addSubItem(na_menu_delete_all, LocaleController.getString("DeleteAllServer", R.string.DeleteAllServer)).setOnClickListener((v) -> AlertUtil.showConfirm(getParentActivity(),
                 LocaleController.getString("DeleteAllServer", R.string.DeleteAllServer),
                 R.drawable.msg_delete, LocaleController.getString("Delete", R.string.Delete),
@@ -740,6 +730,49 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
         checkProxyList(false);
     }
 
+    private void retestProxies() {
+        checkProxyList(true);
+        for (int a = proxyStartRow; a < proxyEndRow; a++) {
+            RecyclerListView.Holder holder = (RecyclerListView.Holder) listView.findViewHolderForAdapterPosition(a);
+            if (holder != null) {
+                TextDetailProxyCell cell = (TextDetailProxyCell) holder.itemView;
+                cell.updateStatus();
+            }
+        }
+        updateConnectionsHeader();
+    }
+
+    private boolean hasCheckingProxies() {
+        for (int a = 0, count = proxyList.size(); a < count; a++) {
+            if (proxyList.get(a).checking) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void updateConnectionsHeader() {
+        if (listAdapter != null && connectionsHeaderRow >= 0) {
+            listAdapter.notifyItemChanged(connectionsHeaderRow);
+        }
+    }
+
+    private void bindRefreshAction(SimpleTextView refreshView) {
+        boolean checking = hasCheckingProxies();
+        boolean enabled = proxyStartRow != -1 && !checking;
+        boolean dark = Theme.isCurrentThemeDark();
+        refreshView.setText(getString(checking ? R.string.Checking : R.string.Refresh));
+        refreshView.setTextColor(Theme.getColor(enabled ? (dark ? Theme.key_windowBackgroundWhiteGrayText2 : Theme.key_windowBackgroundWhiteBlackText) : Theme.key_windowBackgroundWhiteGrayText3));
+        refreshView.setAlpha(enabled ? (dark ? 1f : 0.75f) : 0.55f);
+        refreshView.setWidthWrapContent(true);
+        refreshView.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
+        refreshView.setTranslationY(-AndroidUtilities.dpf2(4));
+        refreshView.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3), 0.12f), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
+        refreshView.setOnClickListener(enabled ? v -> retestProxies() : null);
+        refreshView.setClickable(enabled);
+        refreshView.setVisibility(proxyStartRow == -1 ? View.GONE : View.VISIBLE);
+    }
+
     private void checkProxyList(boolean force) {
         for (int a = 0, count = proxyList.size(); a < count; a++) {
             final SharedConfig.ProxyInfo proxyInfo = proxyList.get(a);
@@ -923,6 +956,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     HeaderCell headerCell = (HeaderCell) holder.itemView;
                     if (position == connectionsHeaderRow) {
                         headerCell.setText(getString(R.string.ProxyConnections));
+                        if (headerCell.getTextView2() != null) {
+                            bindRefreshAction(headerCell.getTextView2());
+                        }
                     }
                     break;
                 }
@@ -1025,7 +1061,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_HEADER:
-                    view = new HeaderCell(mContext);
+                    view = new HeaderCell(mContext, Theme.key_windowBackgroundWhiteBlueHeader, 20, 6, true);
                     view.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
                     break;
                 case VIEW_TYPE_TEXT_CHECK:

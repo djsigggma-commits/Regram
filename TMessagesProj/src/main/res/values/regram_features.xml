@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramFeatures">re:gram features</string>
+    <string name="RegramFeaturesInfo">Appearance, Termux Bridge, Doc Viewer, S Pen and credits</string>
+</resources>

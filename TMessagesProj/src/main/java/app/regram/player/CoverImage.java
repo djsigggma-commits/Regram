@@ -17,6 +17,9 @@ public class CoverImage extends BackupImageView {
     }
 
     private final Paint placeholderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint holePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private boolean disc;
     private final RectF rect = new RectF();
     private final PlayerIcon note;
     private int radius;
@@ -50,6 +53,18 @@ public class CoverImage extends BackupImageView {
         placeholderPaint.setColor(background);
         note.setColor(foreground);
         invalidate();
+    }
+
+    public void setDisc(boolean disc, int holeColor) {
+        holePaint.setColor(holeColor);
+        ringPaint.setStyle(Paint.Style.STROKE);
+        ringPaint.setColor(0x33000000);
+        this.disc = disc;
+        invalidate();
+    }
+
+    public int getRadius() {
+        return radius;
     }
 
     public MessageObject getMessage() {
@@ -107,5 +122,13 @@ public class CoverImage extends BackupImageView {
             note.draw(canvas);
         }
         super.onDraw(canvas);
+        if (disc && getImageReceiver().hasBitmapImage()) {
+            float cx = getWidth() / 2f;
+            float cy = getHeight() / 2f;
+            float size = Math.min(getWidth(), getHeight());
+            ringPaint.setStrokeWidth(Math.max(1f, size * 0.012f));
+            canvas.drawCircle(cx, cy, size * 0.16f, ringPaint);
+            canvas.drawCircle(cx, cy, size * 0.05f, holePaint);
+        }
     }
 }

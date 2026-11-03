@@ -12,9 +12,9 @@ def test_context_private_directory_belongs_only_to_its_plugin(sdk, monkeypatch, 
     monkeypatch.setattr(files, 'get_plugins_dir', lambda: str(tmp_path / 'plugins'))
     monkeypatch.setattr(files, 'get_cache_dir', lambda: str(tmp_path / 'cache'))
     monkeypatch.setattr(files, '_own_files', lambda plugin: set())
-    assert files._is_own_path('exitFy_v2', tmp_path / 'app_exitFy_v2/bridge/libexitfy_bridge.so')
-    assert not files._is_own_path('other', tmp_path / 'app_exitFy_v2/bridge/libexitfy_bridge.so')
-    assert not files._is_own_path('exitFy_v2', tmp_path / 'app_exitFy_v2_other/file')
-    assert not files._is_own_path('exitFy_v2', tmp_path / 'app_exitFy_v2/../other/file')
+    assert files._is_own_path('native_sample', tmp_path / 'app_native_sample/bridge/libsample.so')
+    assert not files._is_own_path('other', tmp_path / 'app_native_sample/bridge/libsample.so')
+    assert not files._is_own_path('native_sample', tmp_path / 'app_native_sample_other/file')
+    assert not files._is_own_path('native_sample', tmp_path / 'app_native_sample/../other/file')
     files._own_roots('../escape')
     assert '../escape' not in opened

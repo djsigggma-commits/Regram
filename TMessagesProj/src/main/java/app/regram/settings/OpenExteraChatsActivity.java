@@ -201,11 +201,14 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
     // Messages
     private int messagesHeaderRow = -1;
     private int removeMessageTailRow = -1;
+    private int unreadCapsuleRow = -1;
     private int replaceEditedRow = -1;
     private int showOnlineStatusRow = -1;
     private int hideShareButtonRow = -1;
     private int hideGiftButtonRow = -1;
     private int hideSearchButtonRow = -1;
+    private int hideCallButtonRow = -1;
+    private int hideMoneyButtonRow = -1;
     private int showResultsBeforeVotingRow = -1;
     private int dateOfForwardedMsgRow = -1;
     private int showTimeHintRow = -1;
@@ -503,6 +506,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
 
         messagesHeaderRow = addRow("messagesHeader");
         removeMessageTailRow = addRow("removeMessageTail");
+        unreadCapsuleRow = addRow("unreadCapsule");
         replaceEditedRow = addRow("replaceEdited");
         showOnlineStatusRow = addRow("showOnlineStatus");
         showResultsBeforeVotingRow = addRow("showResultsBeforeVoting");
@@ -741,6 +745,8 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         hideShareButtonRow = addRow("hideShareButton");
         hideGiftButtonRow = addRow("hideGiftButton");
         hideSearchButtonRow = addRow("hideSearchButton");
+        hideCallButtonRow = addRow("hideCallButton");
+        hideMoneyButtonRow = addRow("hideMoneyButton");
         hideReactionsGroupRow = addRow("hideReactions");
         if (hideReactionsExpanded) {
             hideReactionsChannelsRow = addRow();
@@ -1363,7 +1369,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
     /** Вторая камера для «бесшовного переключения» есть не на всех устройствах. */
     private static boolean isSeamlessSwitchingAvailable() {
         Context context = ApplicationLoader.applicationContext;
-        return context != null && DualCameraView.dualAvailableStatic(context);
+        return context != null && app.regram.camera.CameraXSession.isSeamlessSwitchingAvailable(context);
     }
 
     private static boolean isSeamlessSwitchingEnabled() {
@@ -1570,7 +1576,8 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
             R.drawable.msg_edit,
             R.drawable.msg_translate,
             R.drawable.msg_delete,
-            R.drawable.msg_forward
+            R.drawable.msg_forward,
+            R.drawable.msg_download
     };
 
     /**
@@ -1590,6 +1597,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         types.add(DoubleTap.DOUBLE_TAP_ACTION_REPLY);
         types.add(DoubleTap.DOUBLE_TAP_ACTION_FORWARD);
         types.add(DoubleTap.DOUBLE_TAP_ACTION_SAVE);
+        types.add(DoubleTap.DOUBLE_TAP_ACTION_DOWNLOAD);
         types.add(DoubleTap.DOUBLE_TAP_ACTION_REPEAT);
         types.add(DoubleTap.DOUBLE_TAP_ACTION_REPEAT_AS_COPY);
         if (outgoing) {
@@ -2102,11 +2110,14 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         if (position == hideSendAsPeerRow) return NekoConfig.hideSendAsChannel;
         if (position == keepAttachButtonRow) return ChatsConfig.keepAttachButton;
         if (position == removeMessageTailRow) return ChatsConfig.removeMessageTail;
+        if (position == unreadCapsuleRow) return ChatsConfig.unreadCapsule;
         if (position == replaceEditedRow) return NaConfig.INSTANCE.getUseEditedIcon();
         if (position == showOnlineStatusRow) return NaConfig.INSTANCE.getShowOnlineStatus();
         if (position == hideShareButtonRow) return NaConfig.INSTANCE.getHideShareButtonInChannel();
         if (position == hideGiftButtonRow) return NaConfig.INSTANCE.getHideGiftButtonInChannel();
         if (position == hideSearchButtonRow) return ChatsConfig.hideChannelSearchButton;
+        if (position == hideCallButtonRow) return ChatsConfig.hideCallButton;
+        if (position == hideMoneyButtonRow) return ChatsConfig.hideMoneyButton;
         if (position == showResultsBeforeVotingRow) return ChatsConfig.showResultsBeforeVoting;
         if (position == menuCopyPhotoRow) return NaConfig.INSTANCE.getShowCopyPhoto();
         if (position == menuSaveRow) return NekoConfig.showAddToSavedMessages;
@@ -2832,6 +2843,8 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
                 cell.setTextAndCheck(getString(R.string.OEChatsKeepAttachButton), ChatsConfig.keepAttachButton.Bool(), false);
             } else if (position == removeMessageTailRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsRemoveMessageTail), ChatsConfig.removeMessageTail.Bool(), true);
+            } else if (position == unreadCapsuleRow) {
+                cell.setTextAndCheck(getString(R.string.OEChatsUnreadCapsule), ChatsConfig.unreadCapsule.Bool(), true);
             } else if (position == replaceEditedRow) {
                 // В подпись подставляется локализованное «edited».
                 cell.setTextAndCheck(LocaleController.formatString(R.string.OEChatsReplaceEditedWithIcon,
@@ -2848,6 +2861,12 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
             } else if (position == hideSearchButtonRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsHideSearchButton),
                         ChatsConfig.hideChannelSearchButton.Bool(), true);
+            } else if (position == hideCallButtonRow) {
+                cell.setTextAndCheck(getString(R.string.OEChatsHideCallButton),
+                        ChatsConfig.hideCallButton.Bool(), true);
+            } else if (position == hideMoneyButtonRow) {
+                cell.setTextAndCheck(LocaleController.formatString(R.string.OEChatsHideMoneyButton,
+                        getString(R.string.WalletAttachMoney)), ChatsConfig.hideMoneyButton.Bool(), true);
             } else if (position == showResultsBeforeVotingRow) {
                 cell.setTextAndValueAndCheck(getString(R.string.OEChatsShowResultsBeforeVoting),
                         getString(R.string.OEChatsShowResultsBeforeVotingInfo),

@@ -208,11 +208,19 @@ public class PremiumPreviewBottomSheet extends BottomSheetWithRecyclerListView i
 
     @Override
     public boolean showDialog(Dialog dialog) {
+        return showDialog(dialog, null);
+    }
+
+    @Override
+    public boolean showDialog(Dialog dialog, Dialog.OnDismissListener onDismissListener) {
         if (iconTextureView != null) {
             iconTextureView.setDialogVisible(true);
         }
         starParticlesView.setPaused(true);
         dialog.setOnDismissListener(dialog1 -> {
+            if (onDismissListener != null) {
+                onDismissListener.onDismiss(dialog1);
+            }
             if (iconTextureView != null) {
                 iconTextureView.setDialogVisible(false);
             }

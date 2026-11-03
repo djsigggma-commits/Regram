@@ -1522,3 +1522,38 @@ def test_cached_internal_import_still_refused_for_plugins(loader, monkeypatch):
     monkeypatch.setattr(loader, '_original_import', lambda *a, **k: sys.modules['json'], raising=False)
     with pytest.raises(ImportError):
         loader._sandboxed_import('extera_utils.plugin_loader')
+
+
+def test_plugin_can_assign_its_own_client_attribute(sdk):
+    class Poster(sdk.base.BasePlugin):
+        pass
+
+    plugin = Poster()
+    marker = object()
+    plugin.client = marker
+    assert plugin.client is marker
+    del plugin.client
+    assert plugin.client is not marker
+
+
+def test_failed_package_import_leaves_no_orphaned_submodules(loader, monkeypatch, tmp_path):
+    package = tmp_path / "halfpkg"
+    package.mkdir()
+    (package / "__init__.py").write_text(
+        "from .first import *\nfrom .second import *\n__all__ = first.__all__ + second.__all__\n")
+    (package / "first.py").write_text("__all__ = ['A']\nA = 1\n")
+    (package / "second.py").write_text("import halfpkg_missing_dependency\n__all__ = ['B']\nB = 2\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    try:
+        before = set(sys.modules)
+        with pytest.raises(ImportError):
+            importlib.import_module("halfpkg")
+        assert "halfpkg.first" in sys.modules
+        loader._drop_orphaned_modules(before)
+        assert "halfpkg.first" not in sys.modules
+        (package / "second.py").write_text("__all__ = ['B']\nB = 2\n")
+        importlib.invalidate_caches()
+        assert importlib.import_module("halfpkg").__all__ == ["A", "B"]
+    finally:
+        for name in [name for name in sys.modules if name.partition(".")[0] == "halfpkg"]:
+            sys.modules.pop(name, None)

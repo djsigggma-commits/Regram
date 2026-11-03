@@ -48,17 +48,6 @@
     <string name="RegramCustomProfileFailed">Custom Profile could not start. Check Plugins for details.</string>
     <string name="RegramCustomProfileWarning">This enables the original Custom Profile runtime by @roflplugins, bundled with the client. Its third-party DEX can access the Telegram process, use Java hooks, read account data and connect to the original Custom Profile server to publish and retrieve profile designs. It is not sandboxed. The plugin engine and previously enabled plugins will also be enabled. Continue only if you trust the author and consent to sharing profile data with that server.</string>
     <string name="RegramCustomProfileInfo">Original plugin by @roflplugins. The bundled DEX and its server protocol are unchanged; only a creator credit was added to the plugin settings. Installation requires your confirmation. After enabling, open the plugin settings or the profile menu to configure your design.</string>
-    <string name="RegramExitFy">exitFy</string>
-    <string name="RegramExitFyInstall">Install full exitFy 4.2</string>
-    <string name="RegramExitFyOpen">Open exitFy settings</string>
-    <string name="RegramExitFyInstalled">exitFy installed. Open its dashboard from the plugin settings or drawer.</string>
-    <string name="RegramExitFyUnsupported">Full exitFy requires Android 10+ and an arm64 device.</string>
-    <string name="RegramExitFyWarning">This installs the original exitFy 4.2 runtime bundled with this APK. It contains third-party DEX and native code, has network access and full access to the app through Java hooks. Installing also enables the plugin engine (including other plugins you previously enabled). Requires Android 10+ and arm64. Continue only if you trust the author.</string>
-    <string name="RegramExitFyLite">exitFy Lite</string>
-    <string name="RegramExitFyLiteSubscription">Proxy subscription URL</string>
-    <string name="RegramExitFyLiteRefresh">Import Telegram proxies</string>
-    <string name="RegramExitFyLiteOptimize">Check and enable fastest proxy</string>
-    <string name="RegramExitFyLiteInfo">The full exitFy runtime above includes third-party DEX/native code and requires explicit consent. The independent Lite functions below import Telegram proxy links and select the fastest one without running that runtime.</string>
     <string name="RegramCreatorsAndSources">Creators and sources</string>
     <string name="RegramCreditsArtDescription">Illustration of Eevee</string>
     <string name="RegramCreators">Creators</string>

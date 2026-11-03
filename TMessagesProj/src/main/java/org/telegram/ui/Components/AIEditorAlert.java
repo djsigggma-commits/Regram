@@ -51,7 +51,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AiTonesController;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.CodeHighlighting;
+import org.telegram.utils.code.highlight.CodeHighlighting;
 import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
@@ -401,6 +401,10 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
 
     @Override
     public void dismiss() {
+        if (aiFallbackCancel != null) {
+            aiFallbackCancel.run();
+            aiFallbackCancel = null;
+        }
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.loadedAiComposeTones);
         if (tonesController != null) {
             tonesController.open = false;
@@ -452,10 +456,20 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
 
     private String promptText;
     private boolean errored;
+    private boolean aiFallbackFailed;
+    private Runnable aiFallbackCancel;
     private boolean showLimit;
     private boolean buttonShowLimit;
     private void updateButton(boolean animated) {
-        if (errored) {
+        if (errored && aiFallbackFailed) {
+            button.setText(getString(R.string.TryAgain));
+            button.setOnClickListener(v -> {
+                aiFallbackFailed = false;
+                errored = false;
+                updateButton();
+                request();
+            });
+        } else if (errored) {
             button.setText(getString(R.string.OK));
             button.setOnClickListener(v -> dismiss());
         } else {
@@ -1326,8 +1340,9 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
             fixedText = loadingText;
         }
 
-        requestId = ConnectionsManager.getInstance(currentAccount).sendRequestTyped(req, AndroidUtilities::runOnUIThread, (res, err) -> {
+        final Utilities.Callback2<TLRPC.TL_composedMessageWithAI, TLRPC.TL_error> onResult = (res, err) -> {
             requestId = -1;
+            aiFallbackCancel = null;
 
             loading = false;
             if (err != null && ("SUMMARY_FLOOD_PREMIUM".equalsIgnoreCase(err.text) || "AICOMPOSE_FLOOD_PREMIUM".equalsIgnoreCase(err.text))) {
@@ -1377,7 +1392,21 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
             }
 
             adapter.update(true);
-        });
+        };
+        if (app.regram.ai.TelegramAiReplacement.replacesEditor(currentAccount)) {
+            if (aiFallbackCancel != null) {
+                aiFallbackCancel.run();
+            }
+            aiFallbackCancel = app.regram.ai.TelegramAiReplacement.compose(req, styleTabs.getSelectedTone(), from_lang,
+                res -> onResult.run(res, null),
+                (code, error) -> {
+                    com.exteragram.messenger.ai.AiController.showErrorBulletin(bulletinContainer, resourcesProvider, code);
+                    aiFallbackFailed = true;
+                    onResult.run(null, null);
+                });
+        } else {
+            requestId = ConnectionsManager.getInstance(currentAccount).sendRequestTyped(req, AndroidUtilities::runOnUIThread, onResult);
+        }
 
         adapter.update(true);
     }
@@ -1494,6 +1523,10 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
         if (requestId >= 0) {
             ConnectionsManager.getInstance(currentAccount).cancelRequest(requestId, true);
             requestId = -1;
+        }
+        if (aiFallbackCancel != null) {
+            aiFallbackCancel.run();
+            aiFallbackCancel = null;
         }
         loading = false;
         final SimpleTextView actionBarTitleTextView = actionBar.getTitleTextView();

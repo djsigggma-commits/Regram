@@ -481,8 +481,8 @@ public final class EtgBackup {
                 () -> new JsonPrimitive(NaConfig.INSTANCE.getSliderStyle().Int() == 2),
                 value -> NaConfig.INSTANCE.getSliderStyle().setConfigInt(value.getAsBoolean() ? 2 : 0)));
         list.add(new Entry(SECTION_EXTERA, "newSwitchStyle", KIND_BOOL, 0, 0, null,
-                () -> new JsonPrimitive(NaConfig.INSTANCE.getSwitchStyle().Int() == 2),
-                value -> NaConfig.INSTANCE.getSwitchStyle().setConfigInt(value.getAsBoolean() ? 2 : 0)));
+                () -> new JsonPrimitive(NaConfig.INSTANCE.getSwitchStyle().Int() >= 2),
+                value -> NaConfig.INSTANCE.getSwitchStyle().setConfigInt(value.getAsBoolean() ? 3 : 0)));
 
         // Разделители: 0 скрыт, 1 линия, 2 сегменты. Ноль дублируется в рабочий ключ NagramX.
         list.add(new Entry(SECTION_EXTERA, "dividerStyle", KIND_INT, 0, 2, null,

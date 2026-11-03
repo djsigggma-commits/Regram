@@ -7319,6 +7319,9 @@ public class PeerStoriesView extends SizeNotifierFrameLayout implements Notifica
             }
             if (!keyboardVisible && reactionsContainerLayout != null) {
                 reactionsContainerLayout.reset();
+                if (reactionsContainerLayout.getReactionsWindow() != null) {
+                    reactionsContainerLayout.getReactionsWindow().dismissWithAlpha();
+                }
             }
             headerView.setEnabled(!keyboardVisible);
             if (chatActivityEnterView != null) {

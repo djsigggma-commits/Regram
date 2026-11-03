@@ -1231,6 +1231,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
 
     public BottomSheet(Context context, boolean needFocus, EdgeToEdge edgeToEdge, Theme.ResourcesProvider resourcesProvider) {
         super(context, R.style.TransparentDialog);
+        org.telegram.ui.Wallet.WalletPluginFreeze.enterIfWallet(this);
         this.resourcesProvider = resourcesProvider;
         if (BuildConfig.DEBUG) {
             LeakDetector.getInstance().add(this);
@@ -1541,9 +1542,8 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
                 container.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_FULLSCREEN);
             }
             params.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            if (Build.VERSION.SDK_INT >= 28) {
-                params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-            }
+            // same as the activity window: SHORT_EDGES keeps the window out of a cutout on a long edge (e.g. top in landscape), so it ends up below the status bar
+            AndroidUtilities.applyEdgeToEdgeLayoutParams(params);
             window.setAttributes(params);
         }
     }
@@ -2000,7 +2000,23 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
     }
 
     @Override
+    public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        return !dismissed && (app.regram.input.SPenInput.hover(getWindow().getDecorView(), event)
+                || super.dispatchGenericMotionEvent(event));
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean focused) {
+        if (!focused) {
+            app.regram.input.SPenInput.invalidateHoverWindows();
+            app.regram.input.SPenInput.resetHover(getWindow().getDecorView());
+        }
+        super.onWindowFocusChanged(focused);
+    }
+
+    @Override
     public boolean dispatchTouchEvent(@NonNull MotionEvent ev) {
+        app.regram.input.SPenInput.contact(getWindow().getDecorView(), ev);
         if (dismissed) {
             return false;
         }
@@ -2362,6 +2378,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
     }
 
     public void dismissInternal() {
+        org.telegram.ui.Wallet.WalletPluginFreeze.leave(this);
         if (attachedFragment != null) {
             attachedFragment.removeSheet(this);
             AndroidUtilities.removeFromParent(container);

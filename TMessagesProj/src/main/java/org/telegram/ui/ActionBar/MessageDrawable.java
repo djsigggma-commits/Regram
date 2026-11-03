@@ -33,7 +33,7 @@ public class MessageDrawable extends Drawable {
 
     private Shader gradientShader;
     private int currentBackgroundHeight;
-    private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    public Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint selectedPaint;
     private int currentColor;
     private int currentGradientColor1;
@@ -64,6 +64,8 @@ public class MessageDrawable extends Drawable {
 
     public static MotionBackgroundDrawable[] motionBackground = new MotionBackgroundDrawable[3];
 
+    public Integer overrideColor = null;
+    public boolean shadow = true;
     private int[] currentShadowDrawableRadius = new int[]{-1, -1, -1, -1};
     private Bitmap[] shadowDrawableBitmap = new Bitmap[4];
     private Drawable[] shadowDrawable = new Drawable[4];
@@ -193,7 +195,13 @@ public class MessageDrawable extends Drawable {
         int gradientColor2;
         int gradientColor3;
         boolean animatedGradient;
-        if (isOut) {
+        if (overrideColor != null) {
+            color = overrideColor;
+            gradientColor1 = 0;
+            gradientColor2 = 0;
+            gradientColor3 = 0;
+            animatedGradient = false;
+        } else if (isOut) {
             color = getColor(isSelected ? Theme.key_chat_outBubbleSelected : Theme.key_chat_outBubble);
             gradientColor1 = getCurrentColor(Theme.key_chat_outBubbleGradient1);
             gradientColor2 = getCurrentColor(Theme.key_chat_outBubbleGradient2);
@@ -328,7 +336,7 @@ public class MessageDrawable extends Drawable {
         } else if (overrideRounding > 0) {
             newRad = 0;
         } else {
-            newRad = dp(SharedConfig.bubbleRadius);
+            newRad = dp(app.regram.appearance.QuickTheme.bubbleRadius(SharedConfig.bubbleRadius));
         }
         int idx;
         if (isTopNear && isBottomNear) {
@@ -351,13 +359,15 @@ public class MessageDrawable extends Drawable {
             idx2 = 0;
         }
         int color;
-        if (isSelected) {
+        if (overrideColor != null) {
+            color = overrideColor;
+        } else if (isSelected) {
             color = getColor(isOut ? Theme.key_chat_outBubbleSelected : Theme.key_chat_inBubbleSelected);
         } else {
             color = getColor(isOut ? Theme.key_chat_outBubble : Theme.key_chat_inBubble);
         }
 
-        boolean drawWithShadow = gradientShader == null && !isSelected && !isCrossfadeBackground;
+        boolean drawWithShadow = shadow && gradientShader == null && !isSelected && !isCrossfadeBackground;
         int shadowColor = getColor(isOut ? Theme.key_chat_outBubbleShadow : Theme.key_chat_inBubbleShadow);
         if (lastDrawWithShadow != drawWithShadow || currentBackgroundDrawableRadius[idx2][idx] != newRad || (drawWithShadow && shadowDrawableColor[idx] != shadowColor) || backgroundDrawableColor[idx2][idx] != color) {
             backupRect.set(getBounds());
@@ -447,7 +457,7 @@ public class MessageDrawable extends Drawable {
         if (gradientShader == null && !isSelected && crossfadeFromDrawable == null) {
             return null;
         }
-        int newRad = dp(SharedConfig.bubbleRadius);
+        int newRad = dp(app.regram.appearance.QuickTheme.bubbleRadius(SharedConfig.bubbleRadius));
         int idx;
         if (isTopNear && isBottomNear) {
             idx = 3;
@@ -554,7 +564,7 @@ public class MessageDrawable extends Drawable {
     }
 
     public void draw(Canvas canvas, Paint paintToUse) {
-        int opacity = app.regram.appearance.QuickTheme.bubbleAlpha();
+        int opacity = app.regram.appearance.QuickTheme.bubbleAlpha(isOut);
         // Custom paint is also used as a blur/masking pass: do not alter it.
         if (opacity == 255 || paintToUse != null) {
             drawInternal(canvas, paintToUse);
@@ -571,7 +581,7 @@ public class MessageDrawable extends Drawable {
 
     private void drawInternal(Canvas canvas, Paint paintToUse) {
         Rect bounds = getBounds();
-        if (!oeRemoveMessageTail() && paintToUse == null && gradientShader == null && overrideRoundRadius == 0 && overrideRounding <= 0) {
+        if (!oeRemoveMessageTail() && paintToUse == null && paint.getStyle() == Paint.Style.FILL && gradientShader == null && overrideRoundRadius == 0 && overrideRounding <= 0) {
             Drawable background = getBackgroundDrawable();
             if (background != null) {
                 background.setBounds(bounds);
@@ -596,7 +606,11 @@ public class MessageDrawable extends Drawable {
             rad = dp(SharedConfig.bubbleRadius);
             nearRad = dp(Math.min(6, SharedConfig.bubbleRadius));
         }
-        int smallRad = dp(6);
+        if (overrideRoundRadius == 0 && overrideRounding <= 0 && currentType != TYPE_PREVIEW) {
+            rad = dp(app.regram.appearance.QuickTheme.bubbleRadius(SharedConfig.bubbleRadius));
+            nearRad = Math.min(dp(6), rad);
+        }
+        int smallRad = Math.min(dp(6), rad);
 
         Paint p = paintToUse == null ? paint : paintToUse;
 
@@ -659,7 +673,11 @@ public class MessageDrawable extends Drawable {
             rad = dp(SharedConfig.bubbleRadius);
             nearRad = dp(Math.min(6, SharedConfig.bubbleRadius));
         }
-        int smallRad = dp(6);
+        if (overrideRoundRadius == 0 && overrideRounding <= 0 && currentType != TYPE_PREVIEW) {
+            rad = dp(app.regram.appearance.QuickTheme.bubbleRadius(SharedConfig.bubbleRadius));
+            nearRad = Math.min(dp(6), rad);
+        }
+        int smallRad = Math.min(dp(6), rad);
         int top = Math.max(bounds.top, 0);
         boolean drawFullBottom, drawFullTop;
         if (pathDrawCacheParams != null && bounds.height() < currentBackgroundHeight) {

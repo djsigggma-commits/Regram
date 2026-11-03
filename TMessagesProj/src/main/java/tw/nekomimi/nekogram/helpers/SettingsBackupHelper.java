@@ -133,6 +133,12 @@ public final class SettingsBackupHelper {
         if (includeApiKeys) {
             spToJSON("aiConfig", configJson, key -> !"history".equals(key));
         }
+        if (!isCloud) {
+            JSONObject faveStickers = app.regram.utils.FaveStickersBackup.export();
+            if (faveStickers != null) {
+                configJson.put(app.regram.utils.FaveStickersBackup.KEY, faveStickers);
+            }
+        }
 
         return configJson.toString(indentSpaces);
     }
@@ -222,6 +228,9 @@ public final class SettingsBackupHelper {
 
         for (Map.Entry<String, JsonElement> element : configJson.entrySet()) {
             String spName = element.getKey();
+            if (app.regram.utils.FaveStickersBackup.KEY.equals(spName) || !element.getValue().isJsonObject()) {
+                continue;
+            }
             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(spName, Activity.MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
             for (Map.Entry<String, JsonElement> config : ((JsonObject) element.getValue()).entrySet()) {
@@ -280,6 +289,7 @@ public final class SettingsBackupHelper {
             }
             editor.commit();
         }
+        app.regram.utils.FaveStickersBackup.restore(configJson.get(app.regram.utils.FaveStickersBackup.KEY));
         PushListenerController.reconcilePushRegistration();
     }
 

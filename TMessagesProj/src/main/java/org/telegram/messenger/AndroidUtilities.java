@@ -1559,7 +1559,7 @@ public class AndroidUtilities {
             return 0;
         }
         try {
-            Bitmap b = Bitmaps.createScaledBitmap(bitmap, 1, 1, true);
+            Bitmap b = Bitmap.createScaledBitmap(bitmap, 1, 1, true);
             if (b != null) {
                 int bitmapColor = b.getPixel(0, 0);
                 if (bitmap != b) {
@@ -2948,6 +2948,16 @@ public class AndroidUtilities {
         }
     }
 
+    public static int getAccountInProduction() {
+        if (UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated() && !ConnectionsManager.getInstance(UserConfig.selectedAccount).isTestBackend())
+            return UserConfig.selectedAccount;
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; ++i) {
+            if (UserConfig.getInstance(i).isClientActivated() && !ConnectionsManager.getInstance(i).isTestBackend())
+                return i;
+        }
+        return UserConfig.selectedAccount;
+    }
+
     public static float getPixelsInCM(float cm, boolean isX) {
         return (cm / 2.54f) * (isX ? displayMetrics.xdpi : displayMetrics.ydpi);
     }
@@ -4264,11 +4274,15 @@ public class AndroidUtilities {
             f = new File(message.messageOwner.attachPath);
         }
         if (f == null || f != null && !f.exists()) {
-            f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToMessage(message.messageOwner);
+            f = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
         }
         if (f != null && f.exists()) {
             // re:gram plugins: плагин может перехватить открытие файла по расширению.
-            if (app.regram.plugins.files.FilesControllerJava.dispatchOpenFile(f, fileName, document.mime_type, message, activity, parentFragment, UserConfig.selectedAccount)) {
+            if (app.regram.plugins.files.FilesControllerJava.dispatchOpenFile(f, fileName, document.mime_type, message, activity, parentFragment, message.currentAccount)) {
+                return;
+            }
+            if (app.regram.documents.NativeDocViewer.tryOpen(activity, f, FileLoader.getDocumentFileName(document), document.mime_type,
+                    message.messageOwner.noforwards || MessagesController.getInstance(message.currentAccount).isPeerNoForwards(message.getDialogId()), message.currentAccount)) {
                 return;
             }
             if (parentFragment != null && f.getName().toLowerCase().endsWith("attheme")) {
@@ -4345,9 +4359,20 @@ public class AndroidUtilities {
     }
 
     public static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict) {
+        return openForView(f, fileName, mimeType, activity, resourcesProvider, restrict, UserConfig.selectedAccount);
+    }
+
+    private static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict, int account) {
+        return openForView(f, fileName, mimeType, activity, resourcesProvider, restrict, account, restrict);
+    }
+
+    private static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict, int account, boolean nativeProtected) {
         if (f != null && f.exists()) {
             // re:gram plugins: плагин может перехватить открытие файла по расширению.
-            if (app.regram.plugins.files.FilesControllerJava.dispatchOpenFile(f, fileName, mimeType, null, activity, null, UserConfig.selectedAccount)) {
+            if (app.regram.plugins.files.FilesControllerJava.dispatchOpenFile(f, fileName, mimeType, null, activity, null, account)) {
+                return true;
+            }
+            if (app.regram.documents.NativeDocViewer.tryOpen(activity, f, fileName, mimeType, nativeProtected, account)) {
                 return true;
             }
             String realMimeType = null;
@@ -4408,7 +4433,8 @@ public class AndroidUtilities {
             f = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
         }
         String mimeType = message.type == MessageObject.TYPE_FILE || message.type == MessageObject.TYPE_TEXT ? message.getMimeType() : null;
-        return openForView(f, message.getFileName(), mimeType, activity, resourcesProvider, restrict);
+        boolean nativeProtected = restrict || message.messageOwner.noforwards || MessagesController.getInstance(message.currentAccount).isPeerNoForwards(message.getDialogId());
+        return openForView(f, message.getFileName(), mimeType, activity, resourcesProvider, restrict, message.currentAccount, nativeProtected);
     }
 
     public static boolean openForView(TLRPC.Document document, boolean forceCache, Activity activity) {
@@ -4520,6 +4546,9 @@ public class AndroidUtilities {
         String fileName = FileLoader.getAttachFileName(media);
         File f = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(media, true);
         if (f != null && f.exists()) {
+            String viewerName = media instanceof TLRPC.Document ? FileLoader.getDocumentFileName((TLRPC.Document) media) : fileName;
+            String viewerMime = media instanceof TLRPC.Document ? ((TLRPC.Document) media).mime_type : null;
+            if (app.regram.documents.NativeDocViewer.tryOpen(activity, f, viewerName, viewerMime, false, UserConfig.selectedAccount)) return true;
             String realMimeType = null;
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

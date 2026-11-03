@@ -22,6 +22,10 @@ import java.util.Map;
 import java.util.Set;
 
 import app.regram.ai.ui.AiSettingsActivity;
+import app.regram.icons.IconPacksActivity;
+import app.regram.pillstack.pills.weather.WeatherSettingsActivity;
+import app.regram.settings.OpenExteraCloudActivity;
+import app.regram.settings.OpenExteraGlyphActivity;
 import app.regram.pillstack.PillStackSettingsActivity;
 import app.regram.plugins.ui.PluginsActivity;
 import app.regram.settings.OpenExteraAppNavigationActivity;
@@ -41,7 +45,12 @@ import tw.nekomimi.nekogram.settings.NekoTranslatorSettingsActivity;
 public class SettingsHelper {
 
     private static final String HOST_NAGRAM = "nasettings";
-    private static final String HOST_REGRAM = "exteraless";
+    private static final String HOST_REGRAM = "regramoff";
+    private static final String HOST_REGRAM_LEGACY = "exteraless";
+
+    private static boolean isRegramHost(String host) {
+        return HOST_REGRAM.equals(host) || HOST_REGRAM_LEGACY.equals(host);
+    }
 
     private static final Map<String, String> SEARCH_TITLE_ALIASES = new HashMap<>();
     private static final Map<String, String> TRANSLATOR_ROWS = new HashMap<>();
@@ -49,7 +58,9 @@ public class SettingsHelper {
     private static final Map<String, String> MOVED_ROWS = new HashMap<>();
 
     static {
-        SEARCH_TITLE_ALIASES.put("OEGeneral:lastfm", "OEGeneralLastFm");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:botPrivacyAlwaysAsk", "OEBotPrivacyAlwaysAsk");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:botPrivacyEnabled", "OEBotPrivacyEnabled");
+        SEARCH_TITLE_ALIASES.put("OEGeneral:botPrivacyAccount", "OEBotPrivacyAccount");
         SEARCH_TITLE_ALIASES.put("OEAyu:ayuGhost", "GhostMode");
         SEARCH_TITLE_ALIASES.put("OEAyu:ayuDisableAll", "OEGeneralAyuMomentsDisableAll");
         SEARCH_TITLE_ALIASES.put("OEAyu:ayuClearDatabase", "ClearMessageDatabase");
@@ -89,6 +100,8 @@ public class SettingsHelper {
         SEARCH_TITLE_ALIASES.put("OEChats:replaceEdited", "OEChatsReplaceEditedWithIcon");
         SEARCH_TITLE_ALIASES.put("OEChats:videoMessagesCamera", "CameraInVideoMessages");
         SEARCH_TITLE_ALIASES.put("OEChats:voskModels", "VoskModelsShort");
+        moveRows("other", "features", "regramTermuxBridge", "regramDocumentViewer", "regramSPen", "regramCreatorsAndSources");
+        moveRows("appearance", "features", "nativeVisual", "quickTheme");
         MOVED_ROWS.put("chats:translateInSheet", "general");
         MOVED_ROWS.put("other:unlimitedPinnedDialogs", "general");
         MOVED_ROWS.put("other:glyph", "general");
@@ -139,7 +152,7 @@ public class SettingsHelper {
 
     private static final Set<String> REGRAM_SCREENS = new HashSet<>(Arrays.asList(
             "settings", "general", "appearance", "chats", "plugins", "pillstack", "other",
-            "ayumoments", "navigation", "menus", "media", "hiding"));
+            "ayumoments", "navigation", "menus", "media", "hiding", "features"));
 
     public static boolean isDeepLink(String path) {
         if (path == null) {
@@ -148,10 +161,9 @@ public class SettingsHelper {
         if (path.startsWith(HOST_NAGRAM + "/")) {
             return true;
         }
-        if (!path.startsWith(HOST_REGRAM + "/")) {
-            return false;
-        }
-        return REGRAM_SCREENS.contains(path.substring(HOST_REGRAM.length() + 1));
+        int separator = path.indexOf('/');
+        return separator > 0 && isRegramHost(path.substring(0, separator))
+                && REGRAM_SCREENS.contains(path.substring(separator + 1));
     }
 
     public static String linkPathFor(String key) {
@@ -159,6 +171,8 @@ public class SettingsHelper {
             return null;
         }
         switch (key) {
+            case "regram_features":
+                return HOST_REGRAM + "/features";
             case "exteraless":
                 return HOST_REGRAM + "/settings";
             case "exteraless_general":
@@ -196,7 +210,7 @@ public class SettingsHelper {
             unknown.run();
             return;
         }
-        final boolean regram = HOST_REGRAM.equals(segments.get(0));
+        final boolean regram = isRegramHost(segments.get(0));
         if (!regram && !HOST_NAGRAM.equals(segments.get(0))) {
             unknown.run();
             return;
@@ -228,6 +242,9 @@ public class SettingsHelper {
         }
         if (screen != null) {
             switch (screen) {
+                case "features":
+                    fragment = neko_fragment = new app.regram.settings.RegramFeaturesActivity();
+                    break;
                 case "settings":
                     fragment = neko_fragment = new OpenExteraSettingsActivity();
                     break;
@@ -321,6 +338,21 @@ public class SettingsHelper {
                     break;
                 case "pillstack":
                     fragment = neko_fragment = new PillStackSettingsActivity();
+                    break;
+                case "pillstackweather":
+                    fragment = neko_fragment = new WeatherSettingsActivity();
+                    break;
+                case "iconpacks":
+                    fragment = neko_fragment = new IconPacksActivity();
+                    break;
+                case "exteraless_ai":
+                    fragment = neko_fragment = new AiSettingsActivity();
+                    break;
+                case "exteraless_cloud":
+                    fragment = neko_fragment = new OpenExteraCloudActivity();
+                    break;
+                case "exteraless_glyph":
+                    fragment = neko_fragment = new OpenExteraGlyphActivity();
                     break;
                 case "send_logs":
                     sendLogs(activity, false);

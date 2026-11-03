@@ -2463,7 +2463,9 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
             }
         }
         if (!animated) {
-            selectorDrawable.setState(StateSet.NOTHING);
+            if (selectorDrawable != null) {
+                selectorDrawable.setState(StateSet.NOTHING);
+            }
             selectorRect.setEmpty();
         }
     }
@@ -3139,6 +3141,10 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     /* Overscroll */
 
     private final @NonNull EdgeEffectTrackerFactory edgeEffectTrackerFactory;
+
+    public float getEdgeEffectDistance(@EdgeEffectFactory.EdgeDirection int direction) {
+        return edgeEffectTrackerFactory.getDistance(direction);
+    }
 
     public boolean hasActiveEdgeEffects() {
         return edgeEffectTrackerFactory.hasVisibleEdges();
@@ -3840,13 +3846,19 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
 
     private final Path clipPath = new Path();
     private final float[] segmentRadii = new float[8];
+
+    /** Raised children may draw their own rounded surface outside the section outline. */
+    protected boolean shouldClipChildToSection(View child) {
+        return true;
+    }
+
     private void clipChild(Canvas canvas, View child) {
-        if (child != null && useSegmentedSections() && sectionsItemDecoration.isSectionItem.run(child)) {
+        if (child == null || !shouldClipChildToSection(child) || !sectionsItemDecoration.isSectionItem.run(child))
+            return;
+        if (useSegmentedSections()) {
             clipChildWithSegmentedSection(canvas, child);
             return;
         }
-        if (child == null || !sectionsItemDecoration.isSectionItem.run(child))
-            return;
 
         boolean prev, next;
         int position = getChildAdapterPosition(child);

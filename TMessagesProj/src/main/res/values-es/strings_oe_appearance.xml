@@ -125,4 +125,5 @@
     <string name="OEAppearanceHidingInfo">Historias, botones, pestañas y funciones de IA</string>
     <string name="OEAppearanceHidingInChats">En los chats</string>
     <string name="OEAppearanceHidingAiPremium">IA y Premium</string>
+    <string name="OEKillApp">Cerrar la aplicación</string>
 </resources>

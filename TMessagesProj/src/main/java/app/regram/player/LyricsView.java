@@ -445,6 +445,9 @@ public class LyricsView extends FrameLayout {
         private final TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         private final Paint dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Matrix fillMatrix = new Matrix();
+        private LinearGradient cachedFill;
+        private int fillColor;
+        private int unfilledColor;
         private final Spring opacity = new Spring(OPACITY_FUTURE, 260f, 1f, 0.004f);
         private final Spring scale = new Spring(1f, 320f, 0.75f, 0.0005f);
         private int index = -1;
@@ -536,6 +539,15 @@ public class LyricsView extends FrameLayout {
             return Math.max(0f, Math.min(1f, (currentMs() - start) / (float) (end - start)));
         }
 
+        private LinearGradient fillGradient(int filled, int unfilled) {
+            if (cachedFill == null || fillColor != filled || unfilledColor != unfilled) {
+                fillColor = filled;
+                unfilledColor = unfilled;
+                cachedFill = new LinearGradient(0, 0, 0, 1, filled, unfilled, Shader.TileMode.CLAMP);
+            }
+            return cachedFill;
+        }
+
         private float glow(float t) {
             if (t < 0.15f) {
                 return t / 0.15f;
@@ -569,7 +581,7 @@ public class LyricsView extends FrameLayout {
                 int filled = ColorUtils.setAlphaComponent(colorActive, (int) (alpha * baseAlpha));
                 int unfilled = ColorUtils.setAlphaComponent(colorActive, (int) (alpha * baseAlpha * UNFILLED_ALPHA));
                 float height = layout.getHeight();
-                LinearGradient fill = new LinearGradient(0, 0, 0, 1, filled, unfilled, Shader.TileMode.CLAMP);
+                LinearGradient fill = fillGradient(filled, unfilled);
                 fillMatrix.setScale(1f, Math.max(1f, height * 0.2f));
                 fillMatrix.postTranslate(0, (progress * 1.2f - 0.2f) * height);
                 fill.setLocalMatrix(fillMatrix);
@@ -591,11 +603,31 @@ public class LyricsView extends FrameLayout {
                 layout.draw(canvas);
             }
             canvas.restore();
-            if (animating || (live && isPlaying())) {
+            if ((animating || (live && isPlaying())) && isShown() && getWindowVisibility() == VISIBLE) {
                 postInvalidateOnAnimation();
             } else {
                 lastFrame = 0;
             }
+        }
+
+        @Override
+        protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+            super.onVisibilityChanged(changedView, visibility);
+            lastFrame = 0;
+            if (visibility == VISIBLE) invalidate();
+        }
+
+        @Override
+        protected void onWindowVisibilityChanged(int visibility) {
+            super.onWindowVisibilityChanged(visibility);
+            lastFrame = 0;
+            if (visibility == VISIBLE) invalidate();
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            lastFrame = 0;
         }
 
         private void drawInterlude(Canvas canvas, boolean live, float progress, float alpha, long now) {

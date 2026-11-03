@@ -16,6 +16,7 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Cells.TextDetailSettingsCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.Paint.ColorPickerBottomSheet;
@@ -46,9 +47,11 @@ public final class NativeVisualSettingsActivity extends BaseNekoSettingsActivity
     private int monoHeader, sourceRow, customRow, monoInfo, leftHeader, leftInfo;
     private int mentionHeader, mentionPositionRow, mentionSizeRow, mentionInfo;
     private int playerHeader, playerPresetRow, playerHexRow, playerInfo;
+    private int chipFoldersRow;
 
     @Override protected void updateRows() {
         super.updateRows();
+        chipFoldersRow = addRow("chipFolders", "RegramChipFolders");
         monoHeader = addRow("monoHeader");
         switchRows[0] = addRow(switches[0].key);
         sourceRow = addRow(NekoConfig.regramMonoSource.key);
@@ -88,7 +91,8 @@ public final class NativeVisualSettingsActivity extends BaseNekoSettingsActivity
         return source >= 0 && source <= 6 ? source : 0;
     }
     private String[] mentionPositions() {
-        return new String[] {getString(R.string.RegramMentionBefore), getString(R.string.RegramMentionAfter)};
+        return new String[] {getString(R.string.RegramMentionBefore), getString(R.string.RegramMentionAfter),
+                getString(R.string.RegramMentionInstead)};
     }
     private String[] mentionSizes() {
         return new String[] {getString(R.string.RegramMentionSmall), getString(R.string.RegramMentionMedium), getString(R.string.RegramMentionLarge)};
@@ -120,7 +124,9 @@ public final class NativeVisualSettingsActivity extends BaseNekoSettingsActivity
                 return;
             }
         }
-        if (position == playerPresetRow) {
+        if (position == chipFoldersRow) {
+            presentFragment(new ChipFoldersActivity());
+        } else if (position == playerPresetRow) {
             showDialog(new AlertDialog.Builder(getParentActivity(), getResourceProvider())
                     .setTitle(getString(R.string.RegramPlayerPreset))
                     .setItems(playerPresets(), (dialog, which) -> {
@@ -183,6 +189,10 @@ public final class NativeVisualSettingsActivity extends BaseNekoSettingsActivity
         ListAdapter(Context context) { super(context); }
         @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position, boolean partial) {
             switch (holder.getItemViewType()) {
+                case TYPE_DETAIL_SETTINGS:
+                    ((TextDetailSettingsCell) holder.itemView).setTextAndValueAndIcon(
+                            getString(R.string.RegramChipFolders), getString(R.string.RegramChipFoldersInfo), R.drawable.msg_theme, true);
+                    break;
                 case TYPE_HEADER:
                     ((HeaderCell) holder.itemView).setText(position == monoHeader ? "MonoColor UI" : position == leftHeader ? "AllLeft" : position == mentionHeader ? "MentionAvatars" : "Player Color");
                     break;
@@ -222,6 +232,7 @@ public final class NativeVisualSettingsActivity extends BaseNekoSettingsActivity
             }
         }
         @Override public int getItemViewType(int position) {
+            if (position == chipFoldersRow) return TYPE_DETAIL_SETTINGS;
             if (position == monoHeader || position == leftHeader || position == mentionHeader || position == playerHeader) return TYPE_HEADER;
             if (position == sourceRow || position == customRow || position == mentionPositionRow || position == mentionSizeRow || position == playerPresetRow || position == playerHexRow) return TYPE_SETTINGS;
             if (position == monoInfo || position == leftInfo || position == mentionInfo || position == playerInfo) return TYPE_INFO_PRIVACY;

@@ -1,5 +1,10 @@
 # Debloat / performance pass
 
+> Current 13.1.1-base source pass: [PERFORMANCE_13.1.1.md](PERFORMANCE_13.1.1.md).
+> Historical 13.0.2 pass: [PERFORMANCE_CURRENT.md](PERFORMANCE_CURRENT.md).
+> The following sections are historical; in particular ExitFy is now removed and
+> old APK/version/build-environment notes do not describe the current checkout.
+
 This is a targeted pass, not a claim that all device-specific jank is fixed. No user data, plugin bundles, themes, or media were removed.
 
 - `debugpy` is no longer shipped by default in Chaquopy requirements. Build with `REGRAM_PY_DEBUGGER=1` only if the Python developer debugger is needed; the dev server reports the missing optional module otherwise. The debug APK's `requirements-common.imy` is 5,088,373 bytes and contains no debugpy module.

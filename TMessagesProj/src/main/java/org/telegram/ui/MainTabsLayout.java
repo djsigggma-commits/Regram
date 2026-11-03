@@ -376,6 +376,21 @@ public class MainTabsLayout extends AnimatedLinearLayout {
 
 
     @Override
+    public void draw(@NonNull Canvas canvas) {
+        if (getBackground() != null) {
+            getBackground().setAlpha(app.regram.appearance.QuickTheme.navigationAlpha());
+            if (getBackground() instanceof org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable) {
+                org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable background =
+                        (org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable) getBackground();
+                background.setQuickThemeColor(app.regram.appearance.QuickTheme.navigationColor(0));
+                int radius = app.regram.appearance.QuickTheme.navigationRadius(-1);
+                background.setQuickThemeRadius(radius < 0 ? MainTabsUiHelper.getBackgroundRadius() : dp(radius));
+            }
+        }
+        super.draw(canvas);
+    }
+
+    @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
         if (drawCustomSelector) {
             final float x = animatedLongSelectedViewCenterX + animatedLongSelectedViewOffsetX;

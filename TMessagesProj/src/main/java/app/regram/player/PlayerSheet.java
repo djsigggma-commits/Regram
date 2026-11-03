@@ -9,26 +9,36 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Outline;
+import android.graphics.Shader;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.text.TextUtils;
+import android.transition.ChangeBounds;
+import android.transition.TransitionManager;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.view.ViewTreeObserver;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -45,6 +55,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BottomSheet;
@@ -102,11 +113,43 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private final LinearLayout timeRow;
     private final TextView timeNow;
     private final TextView timeLeft;
+    private final PlaybackTimeText timeText = new PlaybackTimeText();
     private final ControlsRow controls;
     private final LinearLayout group;
     private final MorphButton speedButton;
     private final MorphButton lyricsButton;
     private final MorphButton queueButton;
+    private final LinearLayout headerCenter;
+    private final LinearLayout titles;
+    private final View titleSpacer;
+    private final CoverScrim coverScrim;
+    private final boolean previewMode;
+    private FrameLayout editorPanel;
+    private PlayerStyleEditor styleEditor;
+    private final GradientDrawable editorBackground = new GradientDrawable();
+    private final GradientDrawable editorDoneBackground = new GradientDrawable();
+    private TextView editorTitle;
+    private TextView editorReset;
+    private TextView editorDone;
+    private boolean editing;
+    private boolean islandActions;
+    private final GradientDrawable islandBackground = new GradientDrawable();
+    private float editorFraction;
+    private float editScale = 1f;
+    private float editTop;
+    private ValueAnimator editorAnimator;
+    private int coverStyle = PlayerStyle.COVER_CARD;
+    private int[] blockOrder = PlayerStyle.order();
+    private ValueAnimator spinAnimator;
+    private Bitmap backdrop;
+    private String backdropKey;
+    private LinearGradient backgroundGradient;
+    private int backgroundGradientKey;
+    private final Paint backdropPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+    private final Paint overlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Rect backdropSrc = new Rect();
+    private final RectF previewRect = new RectF();
+    private final Path previewPath = new Path();
     private final Bulletin.Delegate bulletinDelegate = new Bulletin.Delegate() {
         @Override
         public int getBottomOffset(int tag) {
@@ -155,8 +198,11 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private String currentKey;
     private boolean lyricsMode;
     private float lyricsFraction;
+    private boolean landscape;
+    private int columnLeft;
     private ValueAnimator lyricsAnimator;
     private String lyricsKey;
+    private Lyrics fileLyrics;
     private boolean seeking;
     private float seekProgress;
     private Boolean lightBars;
@@ -166,6 +212,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private boolean dragTracking;
     private boolean dragActive;
     private boolean coverAnimating;
+    private boolean morphUnderlay;
+    private boolean morphAnchorBottom = true;
+    private boolean insetsReady;
     private final int touchSlop;
 
     public PlayerSheet(Context context, Theme.ResourcesProvider resourcesProvider) {
@@ -175,15 +224,20 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         occupyNavigationBar = true;
         drawNavigationBar = false;
+        fullWidth = true;
         setApplyTopPadding(false);
         setApplyBottomPadding(false);
 
         MessageObject playing = MediaController.getInstance().getPlayingMessageObject();
+        previewMode = playing == null || !playing.isMusic();
+        if (previewMode) {
+            playing = null;
+        }
         account = playing != null ? playing.currentAccount : UserConfig.selectedAccount;
         currentAccount = account;
         dark = PlayerColors.isDark(resourcesProvider);
         fallbackSeed = PlayerColors.noCoverSeed(resourcesProvider);
-        Integer seed = PlayerArt.cachedSeed(playing);
+        Integer seed = PlayerStyle.themeColors() ? null : PlayerArt.cachedSeed(playing);
         colors = PlayerColors.fromSeed(seed != null ? seed : fallbackSeed, dark);
         headerRippleColor = colors.ripple();
 
@@ -223,8 +277,20 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                     return;
                 }
                 drawMorphBackground(canvas);
-                super.dispatchDraw(canvas);
-                drawMorphForeground(canvas);
+                if (morphUnderlay) {
+                    drawMorphSnapshot(canvas);
+                    drawMorphBackdrop(canvas);
+                    drawMorphCover(canvas);
+                    super.dispatchDraw(canvas);
+                    canvas.restore();
+                } else {
+                    super.dispatchDraw(canvas);
+                    drawMorphSnapshot(canvas);
+                    canvas.restore();
+                    if (!backPreview) {
+                        drawMorphCover(canvas);
+                    }
+                }
             }
 
             @Override
@@ -233,9 +299,20 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                     return;
                 }
                 float r = dp(28) * Math.max(0f, Math.min(1f, getTranslationY() / dp(56)));
-                backgroundPaint.setColor(colors.surface);
+                backgroundPaint.setColor(editorFraction > 0f ? ColorUtils.blendARGB(colors.surface, colors.surfaceLow, editorFraction) : colors.surface);
                 backgroundRect.set(0, 0, getWidth(), getHeight() + r);
                 canvas.drawRoundRect(backgroundRect, r, r, backgroundPaint);
+            }
+
+            @Override
+            protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+                super.onSizeChanged(w, h, oldw, oldh);
+                if (editorPanel != null) {
+                    post(() -> {
+                        measureEditor();
+                        setEditorFraction(editorFraction);
+                    });
+                }
             }
 
             @Override
@@ -271,7 +348,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         moreButton.setContentDescription(getString(R.string.AccDescrMoreOptions));
         moreButton.setOnClickListener(this::showMenu);
         header.addView(moreButton, LayoutHelper.createFrame(48, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
-        LinearLayout headerCenter = new LinearLayout(context);
+        headerCenter = new LinearLayout(context);
         headerCenter.setOrientation(LinearLayout.VERTICAL);
         headerCenter.setGravity(Gravity.CENTER_HORIZONTAL);
         headerLabel = new TextView(context);
@@ -296,29 +373,38 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         cover.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dp(28));
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cover.getRadius());
             }
         });
         cover.setElevation(dp(14));
         cover.setOnTouchListener(this::onCoverTouch);
         layout.addView(cover);
 
+        coverScrim = new CoverScrim(context);
+        coverScrim.setVisibility(View.GONE);
+        layout.addView(coverScrim);
+
         titleRow = new LinearLayout(context);
         titleRow.setOrientation(LinearLayout.HORIZONTAL);
         titleRow.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout titles = new LinearLayout(context);
+        titleSpacer = new View(context);
+        titleSpacer.setVisibility(View.GONE);
+        titleRow.addView(titleSpacer, LayoutHelper.createLinear(60, 1));
+        titles = new LinearLayout(context);
         titles.setOrientation(LinearLayout.VERTICAL);
         titleView = new TextView(context);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 26);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setSingleLine(true);
+        titleView.setHorizontallyScrolling(false);
         titleView.setEllipsize(TextUtils.TruncateAt.END);
-        titles.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        titles.addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
         artistView = new TextView(context);
         artistView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         artistView.setSingleLine(true);
+        artistView.setHorizontallyScrolling(false);
         artistView.setEllipsize(TextUtils.TruncateAt.END);
-        titles.addView(artistView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
+        titles.addView(artistView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
         titleRow.addView(titles, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
         likeButton = new MorphButton(context, heartIcon);
         likeButton.setRadius(dp(24), false);
@@ -424,13 +510,21 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
         controls = new ControlsRow(context);
         controls.shuffle.setOnClickListener(v -> {
-            MediaController.getInstance().setPlaybackOrderType(SharedConfig.shuffleMusic ? 0 : 2);
+            MediaController.getInstance().setPlaybackOrderType(SharedConfig.shuffleMusic || SharedConfig.playOrderReversed ? 0 : 2);
             updateModes(true);
         });
         controls.repeat.setOnClickListener(v -> {
             int mode = SharedConfig.repeatMode;
             SharedConfig.setRepeatMode(mode == 0 ? 1 : mode == 1 ? 2 : 0);
             updateModes(true);
+        });
+        controls.shuffle.setOnLongClickListener(v -> {
+            showPlaybackOptions(v);
+            return true;
+        });
+        controls.repeat.setOnLongClickListener(v -> {
+            showPlaybackOptions(v);
+            return true;
         });
         controls.prev.setOnClickListener(v -> MediaController.getInstance().playPreviousMessage());
         controls.next.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
@@ -469,8 +563,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         bubble.setAlpha(0f);
         layout.addView(bubble);
 
+        applyStyle(false);
         applyColors(colors);
-        bind(playing, false);
+        if (previewMode) {
+            bindPreview();
+        } else {
+            bind(playing, false);
+        }
     }
 
     private boolean hitInRoot(View view, float x, float y) {
@@ -490,7 +589,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     @Override
     protected boolean canDismissWithSwipe() {
-        if (morphProgress >= 0f || closing) {
+        if (morphProgress >= 0f || closing || editing || editorFraction > 0f) {
             return false;
         }
         return !touchInLyrics || !lyricsView.canScrollUp();
@@ -510,10 +609,62 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         nc.addObserver(this, NotificationCenter.musicIdsLoaded);
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.messagePlayingSpeedChanged);
         applySystemBars(true);
+        if (miniSource != null && startAnimationRunnable != null) {
+            root.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    Runnable start = startAnimationRunnable;
+                    if (start != null && !isDismissed() && (!insetsReady || root.getWidth() == 0)) {
+                        return true;
+                    }
+                    root.getViewTreeObserver().removeOnPreDrawListener(this);
+                    if (start != null && !isDismissed()) {
+                        AndroidUtilities.cancelRunOnUIThread(start);
+                        start.run();
+                    }
+                    return true;
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onInsetsChanged() {
+        insetsReady = true;
+        padEditorPanel();
+    }
+
+    private void padEditorPanel() {
+        if (editorPanel != null) {
+            editorPanel.setPadding(super.getLeftInset(), 0, super.getRightInset(), 0);
+        }
+    }
+
+    @Override
+    public int getLeftInset() {
+        return 0;
+    }
+
+    @Override
+    public int getRightInset() {
+        return 0;
     }
 
     public void setTransitionSource(PlayerMiniView source) {
         miniSource = source;
+    }
+
+    public static void openStyleEditor(org.telegram.ui.ActionBar.BaseFragment fragment) {
+        if (fragment == null || fragment.getParentActivity() == null) {
+            return;
+        }
+        if (instance != null && !instance.isDismissed()) {
+            instance.openEditor();
+            return;
+        }
+        PlayerSheet sheet = new PlayerSheet(fragment.getParentActivity(), fragment.getResourceProvider());
+        fragment.showDialog(sheet);
+        sheet.root.post(sheet::openEditor);
     }
 
     public void dismissImmediately() {
@@ -526,6 +677,10 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         if (closing) {
             return;
         }
+        if (editing && !skipMorph && !isDismissed()) {
+            closeEditor();
+            return;
+        }
         if (!skipMorph && miniSource != null && !isDismissed()) {
             if (morphProgress >= 0f) {
                 boolean preview = backPreview;
@@ -535,6 +690,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 if (preview) {
                     backPreview = false;
                     morphCoverView.setVisibility(View.INVISIBLE);
+                    setMorphUnderlay(morphCoverView == cover && coverIsBackdrop());
                 }
                 startMorph(morphProgress, 0f, preview ? 380 : 300, this::finishMorphClose);
                 return;
@@ -614,6 +770,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     @Override
     protected boolean onCustomBackStarted(int swipeDirection) {
+        if (editing) {
+            return true;
+        }
         if (miniSource == null || skipMorph) {
             return false;
         }
@@ -638,7 +797,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     @Override
     protected void onCustomBackProgressed(float progress) {
-        if (!backPreview || closing) {
+        if (editing || !backPreview || closing) {
             return;
         }
         cancelBackAnimator();
@@ -648,7 +807,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     @Override
     protected void onCustomBackCancelled() {
-        if (!backPreview || closing) {
+        if (editing || !backPreview || closing) {
             return;
         }
         cancelBackAnimator();
@@ -700,7 +859,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     private void restoreMorphCover() {
         if (morphCoverView == cover) {
-            cover.setVisibility(lyricsFraction >= 1f ? View.INVISIBLE : View.VISIBLE);
+            cover.setVisibility(lyricsFraction >= 1f && coverStyle != PlayerStyle.COVER_FULL ? View.INVISIBLE : View.VISIBLE);
         } else if (morphCoverView != null) {
             morphCoverView.setVisibility(View.VISIBLE);
         }
@@ -732,7 +891,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     private boolean prepareMorph(boolean hideCover) {
         PlayerMiniView mini = miniSource;
-        if (skipMorph || mini == null || !mini.canTransition() || root.getWidth() == 0 || !root.isAttachedToWindow()) {
+        if (skipMorph || editing || editorFraction > 0f || mini == null || !mini.canTransition() || root.getWidth() == 0 || !root.isAttachedToWindow()) {
             return false;
         }
         if (lyricsAnimator != null && lyricsAnimator.isRunning()) {
@@ -744,6 +903,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         root.getLocationOnScreen(loc);
         mini.getCardRect(morphFrom);
         morphFrom.offset(-loc[0], -loc[1]);
+        morphAnchorBottom = morphFrom.centerY() > root.getHeight() / 2f;
         mini.getCoverRect(morphCoverFrom);
         morphCoverFrom.offset(-loc[0], -loc[1]);
         morphFromRadius = mini.getCardRadius();
@@ -754,7 +914,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         Bitmap bitmap = coverView instanceof CoverImage ? ((CoverImage) coverView).getImageReceiver().getBitmap() : null;
         morphCoverBitmap = bitmap != null ? bitmap : mini.getCoverBitmap();
         rectInRoot(coverView, morphCoverTo);
-        morphCoverToRadius = coverView == cover ? dp(28) * cover.getScaleX() : dp(16);
+        morphCoverToRadius = coverView == cover ? cover.getRadius() * cover.getScaleX() : dp(16);
         if (activity != null && activity.getWindow() != null) {
             int flags = activity.getWindow().getDecorView().getSystemUiVisibility();
             underLightStatus = (flags & View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) != 0;
@@ -765,7 +925,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         if (hideCover) {
             coverView.setVisibility(View.INVISIBLE);
         }
+        setMorphUnderlay(hideCover && coverView == cover && coverIsBackdrop());
+        seekBar.setFrozen(true);
+        if (spinAnimator != null) {
+            spinAnimator.pause();
+        }
         layout.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        layout.buildLayer();
         return true;
     }
 
@@ -802,8 +968,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         layout.setScaleX(s);
         layout.setScaleY(s);
         layout.setTranslationX(morphRect.left);
-        layout.setTranslationY(morphRect.top);
-        layout.setAlpha(clamp01((p - 0.35f) / 0.65f));
+        layout.setTranslationY(morphAnchorBottom ? morphRect.bottom - layout.getHeight() * s : morphRect.top);
+        layout.setAlpha(clamp01(p / 0.2f));
         backDrawable.setAlpha(dimBehind ? (int) (dimBehindAlpha * clamp01(p)) : 0);
         updateMorphBars();
         root.invalidate();
@@ -817,9 +983,27 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         layout.setTranslationY(0);
         layout.setAlpha(1f);
         layout.setLayerType(View.LAYER_TYPE_NONE, null);
+        setMorphUnderlay(false);
+        seekBar.setFrozen(false);
+        if (spinAnimator != null) {
+            spinAnimator.resume();
+        }
         recycleSnapshot();
         morphCoverBitmap = null;
         root.invalidate();
+    }
+
+    private boolean coverIsBackdrop() {
+        return coverStyle != PlayerStyle.COVER_CARD && coverStyle != PlayerStyle.COVER_DISC;
+    }
+
+    private void setMorphUnderlay(boolean value) {
+        if (morphUnderlay == value) {
+            return;
+        }
+        morphUnderlay = value;
+        coverScrim.setVisibility(value ? View.INVISIBLE : View.VISIBLE);
+        layout.invalidate();
     }
 
     private void recycleSnapshot() {
@@ -855,25 +1039,43 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         canvas.drawRect(morphRect, backgroundPaint);
     }
 
-    private void drawMorphForeground(Canvas canvas) {
-        float p = morphProgress;
+    private void drawMorphSnapshot(Canvas canvas) {
         Bitmap snapshot = morphSnapshot;
-        if (snapshot != null && !snapshot.isRecycled()) {
-            float a = 1f - clamp01(p / 0.3f);
-            if (a > 0f) {
-                canvas.save();
-                float s = morphRect.width() / snapshot.getWidth();
-                canvas.translate(morphRect.left, morphRect.top);
-                canvas.scale(s, s);
-                morphPaint.setAlpha((int) (255 * a));
-                canvas.drawBitmap(snapshot, 0, 0, morphPaint);
-                canvas.restore();
-            }
-        }
-        canvas.restore();
-        if (backPreview) {
+        if (snapshot == null || snapshot.isRecycled()) {
             return;
         }
+        float a = 1f - clamp01(morphProgress / 0.2f);
+        if (a <= 0f) {
+            return;
+        }
+        canvas.save();
+        float s = morphRect.width() / snapshot.getWidth();
+        canvas.translate(morphRect.left, morphAnchorBottom ? morphRect.bottom - snapshot.getHeight() * s : morphRect.top);
+        canvas.scale(s, s);
+        morphPaint.setAlpha((int) (255 * a));
+        canvas.drawBitmap(snapshot, 0, 0, morphPaint);
+        canvas.restore();
+    }
+
+    private void drawMorphBackdrop(Canvas canvas) {
+        float alpha = layout.getAlpha();
+        if (alpha <= 0f || coverStyle == PlayerStyle.COVER_FULL || PlayerStyle.background() == PlayerStyle.BACKGROUND_SOLID) {
+            return;
+        }
+        int w = layout.getWidth();
+        int h = layout.getHeight();
+        int count = canvas.save();
+        canvas.translate(layout.getLeft() + layout.getTranslationX(), layout.getTop() + layout.getTranslationY());
+        canvas.scale(layout.getScaleX(), layout.getScaleY());
+        if (alpha < 1f) {
+            canvas.saveLayerAlpha(0, 0, w, h, (int) (255 * alpha));
+        }
+        drawBackdrop(canvas, w, h);
+        canvas.restoreToCount(count);
+    }
+
+    private void drawMorphCover(Canvas canvas) {
+        float p = morphProgress;
         lerpRect(morphCoverFrom, morphCoverTo, p, morphCover);
         float r = morphCoverFromRadius + (morphCoverToRadius - morphCoverFromRadius) * p;
         morphPath.rewind();
@@ -900,7 +1102,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             backgroundPaint.setColor(colors.primaryContainer);
             canvas.drawRect(morphCover, backgroundPaint);
         }
+        if (morphUnderlay) {
+            coverScrim.drawMorph(canvas, morphCover, clamp01(p));
+        }
         canvas.restore();
+        if (morphUnderlay) {
+            coverScrim.drawMorphExtension(canvas, morphCover, clamp01(p));
+        }
     }
 
     private void detach() {
@@ -922,6 +1130,10 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.messagePlayingSpeedChanged);
         if (colorAnimator != null) {
             colorAnimator.cancel();
+        }
+        if (spinAnimator != null) {
+            spinAnimator.cancel();
+            spinAnimator = null;
         }
     }
 
@@ -983,6 +1195,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         if (mo == null) {
             return;
         }
+        if (previewMode) {
+            layout.setEnabled(true);
+        }
         String key = PlayerArt.key(mo);
         boolean changed = !TextUtils.equals(key, currentKey);
         current = mo;
@@ -994,12 +1209,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         cover.setMessage(mo);
         smallCover.setMessage(mo);
         if (changed) {
-            Integer seed = PlayerArt.cachedSeed(mo);
+            Integer seed = PlayerStyle.themeColors() ? null : PlayerArt.cachedSeed(mo);
             if (seed != null) {
                 animateColors(PlayerColors.fromSeed(seed, dark), animated);
-            } else if (PlayerArt.fileCover(mo) == null && PlayerArt.fullLocation(mo) == null && PlayerArt.thumbLocation(mo) == null) {
+            } else if (PlayerStyle.themeColors() || PlayerArt.fileCover(mo) == null && PlayerArt.fullLocation(mo) == null && PlayerArt.thumbLocation(mo) == null) {
                 animateColors(PlayerColors.fromSeed(fallbackSeed, dark), animated);
             }
+            updateBackdrop();
             lyricsKey = null;
             if (lyricsMode) {
                 loadLyrics();
@@ -1014,9 +1230,14 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private void onSeed(MessageObject mo, int seed) {
-        if (mo == current) {
+        if (mo != current) {
+            return;
+        }
+        if (!PlayerStyle.themeColors()) {
             animateColors(PlayerColors.fromSeed(seed, dark), true);
         }
+        updateBackdrop();
+        coverScrim.invalidate();
     }
 
     private void updateHeader() {
@@ -1044,8 +1265,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     private void updateLike(boolean animated) {
         MessageObject mo = current;
-        boolean visible = mo != null && mo.getDocument() != null && !PlayerActions.noForwards(mo);
+        boolean visible = PlayerStyle.showLike() && mo != null && mo.getDocument() != null && !PlayerActions.noForwards(mo);
         likeButton.setVisibility(visible ? View.VISIBLE : View.GONE);
+        titleSpacer.setVisibility(visible && PlayerStyle.titleCentered() ? View.VISIBLE : View.GONE);
         if (!visible) {
             return;
         }
@@ -1091,15 +1313,51 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     private void updateModes(boolean animated) {
         int mode = SharedConfig.repeatMode;
         boolean repeatActive = mode == 1 || mode == 2;
-        controls.setModes(SharedConfig.shuffleMusic, repeatActive, mode == 2, animated);
-        controls.repeat.setContentDescription(getString(mode == 2 ? R.string.AccDescrRepeatOne : mode == 1 ? R.string.AccDescrRepeatList : R.string.AccDescrRepeatOff));
+        boolean reversed = SharedConfig.playOrderReversed;
+        controls.setModes(SharedConfig.shuffleMusic, reversed, repeatActive, mode == 2, mode == AudioPlayerAlert.PLAY_ONCE, animated);
+        controls.shuffle.setContentDescription(getString(reversed ? R.string.ReverseOrder : R.string.ShuffleList));
+        controls.repeat.setContentDescription(getString(mode == AudioPlayerAlert.PLAY_ONCE ? R.string.PlayOnce : mode == 2 ? R.string.AccDescrRepeatOne : mode == 1 ? R.string.AccDescrRepeatList : R.string.AccDescrRepeatOff));
+    }
+
+    private void showPlaybackOptions(View anchor) {
+        ItemOptions o = ItemOptions.makeOptions(container, colors.provider(resourcesProvider), anchor, true);
+        addPlaybackOptions(o, null);
+        o.show();
+    }
+
+    private void addPlaybackOptions(ItemOptions o, Runnable close) {
+        int mode = SharedConfig.repeatMode;
+        o.addChecked(mode == AudioPlayerAlert.PLAY_ONCE, R.drawable.photo_timer, getString(R.string.PlayOnce), () -> toggleRepeatMode(AudioPlayerAlert.PLAY_ONCE, close));
+        o.addChecked(mode == 2, R.drawable.player_new_repeatone, getString(R.string.RepeatSong), () -> toggleRepeatMode(2, close));
+        o.addChecked(mode == 1, R.drawable.player_new_repeatall, getString(R.string.RepeatList), () -> toggleRepeatMode(1, close));
+        o.addGap();
+        o.addChecked(SharedConfig.shuffleMusic, R.drawable.player_new_shuffle, getString(R.string.ShuffleList), () -> togglePlaybackOrder(2, close));
+        o.addChecked(SharedConfig.playOrderReversed, R.drawable.player_new_order, getString(R.string.ReverseOrder), () -> togglePlaybackOrder(1, close));
+    }
+
+    private void toggleRepeatMode(int mode, Runnable close) {
+        SharedConfig.setRepeatMode(SharedConfig.repeatMode == mode ? 0 : mode);
+        updateModes(true);
+        if (close != null) {
+            close.run();
+        }
+    }
+
+    private void togglePlaybackOrder(int type, Runnable close) {
+        boolean on = type == 1 ? SharedConfig.playOrderReversed : SharedConfig.shuffleMusic;
+        MediaController.getInstance().setPlaybackOrderType(on ? 0 : type);
+        updateModes(true);
+        if (close != null) {
+            close.run();
+        }
     }
 
     private void updateSpeed() {
         float speed = MediaController.getInstance().getPlaybackSpeed(true);
         DecimalFormat format = new DecimalFormat("0.##", DecimalFormatSymbols.getInstance(currentLocale()));
         String label = format.format(speed) + "×";
-        speedButton.setText(label);
+        speedButton.setText(islandActions ? null : label);
+        speedButton.setBadge(islandActions && Math.abs(speed - 1f) > 0.01f ? format.format(speed) : null, speedButton.isLaidOut());
         speedButton.setContentDescription(getString(R.string.OEPlayerSpeed) + " " + label);
     }
 
@@ -1136,11 +1394,13 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private void updatePlayState(boolean animated) {
-        boolean playing = !MediaController.getInstance().isMessagePaused();
+        boolean playing = previewMode || !MediaController.getInstance().isMessagePaused();
         controls.setPlaying(playing, animated);
         controls.play.setContentDescription(getString(playing ? R.string.AccActionPause : R.string.AccActionPlay));
         seekBar.setPlaying(playing);
-        float scale = playing ? 1f : 0.92f;
+        updateSpin();
+        boolean framed = coverStyle == PlayerStyle.COVER_CARD || coverStyle == PlayerStyle.COVER_DISC;
+        float scale = playing || !framed || previewMode ? 1f : 0.92f;
         if (cover.getScaleX() != scale) {
             if (animated) {
                 cover.animate().scaleX(scale).scaleY(scale).setDuration(450).setInterpolator(EMPHASIZED).start();
@@ -1180,8 +1440,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
         int duration = (int) Math.round(mo.getDuration());
         int now = seeking ? (int) (duration * seekProgress) : Math.min(duration, mo.audioProgressSec);
-        String a = formatTime(now);
-        String b = "−" + formatTime(Math.max(0, duration - now));
+        String a = timeText.elapsed(now);
+        String b = timeText.remaining(Math.max(0, duration - now));
         if (!TextUtils.equals(timeNow.getText(), a)) {
             timeNow.setText(a);
             bubble.setText(a);
@@ -1192,10 +1452,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private static String formatTime(int seconds) {
-        if (seconds >= 3600) {
-            return String.format(Locale.US, "%d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60);
-        }
-        return String.format(Locale.US, "%d:%02d", seconds / 60, seconds % 60);
+        return PlaybackTimeText.format(seconds);
     }
 
     private void layoutBubble() {
@@ -1218,7 +1475,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
         lyricsMode = value;
         lyricsButton.setActive(value, animated);
-        lyricsButton.setRadius(dp(value ? 26 : 8), animated);
+        lyricsButton.setRadius(lyricsRadius(value), animated);
         if (value) {
             loadLyrics();
             MessageObject mo = current;
@@ -1254,15 +1511,17 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         lyricsFraction = f;
         float playerAlpha = Math.max(0f, 1f - f * 1.6f);
         float lyricsAlpha = Math.max(0f, (f - 0.35f) / 0.65f);
-        cover.setAlpha(playerAlpha);
+        boolean backdropCover = coverStyle == PlayerStyle.COVER_FULL;
+        cover.setAlpha(backdropCover ? 1f : playerAlpha);
         titleRow.setAlpha(playerAlpha);
-        cover.setTranslationY(-dp(24) * f);
+        cover.setTranslationY(backdropCover ? 0 : -dp(24) * f);
         titleRow.setTranslationY(-dp(24) * f);
         lyricsPanel.setAlpha(lyricsAlpha);
         lyricsPanel.setTranslationY(dp(24) * (1f - f));
-        cover.setVisibility(f >= 1f ? View.INVISIBLE : View.VISIBLE);
+        cover.setVisibility(f >= 1f && !backdropCover ? View.INVISIBLE : View.VISIBLE);
         titleRow.setVisibility(f >= 1f ? View.INVISIBLE : View.VISIBLE);
         lyricsPanel.setVisibility(f <= 0f ? View.GONE : View.VISIBLE);
+        coverScrim.invalidate();
     }
 
     private OnlineLyrics.Query query(MessageObject mo) {
@@ -1291,39 +1550,51 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             return;
         }
         lyricsKey = key;
+        fileLyrics = null;
         if (PlayerArt.isPlaying(mo)) {
             AudioInfo info = MediaController.getInstance().getAudioInfo();
             Lyrics embedded = info != null ? Lyrics.parse(info.getLyrics(), Lyrics.SOURCE_FILE) : null;
             if (embedded != null) {
                 showLyrics(embedded);
-                return;
+                if (embedded.synced || embedded.instrumental) {
+                    return;
+                }
+                fileLyrics = embedded;
             }
         }
         OnlineLyrics.Query q = query(mo);
         if (!q.valid()) {
-            lyricsView.showState(LyricsView.STATE_NOT_FOUND);
-            sourceView.setText(null);
+            if (fileLyrics == null) {
+                lyricsView.showState(LyricsView.STATE_NOT_FOUND);
+                sourceView.setText(null);
+            }
             return;
         }
         Lyrics cached = OnlineLyrics.cached(q);
-        if (cached != null) {
+        if (cached != null && replacesFileLyrics(cached)) {
             showLyrics(cached);
             return;
         }
-        lyricsView.showState(LyricsView.STATE_LOADING);
-        sourceView.setText(null);
+        if (fileLyrics == null) {
+            lyricsView.showState(LyricsView.STATE_LOADING);
+            sourceView.setText(null);
+        }
         OnlineLyrics.loadCached(q, (lyrics, status) -> {
             if (!TextUtils.equals(key, currentKey)) {
                 return;
             }
-            if (lyrics != null) {
+            if (lyrics != null && replacesFileLyrics(lyrics)) {
                 showLyrics(lyrics);
             } else if (AppearanceConfig.lrclibAllowed.Bool()) {
                 fetchLyrics();
-            } else {
+            } else if (fileLyrics == null) {
                 lyricsView.showState(LyricsView.STATE_OFFER);
             }
         });
+    }
+
+    private boolean replacesFileLyrics(Lyrics lyrics) {
+        return fileLyrics == null || lyrics.synced;
     }
 
     private void fetchLyrics() {
@@ -1333,23 +1604,23 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
         String key = currentKey;
         OnlineLyrics.Query q = query(mo);
-        if (!q.valid()) {
-            lyricsView.showState(LyricsView.STATE_NOT_FOUND);
+        if (!q.valid() || OnlineLyrics.knownMissing(q)) {
+            if (fileLyrics == null) {
+                lyricsView.showState(LyricsView.STATE_NOT_FOUND);
+            }
             return;
         }
-        if (OnlineLyrics.knownMissing(q)) {
-            lyricsView.showState(LyricsView.STATE_NOT_FOUND);
-            return;
+        if (fileLyrics == null) {
+            lyricsView.showState(LyricsView.STATE_LOADING);
+            sourceView.setText(null);
         }
-        lyricsView.showState(LyricsView.STATE_LOADING);
-        sourceView.setText(null);
         OnlineLyrics.fetch(q, (lyrics, status) -> {
             if (!TextUtils.equals(key, currentKey)) {
                 return;
             }
-            if (lyrics != null) {
+            if (lyrics != null && replacesFileLyrics(lyrics)) {
                 showLyrics(lyrics);
-            } else {
+            } else if (fileLyrics == null) {
                 lyricsView.showState(status == OnlineLyrics.ERROR ? LyricsView.STATE_ERROR : LyricsView.STATE_NOT_FOUND);
             }
         });
@@ -1425,12 +1696,39 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
             o.dismiss();
             PlayerActions.share(activity, mo);
         });
+        ItemOptions order = o.makeSwipeback();
+        order.add(R.drawable.ic_ab_back, getString(R.string.Back), o::closeSwipeback);
+        order.addGap();
+        addPlaybackOptions(order, o::dismiss);
+        o.add(R.drawable.player_new_order, getString(R.string.OEPlayerPlaybackOrder), () -> o.openSwipeback(order));
+        if (o.getLast() != null) {
+            o.getLast().setRightIcon(R.drawable.msg_arrowright);
+        }
         o.addIf(mo.getId() > 0, R.drawable.msg_message, getString(R.string.ShowInChat), () -> {
             o.dismiss();
             dismissImmediately();
             PlayerActions.showInChat(activity, mo);
         });
+        if (!PlayerStyle.showActions()) {
+            o.addGap();
+            o.add(R.drawable.msg_photo_text_framed3, getString(R.string.OEPlayerLyrics), () -> {
+                o.dismiss();
+                setLyricsMode(!lyricsMode, true);
+            });
+            o.add(R.drawable.msg_list, getString(R.string.OEPlayerQueue), () -> {
+                o.dismiss();
+                openQueue();
+            });
+            o.add(R.drawable.msg_speed, getString(R.string.OEPlayerSpeed), () -> {
+                o.dismiss();
+                cycleSpeed();
+            });
+        }
         o.addGap();
+        o.add(R.drawable.msg_customize, getString(R.string.OEPlayerCustomize), () -> {
+            o.dismiss();
+            openEditor();
+        });
         o.add(R.drawable.msg_filled_data_music, getString(R.string.OEPlayerClassic), () -> {
             o.dismiss();
             openClassic();
@@ -1440,7 +1738,8 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
     }
 
     private boolean onCoverTouch(View v, MotionEvent e) {
-        if (coverAnimating) {
+        if (coverAnimating || previewMode || editing || !PlayerStyle.coverSwipe()
+                || coverStyle != PlayerStyle.COVER_CARD && coverStyle != PlayerStyle.COVER_DISC) {
             return false;
         }
         switch (e.getActionMasked()) {
@@ -1491,19 +1790,22 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
 
     private void setCoverDrag(float dx) {
         cover.setTranslationX(dx);
-        cover.setRotation(dx / dp(40));
+        if (coverStyle != PlayerStyle.COVER_DISC) {
+            cover.setRotation(dx / dp(40));
+        }
         cover.setAlpha(1f - Math.min(Math.abs(dx) / dp(420), 0.4f));
     }
 
     private void finishCoverDrag(float dx) {
+        boolean disc = coverStyle == PlayerStyle.COVER_DISC;
         if (Math.abs(dx) < dp(70)) {
-            cover.animate().translationX(0).rotation(0).alpha(1f).setDuration(450).setInterpolator(EMPHASIZED).start();
+            cover.animate().translationX(0).rotation(disc ? cover.getRotation() : 0).alpha(1f).setDuration(450).setInterpolator(EMPHASIZED).start();
             return;
         }
         boolean next = dx < 0;
         float out = (next ? -1 : 1) * layout.getWidth();
         coverAnimating = true;
-        cover.animate().translationX(out).rotation(out / dp(40) / 4f).alpha(0f).setDuration(180).setInterpolator(CubicBezierInterpolator.EASE_IN).withEndAction(() -> {
+        cover.animate().translationX(out).rotation(disc ? cover.getRotation() : out / dp(40) / 4f).alpha(0f).setDuration(180).setInterpolator(CubicBezierInterpolator.EASE_IN).withEndAction(() -> {
             if (next) {
                 MediaController.getInstance().playNextMessage();
             } else {
@@ -1514,7 +1816,9 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
                 MediaController.getInstance().playPreviousMessage();
             }
             cover.setTranslationX(-out * 0.35f);
-            cover.setRotation(0);
+            if (!disc) {
+                cover.setRotation(0);
+            }
             cover.animate().translationX(0).alpha(1f).setDuration(450).setInterpolator(EMPHASIZED).withEndAction(() -> coverAnimating = false).start();
         }).start();
     }
@@ -1557,7 +1861,14 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         headerLabel.setTextColor(c.onSurfaceVariant);
         headerTitle.setTextColor(c.onSurface);
         cover.setColors(c.primaryContainer, c.onPrimaryContainer);
+        cover.setDisc(coverStyle == PlayerStyle.COVER_DISC, c.surface);
         smallCover.setColors(c.primaryContainer, c.onPrimaryContainer);
+        coverScrim.invalidate();
+        layout.invalidate();
+        if (styleEditor != null) {
+            styleEditor.setColors(c);
+            bindEditorColors(c);
+        }
         if (Build.VERSION.SDK_INT >= 28) {
             cover.setOutlineSpotShadowColor(c.shadow());
             cover.setOutlineAmbientShadowColor(c.shadow());
@@ -1580,9 +1891,7 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         controls.prev.setColors(c.primaryContainer, c.onPrimaryContainer, c.primaryContainer, c.onPrimaryContainer);
         controls.next.setColors(c.primaryContainer, c.onPrimaryContainer, c.primaryContainer, c.onPrimaryContainer);
         controls.play.setColors(c.primary, c.onPrimary, c.primary, c.onPrimary);
-        speedButton.setColors(c.surfaceHigh, c.onSurface, c.surfaceHigh, c.onSurface);
-        lyricsButton.setColors(c.surfaceHigh, c.onSurface, c.primary, c.onPrimary);
-        queueButton.setColors(c.surfaceHigh, c.onSurface, c.surfaceHigh, c.onSurface);
+        bindActionColors(c);
         applySystemBars(false);
     }
 
@@ -1609,71 +1918,993 @@ public class PlayerSheet extends BottomSheet implements NotificationCenter.Notif
         }
     }
 
+    private void bindPreview() {
+        titleView.setText(getString(R.string.OEPlayerPreviewTitle));
+        artistView.setText(getString(R.string.OEPlayerPreviewArtist));
+        smallTitle.setText(getString(R.string.OEPlayerPreviewTitle));
+        smallArtist.setText(getString(R.string.OEPlayerPreviewArtist));
+        headerLabel.setText(getString(R.string.OEPlayerFromChat));
+        headerTitle.setText(getString(R.string.SavedMessages));
+        likeButton.setVisibility(PlayerStyle.showLike() ? View.VISIBLE : View.GONE);
+        titleSpacer.setVisibility(PlayerStyle.showLike() && PlayerStyle.titleCentered() ? View.VISIBLE : View.GONE);
+        seekBar.setProgress(0.36f);
+        timeNow.setText(formatTime(78));
+        timeLeft.setText("−" + formatTime(139));
+        controls.setPlaying(true, false);
+        updateModes(false);
+        updateSpeed();
+        layout.setEnabled(false);
+    }
+
+    public void openEditor() {
+        if (editing || closing) {
+            return;
+        }
+        if (lyricsMode) {
+            setLyricsMode(false, false);
+        }
+        if (editorPanel == null) {
+            buildEditor();
+        } else {
+            styleEditor.refresh();
+        }
+        editing = true;
+        editorPanel.setVisibility(View.VISIBLE);
+        root.post(() -> {
+            measureEditor();
+            animateEditor(1f);
+        });
+    }
+
+    public void closeEditor() {
+        if (!editing) {
+            return;
+        }
+        editing = false;
+        if (previewMode) {
+            skipMorph = true;
+            dismiss();
+            return;
+        }
+        animateEditor(0f);
+    }
+
+    private void animateEditor(float target) {
+        if (editorAnimator != null) {
+            editorAnimator.cancel();
+        }
+        editorAnimator = ValueAnimator.ofFloat(editorFraction, target);
+        editorAnimator.addUpdateListener(a -> setEditorFraction((float) a.getAnimatedValue()));
+        editorAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                editorAnimator = null;
+                setEditorFraction(target);
+                if (target == 0f && editorPanel != null) {
+                    editorPanel.setVisibility(View.GONE);
+                }
+            }
+        });
+        editorAnimator.setDuration(420);
+        editorAnimator.setInterpolator(EMPHASIZED);
+        editorAnimator.start();
+    }
+
+    private void measureEditor() {
+        if (editorPanel == null) {
+            return;
+        }
+        int width = root.getWidth();
+        int height = root.getHeight();
+        if (width == 0 || height == 0) {
+            return;
+        }
+        int top = getStatusBarHeight();
+        int panelHeight = Math.max(dp(320), Math.min(height - dp(240), Math.round(height * 0.5f)));
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) editorPanel.getLayoutParams();
+        if (lp.height != panelHeight) {
+            lp.height = panelHeight;
+            editorPanel.setLayoutParams(lp);
+        }
+        float previewHeight = height - panelHeight - top - dp(20);
+        editScale = Math.max(0.2f, Math.min(previewHeight / height, (width - dp(32)) / (float) width));
+        editTop = top + dp(8);
+    }
+
+    private void setEditorFraction(float f) {
+        editorFraction = f;
+        int width = root.getWidth();
+        float s = 1f + (editScale - 1f) * f;
+        if (morphProgress < 0f) {
+            layout.setPivotX(0);
+            layout.setPivotY(0);
+            layout.setScaleX(s);
+            layout.setScaleY(s);
+            layout.setTranslationX((width - width * s) / 2f);
+            layout.setTranslationY(editTop * f);
+        }
+        if (editorPanel != null) {
+            int h = editorPanel.getHeight() > 0 ? editorPanel.getHeight() : editorPanel.getLayoutParams().height;
+            editorPanel.setTranslationY(h * (1f - f));
+        }
+        root.invalidate();
+        layout.invalidate();
+    }
+
+    private void buildEditor() {
+        Context context = getContext();
+        editorPanel = new FrameLayout(context);
+        editorPanel.setClickable(true);
+        float r = dp(28);
+        editorBackground.setCornerRadii(new float[]{r, r, r, r, 0, 0, 0, 0});
+        editorPanel.setBackground(editorBackground);
+
+        FrameLayout bar = new FrameLayout(context);
+        editorTitle = new TextView(context);
+        editorTitle.setText(getString(R.string.OEPlayerStyleTitle));
+        editorTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        editorTitle.setTypeface(AndroidUtilities.bold());
+        editorTitle.setSingleLine(true);
+        editorTitle.setEllipsize(TextUtils.TruncateAt.END);
+        bar.addView(editorTitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 24, 0, 200, 0));
+        editorDone = new TextView(context);
+        editorDone.setText(getString(R.string.Done));
+        editorDone.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        editorDone.setTypeface(AndroidUtilities.bold());
+        editorDone.setGravity(Gravity.CENTER);
+        editorDone.setPadding(dp(18), 0, dp(18), 0);
+        editorDoneBackground.setCornerRadius(dp(20));
+        editorDone.setBackground(editorDoneBackground);
+        editorDone.setOnClickListener(v -> closeEditor());
+        bar.addView(editorDone, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.CENTER_VERTICAL | Gravity.RIGHT, 0, 0, 16, 0));
+        editorReset = new TextView(context);
+        editorReset.setText(getString(R.string.OEPlayerStyleReset));
+        editorReset.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        editorReset.setTypeface(AndroidUtilities.bold());
+        editorReset.setGravity(Gravity.CENTER);
+        editorReset.setPadding(dp(14), 0, dp(14), 0);
+        editorReset.setOnClickListener(v -> {
+            PlayerStyle.reset();
+            styleEditor.refresh();
+            applyStyle(true);
+        });
+        bar.addView(editorReset, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.CENTER_VERTICAL | Gravity.RIGHT, 0, 0, 112, 0));
+        editorPanel.addView(bar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 64, Gravity.TOP, 0, 4, 0, 0));
+
+        ScrollView scroll = new ScrollView(context) {
+            @Override
+            public boolean dispatchTouchEvent(MotionEvent ev) {
+                if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    container.requestDisallowInterceptTouchEvent(true);
+                }
+                return super.dispatchTouchEvent(ev);
+            }
+        };
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        styleEditor = new PlayerStyleEditor(context, colors, () -> applyStyle(true));
+        scroll.addView(styleEditor, new ScrollView.LayoutParams(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        scroll.setClipToPadding(false);
+        scroll.setPadding(0, 0, 0, getBottomInset());
+        editorPanel.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP, 0, 68, 0, 0));
+
+        root.addView(editorPanel, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 320, Gravity.BOTTOM));
+        padEditorPanel();
+        editorPanel.setTranslationY(dp(2000));
+        bindEditorColors(colors);
+    }
+
+    private void bindEditorColors(PlayerColors c) {
+        if (editorPanel == null) {
+            return;
+        }
+        editorBackground.setColor(c.surfaceContainer);
+        editorTitle.setTextColor(c.onSurface);
+        editorDoneBackground.setColor(c.primary);
+        editorDone.setTextColor(c.onPrimary);
+        editorReset.setTextColor(c.primary);
+        editorReset.setBackground(Theme.createSelectorDrawable(c.ripple(), Theme.RIPPLE_MASK_ROUNDRECT_6DP));
+    }
+
+    private void applyStyle(boolean animated) {
+        int style = PlayerStyle.coverStyle();
+        boolean styleChanged = style != coverStyle;
+        if (animated && layout.isLaidOut() && morphProgress < 0f && !styleChanged) {
+            ChangeBounds transition = new ChangeBounds();
+            transition.setDuration(380);
+            transition.setInterpolator(EMPHASIZED);
+            TransitionManager.beginDelayedTransition(layout, transition);
+        }
+        coverStyle = style;
+        blockOrder = PlayerStyle.order();
+        boolean framed = style == PlayerStyle.COVER_CARD || style == PlayerStyle.COVER_DISC;
+        cover.setElevation(framed ? dp(14) : 0);
+        cover.setTranslationZ(0);
+        if (!framed) {
+            cover.setScaleX(1f);
+            cover.setScaleY(1f);
+            cover.setTranslationX(0);
+            cover.setAlpha(1f);
+        }
+        if (style != PlayerStyle.COVER_DISC) {
+            cover.setRotation(0);
+        }
+        if (style == PlayerStyle.COVER_CARD) {
+            cover.setRadius(dp(PlayerStyle.coverRadiusDp()));
+        } else if (style != PlayerStyle.COVER_DISC) {
+            cover.setRadius(0);
+        }
+        cover.setDisc(style == PlayerStyle.COVER_DISC, colors.surface);
+        cover.invalidateOutline();
+        coverScrim.setVisibility(framed ? View.GONE : View.VISIBLE);
+        coverScrim.invalidate();
+
+        int titleSize = PlayerStyle.titleSize();
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleSize == 0 ? 22 : titleSize == 2 ? 31 : 26);
+        artistView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, titleSize == 0 ? 15 : titleSize == 2 ? 17 : 16);
+        titles.setGravity(PlayerStyle.titleCentered() ? Gravity.CENTER_HORIZONTAL : Gravity.START);
+        if (previewMode) {
+            likeButton.setVisibility(PlayerStyle.showLike() ? View.VISIBLE : View.GONE);
+            titleSpacer.setVisibility(PlayerStyle.showLike() && PlayerStyle.titleCentered() ? View.VISIBLE : View.GONE);
+        } else {
+            updateLike(false);
+        }
+        headerCenter.setVisibility(PlayerStyle.showSource() ? View.VISIBLE : View.INVISIBLE);
+        seekBar.setMaxAmplitude(PlayerStyle.wavy() ? dp(4) : 0);
+        controls.setStyle(PlayerStyle.controlsScale(), PlayerStyle.showModes());
+        group.setVisibility(PlayerStyle.showActions() ? View.VISIBLE : View.GONE);
+        applyActionsStyle();
+
+        PlayerColors target = colors;
+        if (PlayerStyle.themeColors()) {
+            target = PlayerColors.fromSeed(fallbackSeed, dark);
+        } else if (current != null) {
+            Integer seed = PlayerArt.cachedSeed(current);
+            target = PlayerColors.fromSeed(seed != null ? seed : fallbackSeed, dark);
+        }
+        if (target.primary != colors.primary || target.surface != colors.surface) {
+            animateColors(target, animated);
+        } else {
+            applyColors(colors);
+        }
+        updateBackdrop();
+        updatePlayState(false);
+        setLyricsFraction(lyricsFraction);
+        layout.requestLayout();
+        layout.invalidate();
+        root.invalidate();
+    }
+
+    private void applyActionsStyle() {
+        islandActions = PlayerStyle.actionsIsland();
+        setActionParams(speedButton, 0);
+        setActionParams(lyricsButton, 4);
+        setActionParams(queueButton, 0);
+        group.setGravity(Gravity.CENTER_VERTICAL);
+        group.setPadding(islandActions ? dp(6) : 0, 0, islandActions ? dp(6) : 0, 0);
+        group.setBackground(islandActions ? islandBackground : null);
+        group.setElevation(islandActions ? dp(2) : 0);
+        lyricsButton.setText(islandActions ? null : getString(R.string.OEPlayerLyrics));
+        queueButton.setText(islandActions ? null : getString(R.string.OEPlayerQueue));
+        lyricsButton.setContentDescription(getString(R.string.OEPlayerLyrics));
+        queueButton.setContentDescription(getString(R.string.OEPlayerQueue));
+        speedButton.setRadius(dp(26), dp(islandActions ? 26 : 8), false);
+        queueButton.setRadius(dp(islandActions ? 26 : 8), dp(26), false);
+        lyricsButton.setRadius(lyricsRadius(lyricsMode), false);
+        updateSpeed();
+        bindActionColors(colors);
+    }
+
+    private void setActionParams(MorphButton button, int marginDp) {
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) button.getLayoutParams();
+        lp.width = islandActions ? dp(44) : 0;
+        lp.height = dp(islandActions ? 44 : 52);
+        lp.weight = islandActions ? 0f : 1f;
+        lp.leftMargin = dp(marginDp);
+        lp.rightMargin = dp(marginDp);
+        button.setLayoutParams(lp);
+    }
+
+    private float lyricsRadius(boolean active) {
+        return dp(islandActions || active ? 26 : 8);
+    }
+
+    private void bindActionColors(PlayerColors c) {
+        islandBackground.setCornerRadius(dp(28));
+        islandBackground.setColor(c.surfaceHigh);
+        int background = islandActions ? 0 : c.surfaceHigh;
+        speedButton.setColors(background, c.onSurface, background, c.onSurface);
+        speedButton.setBadgeColors(c.primary, c.onPrimary);
+        lyricsButton.setColors(background, c.onSurface, c.primary, c.onPrimary);
+        queueButton.setColors(background, c.onSurface, background, c.onSurface);
+    }
+
+    private void updateSpin() {
+        boolean spin = coverStyle == PlayerStyle.COVER_DISC && PlayerStyle.discSpin()
+                && (previewMode || !MediaController.getInstance().isMessagePaused()) && !detached;
+        if (spin) {
+            if (spinAnimator == null) {
+                float from = cover.getRotation() % 360f;
+                spinAnimator = ValueAnimator.ofFloat(from, from + 360f);
+                spinAnimator.setDuration(16000);
+                spinAnimator.setRepeatCount(ValueAnimator.INFINITE);
+                spinAnimator.setInterpolator(null);
+                spinAnimator.addUpdateListener(a -> {
+                    if (!dragActive && !coverAnimating) {
+                        cover.setRotation((float) a.getAnimatedValue());
+                    }
+                });
+                spinAnimator.start();
+            }
+        } else if (spinAnimator != null) {
+            spinAnimator.cancel();
+            spinAnimator = null;
+        }
+    }
+
+    private void updateBackdrop() {
+        boolean need = coverStyle != PlayerStyle.COVER_FULL && PlayerStyle.background() == PlayerStyle.BACKGROUND_BLUR;
+        if (!need) {
+            backdrop = null;
+            backdropKey = null;
+            layout.invalidate();
+            return;
+        }
+        Bitmap source = current != null ? PlayerArt.fileCover(current) : null;
+        if (source == null && cover.getImageReceiver().hasBitmapImage()) {
+            source = cover.getImageReceiver().getBitmap();
+        }
+        String key = currentKey + (source != null ? ":" + source.getWidth() + "x" + source.getHeight() : "");
+        if (source == null) {
+            backdrop = null;
+            backdropKey = null;
+            layout.invalidate();
+            return;
+        }
+        if (TextUtils.equals(key, backdropKey) && backdrop != null) {
+            return;
+        }
+        Bitmap small = PlayerColors.sample(source);
+        if (small == null) {
+            return;
+        }
+        Bitmap blurred = small.isMutable() ? small : small.copy(Bitmap.Config.ARGB_8888, true);
+        if (blurred == null) {
+            return;
+        }
+        try {
+            Utilities.stackBlurBitmap(blurred, Math.max(8, Math.min(blurred.getWidth(), blurred.getHeight()) / 6));
+        } catch (Throwable ignore) {
+        }
+        backdrop = blurred;
+        backdropKey = key;
+        layout.invalidate();
+    }
+
+    private void drawBackdrop(Canvas canvas, int width, int height) {
+        if (coverStyle == PlayerStyle.COVER_FULL) {
+            return;
+        }
+        int mode = PlayerStyle.background();
+        if (mode == PlayerStyle.BACKGROUND_BLUR && backdrop != null && !backdrop.isRecycled()) {
+            int bw = backdrop.getWidth();
+            int bh = backdrop.getHeight();
+            float ratio = width / (float) Math.max(1, height);
+            if (bw / (float) bh > ratio) {
+                int w = Math.max(1, (int) (bh * ratio));
+                int x = (bw - w) / 2;
+                backdropSrc.set(x, 0, x + w, bh);
+            } else {
+                int h = Math.max(1, (int) (bw / ratio));
+                int y = (bh - h) / 2;
+                backdropSrc.set(0, y, bw, y + h);
+            }
+            previewRect.set(0, 0, width, height);
+            backdropPaint.setAlpha(255);
+            canvas.drawBitmap(backdrop, backdropSrc, previewRect, backdropPaint);
+            overlayPaint.setShader(null);
+            overlayPaint.setColor(ColorUtils.setAlphaComponent(colors.surface, colors.dark ? 0xa8 : 0xb4));
+            canvas.drawRect(previewRect, overlayPaint);
+        } else if (mode == PlayerStyle.BACKGROUND_GRADIENT) {
+            int key = colors.primaryContainer * 31 + height;
+            if (backgroundGradient == null || backgroundGradientKey != key) {
+                backgroundGradientKey = key;
+                backgroundGradient = new LinearGradient(0, 0, 0, height * 0.7f,
+                        new int[]{ColorUtils.setAlphaComponent(colors.primaryContainer, 0xd9), ColorUtils.setAlphaComponent(colors.primaryContainer, 0)},
+                        null, Shader.TileMode.CLAMP);
+            }
+            overlayPaint.setShader(backgroundGradient);
+            overlayPaint.setAlpha(255);
+            canvas.drawRect(0, 0, width, height * 0.7f, overlayPaint);
+            overlayPaint.setShader(null);
+        }
+    }
+
+    private class CoverScrim extends View {
+
+        private LinearGradient gradient;
+        private LinearGradient sideGradient;
+        private int gradientKey;
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint extensionPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        private final Paint shadePaint = new Paint();
+        private final Rect extensionSrc = new Rect();
+        private final RectF extensionDst = new RectF();
+        private Bitmap extension;
+        private Bitmap extensionSource;
+        private int extensionKey;
+        private int extensionFadeRows;
+        private LinearGradient shade;
+        private int shadeKey;
+
+        CoverScrim(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onDraw(@NonNull Canvas canvas) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w == 0 || h == 0) {
+                return;
+            }
+            boolean extended = prepareExtension(w, h);
+            drawScrim(canvas, w, h, 1f, extended);
+            if (extended) {
+                drawExtension(canvas, w, h, cover.getAlpha());
+            }
+        }
+
+        void drawMorph(Canvas canvas, RectF bounds, float alpha) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w == 0 || h == 0 || alpha <= 0f) {
+                return;
+            }
+            canvas.save();
+            canvas.translate(bounds.left, bounds.top);
+            canvas.scale(bounds.width() / w, bounds.height() / h);
+            drawScrim(canvas, w, h, alpha, prepareExtension(w, h));
+            canvas.restore();
+        }
+
+        void drawMorphExtension(Canvas canvas, RectF bounds, float alpha) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w == 0 || h == 0 || alpha <= 0f || !prepareExtension(w, h)) {
+                return;
+            }
+            canvas.save();
+            canvas.translate(bounds.left, bounds.top);
+            canvas.scale(bounds.width() / w, bounds.height() / h);
+            drawExtension(canvas, w, h, alpha);
+            canvas.restore();
+        }
+
+        private int extensionBelow(int h) {
+            return Math.max(0, layout.getHeight() - getTop() - h);
+        }
+
+        private int extensionFade(int h) {
+            return Math.min(Math.round(h * 0.22f), dp(120));
+        }
+
+        private boolean prepareExtension(int w, int h) {
+            if (coverStyle != PlayerStyle.COVER_WIDE || !PlayerStyle.coverExtend() || landscape) {
+                return false;
+            }
+            int below = extensionBelow(h);
+            Bitmap source = cover.getImageReceiver().getBitmap();
+            if (below <= 0 || source == null || source.isRecycled() || source.getWidth() <= 0 || source.getHeight() <= 0) {
+                return false;
+            }
+            int key = (w * 31 + h) * 31 + below;
+            if (extension != null && source == extensionSource && key == extensionKey) {
+                return true;
+            }
+            Bitmap built = buildExtension(source, w, h, below);
+            if (built == null) {
+                return false;
+            }
+            extension = built;
+            extensionSource = source;
+            extensionKey = key;
+            return true;
+        }
+
+        private Bitmap buildExtension(Bitmap source, int w, int h, int below) {
+            try {
+                Bitmap src = source;
+                if (Build.VERSION.SDK_INT >= 26 && src.getConfig() == Bitmap.Config.HARDWARE) {
+                    src = src.copy(Bitmap.Config.ARGB_8888, false);
+                    if (src == null) {
+                        return null;
+                    }
+                }
+                int sw = src.getWidth();
+                int sh = src.getHeight();
+                float scale = Math.max(w / (float) sw, h / (float) sh);
+                float visibleW = w / scale;
+                float left = (sw - visibleW) / 2f;
+                float bottom = (sh + h / scale) / 2f;
+                int fade = extensionFade(h);
+                int mirror = Math.max(1, Math.min(below, h / 2));
+                int width = 32;
+                float k = width / (float) w;
+                int fadeRows = Math.max(2, Math.round(fade * k));
+                int mirrorRows = Math.max(2, Math.round(mirror * k));
+                Bitmap out = Bitmap.createBitmap(width, fadeRows + mirrorRows, Bitmap.Config.ARGB_8888);
+                Canvas c = new Canvas(out);
+                Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
+                int srcLeft = Math.max(0, Math.round(left));
+                int srcRight = Math.min(sw, Math.round(left + visibleW));
+                int srcBottom = Math.min(sh, Math.round(bottom));
+                c.drawBitmap(src, new Rect(srcLeft, Math.max(0, Math.round(bottom - fade / scale)), srcRight, srcBottom), new Rect(0, 0, width, fadeRows), p);
+                c.save();
+                c.scale(1f, -1f, 0, fadeRows + mirrorRows / 2f);
+                c.drawBitmap(src, new Rect(srcLeft, Math.max(0, Math.round(bottom - mirror / scale)), srcRight, srcBottom), new Rect(0, fadeRows, width, fadeRows + mirrorRows), p);
+                c.restore();
+                Utilities.stackBlurBitmap(out, Math.max(3, width / 5));
+                Utilities.stackBlurBitmap(out, Math.max(3, width / 5));
+                Paint mask = new Paint();
+                mask.setShader(new LinearGradient(0, 0, 0, fadeRows, 0, 0xff000000, Shader.TileMode.CLAMP));
+                mask.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+                c.drawRect(0, 0, width, fadeRows, mask);
+                extensionFadeRows = fadeRows;
+                return out;
+            } catch (Throwable e) {
+                return null;
+            }
+        }
+
+        private void drawExtension(Canvas canvas, int w, int h, float alpha) {
+            Bitmap bitmap = extension;
+            if (bitmap == null || bitmap.isRecycled() || alpha <= 0f) {
+                return;
+            }
+            int below = extensionBelow(h);
+            int fade = extensionFade(h);
+            int bw = bitmap.getWidth();
+            extensionPaint.setAlpha((int) (255 * alpha));
+            extensionSrc.set(0, 0, bw, extensionFadeRows);
+            extensionDst.set(0, h - fade, w, h);
+            canvas.drawBitmap(bitmap, extensionSrc, extensionDst, extensionPaint);
+            extensionSrc.set(0, extensionFadeRows, bw, bitmap.getHeight());
+            extensionDst.set(0, h, w, h + below);
+            canvas.drawBitmap(bitmap, extensionSrc, extensionDst, extensionPaint);
+            int surface = colors.surface;
+            int key = ((surface * 31 + h) * 31 + below) * 31 + fade;
+            if (shade == null || shadeKey != key) {
+                shadeKey = key;
+                float total = fade + below;
+                float mid = Math.min(below, dp(150));
+                shade = new LinearGradient(0, h - fade, 0, h + below, new int[]{
+                        ColorUtils.setAlphaComponent(surface, 0),
+                        ColorUtils.setAlphaComponent(surface, 0x4d),
+                        ColorUtils.setAlphaComponent(surface, 0xa6),
+                        ColorUtils.setAlphaComponent(surface, 0xcc)
+                }, new float[]{0f, fade / total, (fade + mid) / total, 1f}, Shader.TileMode.CLAMP);
+            }
+            shadePaint.setShader(shade);
+            shadePaint.setAlpha((int) (255 * alpha));
+            canvas.drawRect(0, h - fade, w, h + below, shadePaint);
+        }
+
+        private void drawScrim(Canvas canvas, int w, int h, float alpha, boolean extended) {
+            int surface = colors.surface;
+            boolean full = coverStyle == PlayerStyle.COVER_FULL;
+            int key = (((surface * 31 + h) * 31 + (full ? 1 : 0)) * 31 + (extended ? 1 : 0)) * 31 + (landscape ? columnLeft * 7 + w : 0);
+            if (gradient == null || gradientKey != key) {
+                gradientKey = key;
+                sideGradient = null;
+                if (landscape) {
+                    gradient = new LinearGradient(0, 0, 0, h, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0x8c),
+                            ColorUtils.setAlphaComponent(surface, 0)
+                    }, new float[]{0f, 0.3f}, Shader.TileMode.CLAMP);
+                    float start = full ? Math.max(0f, (columnLeft - dp(180)) / (float) w) : 0.55f;
+                    float end = full ? Math.min(1f, (columnLeft + dp(16)) / (float) w) : 1f;
+                    sideGradient = new LinearGradient(0, 0, w, 0, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0),
+                            full ? ColorUtils.setAlphaComponent(surface, 0xe6) : surface
+                    }, new float[]{start, end}, Shader.TileMode.CLAMP);
+                } else if (full) {
+                    gradient = new LinearGradient(0, 0, 0, h, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0x99),
+                            ColorUtils.setAlphaComponent(surface, 0),
+                            ColorUtils.setAlphaComponent(surface, 0),
+                            ColorUtils.setAlphaComponent(surface, 0xe6),
+                            surface
+                    }, new float[]{0f, 0.2f, 0.36f, 0.7f, 1f}, Shader.TileMode.CLAMP);
+                } else if (extended) {
+                    gradient = new LinearGradient(0, 0, 0, h, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0x8c),
+                            ColorUtils.setAlphaComponent(surface, 0)
+                    }, new float[]{0f, 0.26f}, Shader.TileMode.CLAMP);
+                } else {
+                    gradient = new LinearGradient(0, 0, 0, h, new int[]{
+                            ColorUtils.setAlphaComponent(surface, 0x8c),
+                            ColorUtils.setAlphaComponent(surface, 0),
+                            ColorUtils.setAlphaComponent(surface, 0),
+                            surface
+                    }, new float[]{0f, 0.26f, 0.62f, 1f}, Shader.TileMode.CLAMP);
+                }
+            }
+            paint.setShader(gradient);
+            paint.setAlpha((int) (255 * alpha));
+            canvas.drawRect(0, 0, w, h, paint);
+            if (sideGradient != null) {
+                paint.setShader(sideGradient);
+                paint.setAlpha((int) (255 * alpha));
+                canvas.drawRect(0, 0, w, h, paint);
+            }
+            if (full && lyricsFraction > 0f) {
+                paint.setShader(null);
+                paint.setColor(ColorUtils.setAlphaComponent(surface, (int) (0xb8 * lyricsFraction * alpha)));
+                canvas.drawRect(0, 0, w, h, paint);
+            }
+        }
+    }
+
     private class PlayerLayout extends ViewGroup {
 
-        private int coverSize;
+        private final Rect coverRect = new Rect();
+        private final int[] blockY = new int[3];
+        private int titleY;
+        private int stageTop;
         private int stageHeight;
+        private int stageLeft;
+        private int stageWidth;
+        private int columnWidth;
+        private float gapScale = 1f;
+        private int lastWidth;
+        private int lastHeight;
+        private int padLeft = dp(24);
+        private int padRight = dp(24);
+        private float tapX;
+        private float tapY;
+        private int tapTarget = PlayerStyleEditor.TARGET_NONE;
 
         PlayerLayout(Context context) {
             super(context);
             setClipChildren(false);
             setClipToPadding(false);
+            setChildrenDrawingOrderEnabled(true);
+        }
+
+        @Override
+        protected int getChildDrawingOrder(int childCount, int drawingPosition) {
+            if (coverStyle == PlayerStyle.COVER_CARD || coverStyle == PlayerStyle.COVER_DISC) {
+                return drawingPosition;
+            }
+            int coverIndex = indexOfChild(cover);
+            int scrimIndex = indexOfChild(coverScrim);
+            if (coverIndex < 0 || scrimIndex < 0) {
+                return drawingPosition;
+            }
+            if (drawingPosition == 0) {
+                return coverIndex;
+            }
+            if (drawingPosition == 1) {
+                return scrimIndex;
+            }
+            int index = drawingPosition - 2;
+            for (int i = 0; i < childCount; i++) {
+                if (i == coverIndex || i == scrimIndex) {
+                    continue;
+                }
+                if (index == 0) {
+                    return i;
+                }
+                index--;
+            }
+            return drawingPosition;
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent ev) {
+            if (editing && styleEditor != null && editorFraction >= 1f) {
+                return handleEditorTap(ev);
+            }
+            if (editing || editorFraction > 0f || (previewMode && !isEnabled())) {
+                return false;
+            }
+            return super.dispatchTouchEvent(ev);
+        }
+
+        private boolean handleEditorTap(MotionEvent ev) {
+            switch (ev.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    tapX = ev.getX();
+                    tapY = ev.getY();
+                    tapTarget = editorTargetAt(tapX, tapY);
+                    return tapTarget != PlayerStyleEditor.TARGET_NONE;
+                case MotionEvent.ACTION_MOVE:
+                    float slop = ViewConfiguration.get(getContext()).getScaledTouchSlop() / Math.max(0.2f, getScaleX());
+                    if (Math.abs(ev.getX() - tapX) > slop || Math.abs(ev.getY() - tapY) > slop) {
+                        tapTarget = PlayerStyleEditor.TARGET_NONE;
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    if (tapTarget != PlayerStyleEditor.TARGET_NONE) {
+                        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        styleEditor.focus(tapTarget);
+                    }
+                    tapTarget = PlayerStyleEditor.TARGET_NONE;
+                    return true;
+                default:
+                    tapTarget = PlayerStyleEditor.TARGET_NONE;
+                    return true;
+            }
+        }
+
+        private int editorTargetAt(float x, float y) {
+            if (hit(group, x, y)) {
+                return PlayerStyleEditor.TARGET_ACTIONS;
+            }
+            if (hit(controls, x, y)) {
+                return PlayerStyleEditor.TARGET_CONTROLS;
+            }
+            if (hit(seekBar, x, y) || hit(timeRow, x, y)) {
+                return PlayerStyleEditor.TARGET_PROGRESS;
+            }
+            if (hit(titleRow, x, y)) {
+                return PlayerStyleEditor.TARGET_TITLE;
+            }
+            if (hit(cover, x, y)) {
+                return PlayerStyleEditor.TARGET_COVER;
+            }
+            return PlayerStyleEditor.TARGET_NONE;
+        }
+
+        private boolean hit(View view, float x, float y) {
+            return view.getVisibility() == VISIBLE && x >= view.getLeft() && x < view.getRight()
+                    && y >= view.getTop() && y < view.getBottom();
+        }
+
+        @Override
+        protected void dispatchDraw(@NonNull Canvas canvas) {
+            int w = getWidth();
+            int h = getHeight();
+            boolean clip = editorFraction > 0f;
+            if (clip) {
+                float r = dp(26) / Math.max(0.2f, getScaleX());
+                previewRect.set(0, 0, w, h);
+                previewPath.rewind();
+                previewPath.addRoundRect(previewRect, r, r, Path.Direction.CW);
+                canvas.save();
+                canvas.clipPath(previewPath);
+                overlayPaint.setShader(null);
+                overlayPaint.setColor(colors.surface);
+                canvas.drawRect(previewRect, overlayPaint);
+            }
+            if (!morphUnderlay) {
+                drawBackdrop(canvas, w, h);
+            }
+            super.dispatchDraw(canvas);
+            if (clip) {
+                canvas.restore();
+                float scale = Math.max(0.2f, getScaleX());
+                float r = dp(26) / scale;
+                overlayPaint.setShader(null);
+                overlayPaint.setStyle(Paint.Style.STROKE);
+                overlayPaint.setStrokeWidth(dp(1) / scale);
+                overlayPaint.setColor(ColorUtils.setAlphaComponent(colors.outlineVariant, (int) (255 * editorFraction)));
+                canvas.drawRoundRect(previewRect, r, r, overlayPaint);
+                overlayPaint.setStyle(Paint.Style.FILL);
+            }
+        }
+
+        private int gapBefore(int block) {
+            switch (block) {
+                case PlayerStyle.BLOCK_PROGRESS:
+                    return Math.round(dp(6) * gapScale);
+                case PlayerStyle.BLOCK_CONTROLS:
+                    return Math.round(dp(12) * gapScale);
+                default:
+                    return Math.round(dp(16) * gapScale);
+            }
+        }
+
+        private int heightOf(int block) {
+            switch (block) {
+                case PlayerStyle.BLOCK_PROGRESS:
+                    return dp(40) + timeRow.getMeasuredHeight();
+                case PlayerStyle.BLOCK_CONTROLS:
+                    return controls.getMeasuredHeight();
+                default:
+                    return dp(islandActions ? 56 : 52);
+            }
+        }
+
+        private boolean visible(int block) {
+            return block != PlayerStyle.BLOCK_ACTIONS || group.getVisibility() != GONE;
+        }
+
+        private int lowerHeight() {
+            int sum = 0;
+            for (int block : blockOrder) {
+                if (visible(block)) {
+                    sum += gapBefore(block) + heightOf(block);
+                }
+            }
+            return sum;
+        }
+
+        private void placeLower(int startY) {
+            int y = startY;
+            for (int block : blockOrder) {
+                if (!visible(block)) {
+                    continue;
+                }
+                y += gapBefore(block);
+                blockY[block] = y;
+                y += heightOf(block);
+            }
+        }
+
+        private void computeColumns(int width, int height) {
+            int contentW = Math.max(0, width - padLeft - padRight);
+            landscape = width > height && height < dp(600);
+            gapScale = landscape ? 0.6f : 1f;
+            if (!landscape) {
+                columnLeft = padLeft;
+                columnWidth = contentW;
+                stageLeft = padLeft;
+                stageWidth = contentW;
+                return;
+            }
+            int split = coverStyle == PlayerStyle.COVER_WIDE ? Math.round(width * 0.46f) : padLeft + Math.round(contentW * 0.46f);
+            columnLeft = split + dp(28);
+            columnWidth = Math.max(0, width - padRight - columnLeft);
+            stageLeft = padLeft;
+            stageWidth = Math.max(0, split - padLeft);
+        }
+
+        private void computeLandscape(int width, int height, int headerBottom, int bottom) {
+            int titleH = titleRow.getMeasuredHeight();
+            int areaTop = headerBottom;
+            int areaBottom = height - bottom - dp(16);
+            int areaH = Math.max(0, areaBottom - areaTop);
+            if (titleH + lowerHeight() > areaH) {
+                gapScale = 0.3f;
+            }
+            int column = titleH + lowerHeight();
+            titleY = areaTop + Math.max(0, (areaH - column) / 2);
+            placeLower(titleY + titleH);
+            stageTop = areaTop;
+            stageHeight = areaH;
+            if (coverStyle == PlayerStyle.COVER_FULL) {
+                coverRect.set(0, 0, width, height);
+            } else if (coverStyle == PlayerStyle.COVER_WIDE) {
+                coverRect.set(0, 0, columnLeft - dp(28), height);
+            } else {
+                int size = Math.max(dp(96), Math.round(Math.min(areaH, stageWidth) * PlayerStyle.coverSize()));
+                int left = stageLeft + (stageWidth - size) / 2;
+                int coverTop = areaTop + (areaH - size) / 2;
+                coverRect.set(left, coverTop, left + size, coverTop + size);
+            }
+        }
+
+        private void compute(int width, int height) {
+            int top = getStatusBarHeight();
+            int bottom = getBottomInset();
+            int contentW = Math.max(0, width - padLeft - padRight);
+            int titleH = titleRow.getMeasuredHeight();
+            int headerBottom = top + dp(56);
+            if (landscape) {
+                computeLandscape(width, height, headerBottom, bottom);
+                return;
+            }
+            int bottomY = height - bottom - dp(28);
+            int lower = lowerHeight();
+            int style = coverStyle;
+            if (style == PlayerStyle.COVER_FULL) {
+                coverRect.set(0, 0, width, height);
+                int y = bottomY;
+                for (int i = blockOrder.length - 1; i >= 0; i--) {
+                    int block = blockOrder[i];
+                    if (!visible(block)) {
+                        continue;
+                    }
+                    y -= heightOf(block);
+                    blockY[block] = y;
+                    y -= gapBefore(block);
+                }
+                titleY = y - dp(16) - titleH;
+                stageTop = headerBottom;
+                stageHeight = Math.max(0, y - headerBottom);
+                return;
+            }
+            if (style == PlayerStyle.COVER_WIDE) {
+                int maxH = bottomY - lower - titleH - dp(4);
+                int coverH = Math.max(Math.min(width, dp(180)), Math.min(width * 6 / 5, maxH));
+                coverRect.set(0, 0, width, coverH);
+                titleY = Math.max(coverH + dp(4), bottomY - lower - titleH);
+                stageTop = headerBottom;
+                stageHeight = Math.max(0, titleY + titleH - headerBottom);
+                placeLower(titleY + titleH);
+                return;
+            }
+            int available = bottomY - headerBottom - lower;
+            int coverAvail = available - dp(16) - dp(26) - titleH;
+            int size = Math.max(dp(96), Math.min(Math.round(contentW * PlayerStyle.coverSize()), coverAvail));
+            stageHeight = dp(16) + size + dp(26) + titleH;
+            int free = available - stageHeight;
+            stageTop = headerBottom + Math.max(0, free / 2);
+            int coverTop;
+            if (PlayerStyle.titleAbove()) {
+                titleY = stageTop + dp(16);
+                coverTop = titleY + titleH + dp(22);
+            } else {
+                coverTop = stageTop + dp(16);
+                titleY = coverTop + size + dp(26);
+            }
+            int coverLeft = padLeft + (contentW - size) / 2;
+            coverRect.set(coverLeft, coverTop, coverLeft + size, coverTop + size);
+            placeLower(Math.max(stageTop + stageHeight, bottomY - lower));
         }
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int height = MeasureSpec.getSize(heightMeasureSpec);
-            int top = getStatusBarHeight();
-            int bottom = getBottomInset();
-            int side = dp(24);
-            int contentW = Math.max(0, width - side * 2);
-            int exactW = MeasureSpec.makeMeasureSpec(contentW, MeasureSpec.EXACTLY);
+            padLeft = dp(24) + PlayerSheet.super.getLeftInset();
+            padRight = dp(24) + PlayerSheet.super.getRightInset();
+            int contentW = Math.max(0, width - padLeft - padRight);
+            computeColumns(width, height);
+            int exactW = MeasureSpec.makeMeasureSpec(columnWidth, MeasureSpec.EXACTLY);
             header.measure(MeasureSpec.makeMeasureSpec(contentW + dp(24), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(56), MeasureSpec.EXACTLY));
             seekBar.measure(exactW, MeasureSpec.makeMeasureSpec(dp(40), MeasureSpec.EXACTLY));
             timeRow.measure(exactW, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             controls.measure(exactW, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-            group.measure(exactW, MeasureSpec.makeMeasureSpec(dp(52), MeasureSpec.EXACTLY));
+            group.measure(islandActions ? MeasureSpec.makeMeasureSpec(columnWidth, MeasureSpec.AT_MOST) : exactW,
+                    MeasureSpec.makeMeasureSpec(heightOf(PlayerStyle.BLOCK_ACTIONS), MeasureSpec.EXACTLY));
             titleRow.measure(exactW, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
             bubble.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-            int fixed = dp(56) + dp(6) + dp(40) + timeRow.getMeasuredHeight() + dp(12) + controls.getMeasuredHeight() + dp(52) + dp(28) + dp(16);
-            int available = height - top - bottom - fixed;
-            int titleH = titleRow.getMeasuredHeight();
-            coverSize = Math.max(dp(96), Math.min(contentW, available - dp(16) - dp(26) - titleH));
-            stageHeight = dp(16) + coverSize + dp(26) + titleH;
-            int coverSpec = MeasureSpec.makeMeasureSpec(coverSize, MeasureSpec.EXACTLY);
-            cover.measure(coverSpec, coverSpec);
-            lyricsPanel.measure(exactW, MeasureSpec.makeMeasureSpec(stageHeight, MeasureSpec.EXACTLY));
+            compute(width, height);
+            cover.measure(MeasureSpec.makeMeasureSpec(coverRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(coverRect.height(), MeasureSpec.EXACTLY));
+            coverScrim.measure(MeasureSpec.makeMeasureSpec(coverRect.width(), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(coverRect.height(), MeasureSpec.EXACTLY));
+            lyricsPanel.measure(MeasureSpec.makeMeasureSpec(stageWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(stageHeight, MeasureSpec.EXACTLY));
+            if (coverStyle == PlayerStyle.COVER_DISC) {
+                int r = coverRect.width() / 2;
+                if (cover.getRadius() != r) {
+                    cover.setRadius(r);
+                    cover.invalidateOutline();
+                }
+            }
+            if (lastWidth != width || lastHeight != height) {
+                lastWidth = width;
+                lastHeight = height;
+                backgroundGradient = null;
+                coverScrim.invalidate();
+            }
             setMeasuredDimension(width, height);
         }
 
         @Override
         protected void onLayout(boolean changed, int l, int t, int r, int b) {
-            int width = r - l;
-            int height = b - t;
             int top = getStatusBarHeight();
-            int bottom = getBottomInset();
-            int side = dp(24);
-            int contentW = Math.max(0, width - side * 2);
-            int y = top;
-            header.layout(side - dp(12), y, side - dp(12) + header.getMeasuredWidth(), y + dp(56));
-            y += dp(56);
-            int stageTop = y;
-            int coverLeft = (width - coverSize) / 2;
-            cover.layout(coverLeft, y + dp(16), coverLeft + coverSize, y + dp(16) + coverSize);
-            int titleTop = y + dp(16) + coverSize + dp(26);
-            titleRow.layout(side, titleTop, side + contentW, titleTop + titleRow.getMeasuredHeight());
-            lyricsPanel.layout(side, stageTop, side + contentW, stageTop + stageHeight);
-            y = stageTop + stageHeight + dp(6);
-            seekBar.layout(side, y, side + contentW, y + dp(40));
-            int bubbleTop = y - dp(36);
-            bubble.layout(side, bubbleTop, side + bubble.getMeasuredWidth(), bubbleTop + bubble.getMeasuredHeight());
-            y += dp(40);
-            timeRow.layout(side, y, side + contentW, y + timeRow.getMeasuredHeight());
-            y += timeRow.getMeasuredHeight() + dp(12);
-            controls.layout(side, y, side + contentW, y + controls.getMeasuredHeight());
-            int groupTop = height - bottom - dp(28) - dp(52);
-            group.layout(side, groupTop, side + contentW, groupTop + dp(52));
+            int x = columnLeft;
+            int w = columnWidth;
+            header.layout(padLeft - dp(12), top, padLeft - dp(12) + header.getMeasuredWidth(), top + dp(56));
+            cover.layout(coverRect.left, coverRect.top, coverRect.right, coverRect.bottom);
+            coverScrim.layout(coverRect.left, coverRect.top, coverRect.right, coverRect.bottom);
+            titleRow.layout(x, titleY, x + w, titleY + titleRow.getMeasuredHeight());
+            lyricsPanel.layout(stageLeft, stageTop, stageLeft + stageWidth, stageTop + stageHeight);
+            int seekTop = blockY[PlayerStyle.BLOCK_PROGRESS];
+            seekBar.layout(x, seekTop, x + w, seekTop + dp(40));
+            int bubbleTop = seekTop - dp(36);
+            bubble.layout(x, bubbleTop, x + bubble.getMeasuredWidth(), bubbleTop + bubble.getMeasuredHeight());
+            int timeTop = seekTop + dp(40);
+            timeRow.layout(x, timeTop, x + w, timeTop + timeRow.getMeasuredHeight());
+            int controlsTop = blockY[PlayerStyle.BLOCK_CONTROLS];
+            controls.layout(x, controlsTop, x + w, controlsTop + controls.getMeasuredHeight());
+            if (group.getVisibility() != GONE) {
+                int groupTop = blockY[PlayerStyle.BLOCK_ACTIONS];
+                int groupLeft = x + (w - group.getMeasuredWidth()) / 2;
+                group.layout(groupLeft, groupTop, groupLeft + group.getMeasuredWidth(), groupTop + group.getMeasuredHeight());
+            }
             if (seeking) {
                 layoutBubble();
             }

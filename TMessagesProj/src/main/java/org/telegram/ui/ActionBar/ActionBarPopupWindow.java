@@ -439,6 +439,29 @@ public class ActionBarPopupWindow extends PopupWindow {
         }
 
         @Override
+        public boolean dispatchGenericMotionEvent(MotionEvent event) {
+            return app.regram.input.SPenInput.hover(this, event) || super.dispatchGenericMotionEvent(event);
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            app.regram.input.SPenInput.contact(this, event);
+            return super.dispatchTouchEvent(event);
+        }
+
+        @Override
+        public void onWindowFocusChanged(boolean focused) {
+            if (!focused) app.regram.input.SPenInput.resetHover(this);
+            super.onWindowFocusChanged(focused);
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            app.regram.input.SPenInput.resetHover(this);
+            super.onDetachedFromWindow();
+        }
+
+        @Override
         public boolean dispatchKeyEvent(KeyEvent event) {
             if (mOnDispatchKeyEventListener != null) {
                 mOnDispatchKeyEventListener.onDispatchKeyEvent(event);

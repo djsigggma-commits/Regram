@@ -53,6 +53,7 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
@@ -75,6 +76,7 @@ import androidx.appcompat.view.menu.MenuItemImpl;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.BotWebViewVibrationEffect;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
@@ -411,7 +413,7 @@ public final class FloatingToolbar {
             mParent = parent;
             mContext = context;
             mContentContainer = createContentContainer(context);
-            mPopupWindow = createPopupWindow(mContentContainer);
+            mPopupWindow = createPopupWindow(mContentContainer, mParent);
             mMarginHorizontal = dp(16);
             mMarginVertical = dp(8);
             mLineHeight = dp(48);
@@ -564,7 +566,13 @@ public final class FloatingToolbar {
             cancelOverflowAnimations();
             refreshCoordinatesAndOverflowDirection(contentRectOnScreen);
             preparePopupContent();
-            mPopupWindow.showAtLocation(mParent, Gravity.NO_GRAVITY, mCoordsOnWindow.x, mCoordsOnWindow.y);
+            try {
+                mPopupWindow.showAtLocation(mParent, Gravity.NO_GRAVITY, mCoordsOnWindow.x, mCoordsOnWindow.y);
+            } catch (WindowManager.BadTokenException e) {
+                FileLog.e(e);
+                mDismissed = true;
+                return;
+            }
             setTouchableSurfaceInsetsComputer();
             runShowAnimation();
         }
@@ -1524,8 +1532,20 @@ public final class FloatingToolbar {
         return Theme.getColor(key, resourcesProvider);
     }
 
-    private static PopupWindow createPopupWindow(ViewGroup content) {
+    private static PopupWindow createPopupWindow(ViewGroup content, View focusOwner) {
         ViewGroup popupContentHolder = new LinearLayout(content.getContext()) {
+            @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
+                return app.regram.input.SPenInput.hover(this, event, focusOwner)
+                        || super.dispatchGenericMotionEvent(event);
+            }
+            @Override public void onWindowFocusChanged(boolean focused) {
+                if (!focused) app.regram.input.SPenInput.resetHover(this);
+                super.onWindowFocusChanged(focused);
+            }
+            @Override protected void onDetachedFromWindow() {
+                app.regram.input.SPenInput.resetHover(this);
+                super.onDetachedFromWindow();
+            }
             @Override
             public boolean onInterceptTouchEvent(MotionEvent ev) {
                 return super.onInterceptTouchEvent(ev);
@@ -1547,7 +1567,10 @@ public final class FloatingToolbar {
             private View downRootView = null;
             @Override
             public boolean dispatchTouchEvent(MotionEvent ev) {
+                app.regram.input.SPenInput.contact(this, ev);
                 boolean r = super.dispatchTouchEvent(ev);
+                // A pen hover tap belongs to this popup, not arbitrary windows behind it.
+                if (app.regram.input.SPenInput.isHoverTap()) return r;
                 if (!r) {
                     getLocationOnScreen(p);
                     ev.offsetLocation(p[0], p[1]);

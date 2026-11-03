@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramDocTitle">Doc Viewer</string>
+    <string name="RegramDocEnabled">Открывать документы внутри re:gram</string>
+    <string name="RegramDocPdf">PDF</string>
+    <string name="RegramDocDocs">Документы Office, RTF и письма EML</string>
+    <string name="RegramDocBooks">Книги EPUB и FB2</string>
+    <string name="RegramDocText">Текст, код, JSON, CSV и Jupyter</string>
+    <string name="RegramDocWeb">Markdown, HTML и SVG (без сети)</string>
+    <string name="RegramDocImage">Изображения, отправленные файлом</string>
+    <string name="RegramDocArchive">Содержимое архивов (ZIP и TAR)</string>
+    <string name="RegramDocInvert">Переключить ночной режим PDF / изображений</string>
+    <string name="RegramDocFit">Переключить масштаб: страница / ширина</string>
+    <string name="RegramDocRemember">Запоминать последнюю страницу</string>
+    <string name="RegramDocVolume">Листать кнопками громкости</string>
+    <string name="RegramDocKeepOn">Не гасить экран при просмотре</string>
+    <string name="RegramDocWrap">Переключить перенос длинных строк</string>
+    <string name="RegramDocPrettyJson">Форматировать JSON с отступами</string>
+    <string name="RegramDocCsv">Показывать CSV таблицей</string>
+    <string name="RegramDocSettingsInfo">Нативная интеграция Doc Viewer 2.0.0 от Daxo-Developer / @Daxo_OS, без хуков и загрузки плагина. По умолчанию выключена. Документы Office и книги показываются как текст, без точного воспроизведения вёрстки. HTML не запускает скрипты, не переходит по ссылкам и не загружает сетевые или локальные ресурсы. Архивы только перечисляются: ничего не распаковывается. Форматы изображений зависят от Android. Для повреждённых или слишком больших файлов показывается ошибка; другое приложение можно выбрать явно. Существующие обработчики файлов, темы и установка плагинов сохранены. Защищённые документы нельзя копировать или пересылать из просмотрщика.</string>
+    <string name="RegramDocSearch">Поиск…</string>
+    <string name="RegramDocJump">Перейти к странице…</string>
+    <string name="RegramDocNoMatches">Ничего не найдено</string>
+    <string name="RegramDocFont">Сменить шрифт</string>
+    <string name="RegramDocLarger">Увеличить текст</string>
+    <string name="RegramDocSmaller">Уменьшить текст</string>
+    <string name="RegramDocTheme">Сменить тему: тёмная / светлая / сепия</string>
+    <string name="RegramDocEncoding">Кодировка текста</string>
+    <string name="RegramDocAuto">Автоматически</string>
+    <string name="RegramDocRotate">Повернуть на 90°</string>
+    <string name="RegramDocCopyPage">Копировать страницу</string>
+    <string name="RegramDocCopyAll">Копировать весь текст</string>
+    <string name="RegramDocCopyLimit">Текст слишком большой. Копируйте постранично.</string>
+    <string name="RegramDocSource">Показать исходный код</string>
+    <string name="RegramDocShare">Поделиться файлом…</string>
+    <string name="RegramDocExternal">Открыть в другом приложении…</string>
+    <string name="RegramDocExternalError">Не удалось открыть внешнее приложение</string>
+    <string name="RegramDocInfo">Информация о файле</string>
+    <string name="RegramDocReadError">Не удалось просмотреть файл. Другое приложение можно выбрать в меню.</string>
+    <string name="RegramDocReadProtectedError">Не удалось просмотреть защищённый документ.</string>
+    <string name="RegramDocMemory">Превышен лимит памяти для просмотра</string>
+    <string name="RegramDocUnsupportedImage">Android не смог декодировать этот формат изображения</string>
+</resources>

@@ -94,13 +94,12 @@ def test_updater_and_settings_use_regram_not_renamed_upstream_icons():
 def test_only_explicitly_pinned_plugin_payloads_are_bundled():
     source = ROOT / "TMessagesProj/src/main"
     payloads = {
-        "exitFy_v2.py": "c073c4c6ac6915c36675d7f1eab6cc6e8e8d9e36af0d7fbc352968039c1438a6",
         "custom_profile.py": "466b66b99475f12845828eb9a7c48fd3c21269933fc8354b5e458be580c5314f",
     }
     assert not list(source.rglob("*.plugin"))
     assert {p.name for p in (source / "assets").rglob("*.py")} == set(payloads)
     for name, digest in payloads.items():
         assert hashlib.sha256((source / "assets/regram" / name).read_bytes()).hexdigest() == digest
-    for name in ("BundledExitFy", "BundledCustomProfile"):
+    for name in ("BundledCustomProfile",):
         bridge = (source / "java/app/regram/ui" / f"{name}.java").read_text()
         assert 'installPlugin(staged, false' in bridge

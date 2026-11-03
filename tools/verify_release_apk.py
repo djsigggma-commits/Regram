@@ -74,6 +74,29 @@ def verify_ffmpeg_jni(apk, tools, run=subprocess.run):
         raise ValueError("FFmpeg JNI contract mismatch in release DEX: " + ", ".join(missing))
 
 
+def tgnet_registered_names(source=None):
+    source = Path(source or Path(__file__).resolve().parents[1] / 'TMessagesProj/jni/TgNetWrapper.cpp')
+    names = set(re.findall(r'\{\s*"(native_[A-Za-z0-9_]+)"\s*,', source.read_text()))
+    if not names:
+        raise ValueError('No TgNet JNI registration table found in source')
+    return names
+
+
+def verify_tgnet_native_snapshot(apk):
+    """Reject a stale .so registration table even when Java passed compilation/R8."""
+    expected = tgnet_registered_names()
+    with zipfile.ZipFile(apk) as archive:
+        for name in archive.namelist():
+            if not re.fullmatch(r'lib/[^/]+/libtmessages\.49\.so', name):
+                continue
+            actual = {item.decode('ascii') for item in re.findall(
+                rb'\b(native_[A-Za-z][A-Za-z0-9_]*)\x00', archive.read(name))}
+            if actual != expected:
+                raise ValueError(f'TgNet JNI native snapshot mismatch in {name}: '
+                                 f'missing={sorted(expected - actual)}, '
+                                 f'unexpected={sorted(actual - expected)}')
+
+
 def verify(apk, abi, sdk=None, run=subprocess.run):
     apk = Path(apk)
     sdk = Path(sdk or os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT") or "")
@@ -98,6 +121,7 @@ def verify(apk, abi, sdk=None, run=subprocess.run):
     if "application-debuggable" in badging:
         raise ValueError("Release APK is debuggable")
     verify_ffmpeg_jni(apk, tools, run)
+    verify_tgnet_native_snapshot(apk)
     run([str(tools / "apksigner"), "verify", "--verbose", str(apk)],
         capture_output=True, text=True, check=True)
     return hashlib.sha256(apk.read_bytes()).hexdigest()

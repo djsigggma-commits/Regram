@@ -862,9 +862,13 @@ public class ContentPreviewViewer {
                                 }
                             });
                         } else if (actions.get(which) == 7) {
-                            delegate.editSticker(currentDocument);
+                            if (delegate != null) {
+                                delegate.editSticker(currentDocument);
+                            }
                         } else if (actions.get(which) == 8) {
-                            delegate.deleteSticker(currentDocument);
+                            if (delegate != null) {
+                                delegate.deleteSticker(currentDocument);
+                            }
                         }
                         dismissPopupWindow();
                     }

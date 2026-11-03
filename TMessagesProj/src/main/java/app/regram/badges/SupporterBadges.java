@@ -228,6 +228,27 @@ public final class SupporterBadges {
         });
     }
 
+    /** Badge for canvas-rendered names. Reuse it until configuration changes; release on rebind. */
+    public static Drawable forView(View owner, Drawable current, long userId, int account) {
+        loadCache();
+        BadgeInfo configured = userId > 0 ? ids.get(userId) : null;
+        BadgeAndIcon previous = current instanceof BadgeAndIcon ? (BadgeAndIcon) current : null;
+        boolean dark = Theme.isCurrentThemeDark();
+        if (configured != null && previous != null && previous.account == account
+                && previous.emojiId == configured.emojiId && previous.dark == dark
+                && TextUtils.equals(previous.message, configured.message)) {
+            return previous;
+        }
+        if (previous != null) {
+            previous.release(owner);
+            previous.setCallback(null);
+        }
+        if (configured == null) return null;
+        BadgeAndIcon badge = new BadgeAndIcon(owner, null, account, configured.emojiId, dark, configured.message);
+        badge.setCallback(owner);
+        return badge;
+    }
+
     /** Don't share a badge drawable (and its view lifecycle) during chat-to-profile transitions. */
     public static Drawable withoutBadge(Drawable drawable) {
         return drawable instanceof BadgeAndIcon ? ((BadgeAndIcon) drawable).original : drawable;
@@ -254,7 +275,7 @@ public final class SupporterBadges {
         private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable animatedIcon;
         private final int gap = AndroidUtilities.dp(5);
 
-        BadgeAndIcon(SimpleTextView name, Drawable original, int account, long emojiId, boolean dark, String message) {
+        BadgeAndIcon(View name, Drawable original, int account, long emojiId, boolean dark, String message) {
             this.original = original;
             this.emojiId = emojiId;
             this.account = account;
@@ -277,7 +298,7 @@ public final class SupporterBadges {
             }
         }
 
-        void release(SimpleTextView name) {
+        void release(View name) {
             if (animatedIcon != null) {
                 name.removeOnAttachStateChangeListener(this);
                 animatedIcon.detach();

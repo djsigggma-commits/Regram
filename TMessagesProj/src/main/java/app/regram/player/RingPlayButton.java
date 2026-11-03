@@ -39,6 +39,7 @@ public class RingPlayButton extends View {
     private float phase;
     private long lastFrame;
     private float drawnProgress = -1f;
+    private boolean ringVisible = true;
 
     public RingPlayButton(Context context, int radiusDp, float strokeDp, int iconDp, float amplitudeDp, int waves) {
         super(context);
@@ -68,6 +69,15 @@ public class RingPlayButton extends View {
         invalidate();
     }
 
+    public void setRingVisible(boolean visible) {
+        if (ringVisible == visible) {
+            return;
+        }
+        ringVisible = visible;
+        lastFrame = 0;
+        invalidate();
+    }
+
     public void setPlaying(boolean value, boolean animated) {
         if (playing == value && alt.target == (value ? 1f : 0f)) {
             return;
@@ -83,7 +93,7 @@ public class RingPlayButton extends View {
     }
 
     public void progressChanged() {
-        if (amplitude > 0f) {
+        if (!ringVisible || amplitude > 0f) {
             return;
         }
         MessageObject mo = message;
@@ -105,7 +115,7 @@ public class RingPlayButton extends View {
         float dt = lastFrame == 0 ? 0.016f : Math.min(0.05f, (now - lastFrame) / 1000f);
         lastFrame = now;
         boolean animating = alt.step(dt);
-        float targetAmp = playing && !LiteMode.isPowerSaverApplied() ? maxAmplitude : 0f;
+        float targetAmp = ringVisible && playing && !LiteMode.isPowerSaverApplied() ? maxAmplitude : 0f;
         amplitude += (targetAmp - amplitude) * (1f - (float) Math.pow(0.85, dt / 0.04f));
         if (Math.abs(amplitude - targetAmp) < dpf2(0.03f)) {
             amplitude = targetAmp;
@@ -115,11 +125,13 @@ public class RingPlayButton extends View {
         }
         float cx = getWidth() / 2f;
         float cy = getHeight() / 2f;
-        canvas.drawCircle(cx, cy, radius, trackPaint);
+        if (ringVisible) {
+            canvas.drawCircle(cx, cy, radius, trackPaint);
+        }
         MessageObject mo = message;
         float progress = mo != null ? Math.max(0f, Math.min(1f, mo.audioProgress)) : 0f;
         drawnProgress = progress;
-        float sweep = 360f * progress;
+        float sweep = ringVisible ? 360f * progress : 0f;
         if (sweep > 0.5f) {
             ringPaint.setColor(ringColor);
             if (amplitude == 0f) {

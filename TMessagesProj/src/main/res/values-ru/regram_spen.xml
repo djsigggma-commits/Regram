@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramSPenTitle">S Pen</string>
+    <string name="RegramSPenEnabled">Включить жесты S Pen</string>
+    <string name="RegramSPenInstant">Выделять текст с зажатой кнопкой пера</string>
+    <string name="RegramSPenDouble">Двойное касание выделяет весь текст</string>
+    <string name="RegramSPenMessages">Выбирать сообщения свайпом по фону</string>
+    <string name="RegramSPenHover">Нажатие кнопкой при наведении</string>
+    <string name="RegramSPenInfo">Зажмите кнопку пера для выделения текста или проведите по фону рядом с сообщениями. Дважды коснитесь того же сообщения с зажатой кнопкой для выделения всего текста. При наведении нажмите и отпустите кнопку, чтобы выполнить касание в позиции пера. Требуется совместимое перо; Bluetooth Air Actions не поддерживаются. Защищённый текст не выделяется. По умолчанию выключено. Отключите исходный плагин, если он установлен. По S-Pen Support 1.6.0 от @huecoder.</string>
+</resources>

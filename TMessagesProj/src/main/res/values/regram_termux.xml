@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramTermuxTitle">Termux Bridge</string>
+    <string name="RegramTermuxEnabled">Enable local server</string>
+    <string name="RegramTermuxPair">Connect Termux</string>
+    <string name="RegramTermuxPort">Port</string>
+    <string name="RegramTermuxRestart">Restart server</string>
+    <string name="RegramTermuxTest">Test overlay</string>
+    <string name="RegramTermuxEndpoint">AI endpoint (HTTPS)</string>
+    <string name="RegramTermuxKey">API key</string>
+    <string name="RegramTermuxModel">Model</string>
+    <string name="RegramTermuxExtra">Additional AI instructions</string>
+    <string name="RegramTermuxAiTest">Test AI connection (server must be enabled)</string>
+    <string name="RegramTermuxDocs">Copy AI documentation</string>
+    <string name="RegramTermuxExec">Allow in-process Python and Java</string>
+    <string name="RegramTermuxRotate">Revoke connections / regenerate token</string>
+    <string name="RegramTermuxPairInfo">Copy this command into Termux, then run tgb. The link works once and expires in 5 minutes. Keep the link and ~/.tgbridge/tgbridge.py private. Do not install the old plugin alongside the built-in bridge.</string>
+    <string name="RegramTermuxEnableWarning">The server accepts authenticated commands on 127.0.0.1. Other Android apps can reach localhost: anyone who gets the token can display overlays, copy text and use your configured AI API. Enable only if you need Termux integration.</string>
+    <string name="RegramTermuxExecWarning">Trusted scripts only! Python and Java run with all re:gram permissions and can access every account, messages, files and credentials. This is not a sandbox. Revocation blocks new requests but cannot undo or safely terminate running scripts. Continue?</string>
+    <string name="RegramTermuxRotateWarning">All bridge connections, panels and Java handles will be closed. Termux must be paired again. This cannot stop arbitrary code that is already running.</string>
+    <string name="RegramTermuxInfo">Native integration of Termux Bridge 1.0.0 by @S1mclick, without hooks or plugin loading. Works while the re:gram activity is alive; Android may stop the process in the background. No system overlay permission is required. AI sends your prompt and recent tgb conversation to your chosen endpoint; no messages are collected automatically. API key and token are stored in private app preferences, not encrypted separately. Never run untrusted or unchecked AI-generated code.</string>
+</resources>

@@ -104,7 +104,7 @@ private:
     void requestSaltsForDatacenter(Datacenter *datacenter, bool media, bool useTempConnection);
     void clearRequestsForDatacenter(Datacenter *datacenter, HandshakeType type);
     void registerForInternalPushUpdates();
-    void processRequestQueue(uint32_t connectionType, uint32_t datacenterId);
+    void processRequestQueue(uint32_t connectionType, uint32_t datacenterId, Connection *connectedDownload = nullptr);
     void authorizeOnMovingDatacenter();
     void authorizedOnMovingDatacenter();
     Datacenter *getDatacenterWithId(uint32_t datacenterId);
@@ -175,6 +175,7 @@ private:
     int32_t nextSleepTimeout = CONNECTION_BACKGROUND_KEEP_TIME;
     int64_t lastPauseTime = 0;
     int64_t lastMonotonicPauseTime = 0;
+    int64_t backgroundPauseTime = 0;
     int32_t lastSystemPauseTime = 0;
     ConnectionState connectionState = ConnectionStateConnecting;
     std::unique_ptr<ByteArray> movingAuthorization;

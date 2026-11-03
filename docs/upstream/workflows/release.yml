@@ -106,11 +106,10 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || inputs.publish) && !contains(github.event.head_commit.message, '[skip publish]') }}
         env:
           GH_TOKEN: ${{ github.token }}
-          COMMITS_JSON: ${{ toJSON(github.event.commits) }}
         run: |
           SHORT=$(echo "$GITHUB_SHA" | cut -c1-7)
           TAG="ci-$SHORT"
-          NOTES=$(echo "$COMMITS_JSON" | jq -r 'if type == "array" then map("• " + (.message | split("\n")[0])) | join("\n") else "" end')
+          NOTES=$(jq -r '(.commits // []) | map("• " + (.message | split("\n")[0])) | join("\n")' "$GITHUB_EVENT_PATH")
           if [ -z "$NOTES" ]; then
             NOTES="CI build $SHORT"
           fi
@@ -131,7 +130,6 @@ jobs:
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           COMMIT_SHA: ${{ github.sha }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          COMMITS_JSON: ${{ toJSON(github.event.commits) }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "$TG_BOT_TOKEN" ] || [ -z "$TG_API_ID" ] || [ -z "$TG_API_HASH" ] || [ -z "$TG_CHAT_ID" ]; then

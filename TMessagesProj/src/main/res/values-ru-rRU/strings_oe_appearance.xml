@@ -137,4 +137,5 @@
     <string name="OEAppearanceHidingInfo">Истории, кнопки, вкладки и AI-функции</string>
     <string name="OEAppearanceHidingInChats">В чатах</string>
     <string name="OEAppearanceHidingAiPremium">AI и Premium</string>
+    <string name="OEKillApp">Закрыть приложение</string>
 </resources>

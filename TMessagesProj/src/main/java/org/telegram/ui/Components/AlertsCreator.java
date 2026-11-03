@@ -2545,7 +2545,7 @@ public class AlertsCreator {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context, resourcesProvider);
 
         final CheckBoxCell[] cell = new CheckBoxCell[1];
-        final boolean[] value = new boolean[1];
+        final boolean[] value = new boolean[] { false };
 
         final TextView messageTextView = new TextView(context) {
             @Override
@@ -8276,7 +8276,11 @@ public class AlertsCreator {
                 }
                 // --- AyuGram hook
                 if (!ids.isEmpty()) {
+                    if (keepLocally[0]) {
+                        AyuState.keepDeletedMessages(thisDialogId, ids);
+                    }
                     MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, thisDialogId, topicId, deleteForAll[0], mode);
+                    AyuState.releaseKeptMessages(thisDialogId);
                 }
                 for (MessageObject msg: ephemeralMessages) {
                     MessagesController.getInstance(currentAccount).deleteEphemeralMessage(thisDialogId, topicId, msg);
@@ -8315,7 +8319,12 @@ public class AlertsCreator {
                         });
                     }
                     // --- AyuGram hook
-                    MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, (a == 1 && mergeDialogId != 0) ? mergeDialogId : thisDialogId, topicId, deleteForAll[0], mode);
+                    long targetDialogId = (a == 1 && mergeDialogId != 0) ? mergeDialogId : thisDialogId;
+                    if (keepLocally[0]) {
+                        AyuState.keepDeletedMessages(targetDialogId, ids);
+                    }
+                    MessagesController.getInstance(currentAccount).deleteMessages(ids, random_ids, encryptedChat, targetDialogId, topicId, deleteForAll[0], mode);
+                    AyuState.releaseKeptMessages(targetDialogId);
                     selectedMessages[a].clear();
                 }
             }

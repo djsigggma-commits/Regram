@@ -39,6 +39,10 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
+-keep class org.telegram.utils.code.highlight.PrismaHighlighter {
+    private static native <methods>;
+}
+
 # https://developers.google.com/ml-kit/known-issues#android_issues
 -keep class com.google.mlkit.nl.languageid.internal.ThickLanguageIdentifier { *; }
 
@@ -77,6 +81,9 @@
 # Keep all classes of Apache Commons
 -keep class org.apache.commons.text.** { *; }
 -dontwarn org.apache.commons.text.**
+# Optional Commons Compress codec, never used by Doc Viewer (explicit rejecting factory).
+# Do not bundle zstd-jni: ZIP previews only decode STORED/DEFLATED document parts.
+-dontwarn com.github.luben.zstd.ZstdInputStream
 
 # Prevent proguard from stripping interface information from TypeAdapter, TypeAdapterFactory,
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
@@ -191,6 +198,8 @@
 # Всё ниже достижимо только из Python через рефлексию Chaquopy, для статического
 # анализатора это мёртвый код. minifyEnabled в релизе вырезал бы его целиком.
 -keep class app.regram.plugins.** { *; }
+# Built-in Termux exec helper calls these public Java APIs through Chaquopy.
+-keep class app.regram.termux.** { *; }
 -keep class app.regram.settings.utils.** { *; }
 -keep class app.regram.utils.text.** { *; }
 -keep class app.regram.pillstack.** { *; }
@@ -241,3 +250,8 @@
 -keep class * extends com.sun.jna.Structure { *; }
 -dontwarn java.awt.**
 -dontwarn com.sun.jna.**
+
+-keep class org.telegram.ui.Wallet.WalletPluginFreeze {
+    static boolean frozen;
+    static int bridgeState();
+}

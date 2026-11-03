@@ -314,6 +314,10 @@ public class ChatActivityEnterView extends FrameLayout implements
     public interface ChatActivityEnterViewDelegate {
         default void beforeMessageSend(CharSequence message, boolean notify, int scheduleDate, long payStars) {}
 
+        default boolean onEditLastMessage() {
+            return false;
+        }
+
         default void onEditTextScroll() {}
 
         default void onContextMenuOpen() {}
@@ -719,7 +723,8 @@ public class ChatActivityEnterView extends FrameLayout implements
 
     private boolean destroyed;
 
-    private MessageObject editingMessageObject;
+    public MessageObject editingMessageObject;
+    private app.regram.chats.DeletedReplyQuote.Prefix editingQuotePrefix;
     private boolean editingCaption;
 
     private TL_account.TL_businessChatLink editingBusinessLink;
@@ -3749,9 +3754,7 @@ public class ChatActivityEnterView extends FrameLayout implements
 
                 oldSendButton.setVisibility(View.GONE);
             }
-            if (paidMessagesPrice > 0 || isLiveComment) {
-                sendButton.setStarsPrice(paidMessagesPrice, 1);
-            }
+            sendButton.setStarsPrice(paidMessagesPrice, 1);
             updateFieldRight(lastAttachVisible);
         }
         if (isLiveComment) {
@@ -5602,6 +5605,16 @@ public class ChatActivityEnterView extends FrameLayout implements
                 });
                 sendWhenOnlineButton = options.getLast();
             }
+            if (!self && slowModeTimer > 0 && slowModeTimer < Integer.MAX_VALUE - 1) {
+                options.add(R.drawable.msg_recent, getString(R.string.OESendAfterSlowMode), () -> {
+                    int now = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
+                    sendMessageInternal(true, Math.max(slowModeTimer + 1, now + 15), 0, 0, true);
+                    if (messageSendPreview != null) {
+                        messageSendPreview.dismiss(false);
+                        messageSendPreview = null;
+                    }
+                });
+            }
         }
 
         if (parentFragment != null && delegate != null && ChatObject.isMonoForum(parentFragment.getCurrentChat())) {
@@ -6733,8 +6746,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                         }
                     }
                     return true;
-                } else if (keyCode == KeyEvent.KEYCODE_ENTER && !keyEvent.isShiftPressed() && (sendByEnter ? !keyEvent.isCtrlPressed() : keyEvent.isCtrlPressed()) && keyEvent.getAction() == KeyEvent.ACTION_DOWN && editingMessageObject == null) {
-                    sendMessage();
+                } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP && keyEvent.getAction() == KeyEvent.ACTION_DOWN && keyEvent.hasNoModifiers() && editingMessageObject == null && messageEditText != null && messageEditText.length() == 0 && delegate != null && delegate.onEditLastMessage()) {
+                    return true;
+                } else if (keyCode == KeyEvent.KEYCODE_ENTER && !keyEvent.isShiftPressed() && (sendByEnter ? !keyEvent.isCtrlPressed() : keyEvent.isCtrlPressed()) && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+                    if (editingMessageObject != null) {
+                        doneEditingMessage();
+                    } else {
+                        sendMessage();
+                    }
                     return true;
                 }
                 return false;
@@ -6748,8 +6767,12 @@ public class ChatActivityEnterView extends FrameLayout implements
                     sendMessage();
                     return true;
                 } else if (keyEvent != null && i == EditorInfo.IME_NULL) {
-                    if (!keyEvent.isShiftPressed() && (sendByEnter ? !keyEvent.isCtrlPressed() : keyEvent.isCtrlPressed()) && keyEvent.getAction() == KeyEvent.ACTION_DOWN && editingMessageObject == null) {
-                        sendMessage();
+                    if (!keyEvent.isShiftPressed() && (sendByEnter ? !keyEvent.isCtrlPressed() : keyEvent.isCtrlPressed()) && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+                        if (editingMessageObject != null) {
+                            doneEditingMessage();
+                        } else {
+                            sendMessage();
+                        }
                         return true;
                     }
                 }
@@ -7047,6 +7070,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     status.setOnCancelListener((__) -> {
                         cancel.set(true);
                     });
+                    status.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
                     status.show();
                 }
 
@@ -7063,6 +7087,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     status.dismiss();
                     AlertUtil.showTransFailedDialog(parentActivity, unsupported, message, () -> {
                         status = AlertUtil.showProgress(parentActivity);
+                        status.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
                         status.show();
                         Translator.translateWithContext(target, origin, new ArrayList<>(), null, provider, this);
                     });
@@ -7080,6 +7105,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                         cancel.set(true);
                     });
 
+                    status.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
                     status.show();
 
                 }
@@ -7096,6 +7122,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                     status.dismiss();
                     AlertUtil.showTransFailedDialog(parentActivity, unsupported, message, () -> {
                         status = AlertUtil.showProgress(parentActivity);
+                        status.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
                         status.show();
                         Translator.translate(target, origin, 0, this);
                     });
@@ -8503,6 +8530,7 @@ public class ChatActivityEnterView extends FrameLayout implements
     }
 
     protected boolean sendMessageInternal(boolean notify, int scheduleDate, int scheduleRepeatPeriod, long payStars, boolean allowConfirm, SendMessageInternalParams internalParams) {
+        if (app.regram.privacy.BotAccountRouter.guardComposer(parentFragment, currentAccount, dialog_id)) return true;
         final boolean allowConfirmFinal = allowConfirm && !animatorEphemeralMessageVisibility.getValue();
 
         final Runnable send = () -> {
@@ -8957,6 +8985,17 @@ public class ChatActivityEnterView extends FrameLayout implements
             return;
         }
         ArrayList<TLRPC.MessageEntity> entities = MediaDataController.getInstance(currentAccount).getEntities(message, supportsSendingNewEntities());
+        if (editingQuotePrefix != null) {
+            if (withMarkdown) {
+                entities = editingQuotePrefix.prependEntities(message[0], entities);
+                message[0] = editingQuotePrefix.prepend(message[0]);
+            } else {
+                String plain = messageEditText.getText().toString();
+                entities = editingQuotePrefix.prependEntities(plain, null);
+                message[0] = editingQuotePrefix.prepend(plain);
+                withMarkdown = true;
+            }
+        }
         if (!TextUtils.equals(message[0], editingMessageObject.messageText) || entities != null && !entities.isEmpty() || !editingMessageObject.messageOwner.entities.isEmpty() || editingMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaWebPage) {
             editingMessageObject.editingMessage = withMarkdown ? message[0] : messageEditText.getText().toString();
             editingMessageObject.editingMessageEntities = withMarkdown ? entities : new ArrayList<>();
@@ -11287,6 +11326,7 @@ public class ChatActivityEnterView extends FrameLayout implements
         createMessageEditText();
         boolean hadEditingMessage = editingMessageObject != null;
         editingMessageObject = messageObject;
+        editingQuotePrefix = null;
         editingCaption = caption;
         CharSequence textToSetWithKeyboard;
         if (editingMessageObject != null) {
@@ -11395,6 +11435,15 @@ public class ChatActivityEnterView extends FrameLayout implements
 
                 ArrayList<TLRPC.MessageEntity> entities = editingMessageObject.messageOwner.entities;
                 textToSetWithKeyboard = applyMessageEntities(entities, editingText, fontMetricsInt);
+                app.regram.chats.DeletedReplyQuote.Prefix quotePrefix = app.regram.chats.DeletedReplyQuote.prefix(currentAccount, editingMessageObject);
+                if (quotePrefix != null && textToSetWithKeyboard.length() >= quotePrefix.text.length()
+                        && TextUtils.equals(textToSetWithKeyboard.subSequence(0, quotePrefix.text.length()).toString(), quotePrefix.text)) {
+                    int quoteLength = quotePrefix.text.length();
+                    int cut = quoteLength < textToSetWithKeyboard.length() && textToSetWithKeyboard.charAt(quoteLength) == '\n' ? quoteLength + 1 : quoteLength;
+                    textToSetWithKeyboard = new SpannableStringBuilder(textToSetWithKeyboard, cut, textToSetWithKeyboard.length());
+                    editingQuotePrefix = quotePrefix;
+                    currentLimit = Math.max(0, currentLimit - quotePrefix.text.codePointCount(0, quoteLength) - 1);
+                }
             } else {
                 textToSetWithKeyboard = "";
             }
@@ -14797,8 +14846,11 @@ public class ChatActivityEnterView extends FrameLayout implements
         return emojiViewVisible || botKeyboardViewVisible;
     }
 
-    public boolean isPersistentBotKeyboardShowing() {
-        return isPopupShowing() && currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD && botReplyMarkup != null && botReplyMarkup.is_persistent;
+    public boolean canHidePopupByBackButton() {
+        if (!isPopupShowing()) {
+            return false;
+        }
+        return !(currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD && botReplyMarkup != null && botReplyMarkup.is_persistent && botButtonsMessageObject != null);
     }
 
     public boolean closeCreationLinkDialog(boolean invoked) {

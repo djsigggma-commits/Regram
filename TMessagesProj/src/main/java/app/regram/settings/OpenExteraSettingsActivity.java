@@ -24,6 +24,7 @@ import tw.nekomimi.nekogram.ui.cells.HeaderCell;
 public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
 
     private static final int MENU_CLOUD = 1;
+    private static final int MENU_SEARCH = 2;
 
     private static final int TYPE_ABOUT = 100;
 
@@ -32,6 +33,7 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
     private int categoriesHeaderRow;
     private int generalRow;
     private int appearanceRow;
+    private int regramFeaturesRow;
     private int chatsRow;
     private int pluginsRow;
     private int otherRow;
@@ -46,6 +48,7 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
         categoriesHeaderRow = addRow("categoriesHeader");
         generalRow = addRow("general");
         appearanceRow = addRow("appearance");
+        regramFeaturesRow = addRow("regramFeatures", "RegramFeatures");
         chatsRow = addRow("chats");
         pluginsRow = addRow("plugins");
         otherRow = addRow("other");
@@ -76,7 +79,9 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                             android.view.Gravity.TOP));
         }
         if (actionBar != null) {
-            actionBar.createMenu().addItem(MENU_CLOUD, R.drawable.cloud_sync, getResourceProvider());
+            final org.telegram.ui.ActionBar.ActionBarMenu menu = actionBar.createMenu();
+            menu.addItem(MENU_SEARCH, R.drawable.outline_header_search, getResourceProvider());
+            menu.addItem(MENU_CLOUD, R.drawable.cloud_sync, getResourceProvider());
             actionBar.setActionBarMenuOnItemClick(new org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick() {
                 @Override
                 public void onItemClick(int id) {
@@ -84,6 +89,8 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                         finishFragment();
                     } else if (id == MENU_CLOUD) {
                         presentFragment(new OpenExteraCloudActivity());
+                    } else if (id == MENU_SEARCH) {
+                        showSettingsSearchDialog();
                     }
                 }
             });
@@ -157,6 +164,8 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
             presentFragment(new OpenExteraGeneralActivity());
         } else if (position == appearanceRow) {
             presentFragment(new OpenExteraAppearanceActivity());
+        } else if (position == regramFeaturesRow) {
+            presentFragment(new RegramFeaturesActivity());
         } else if (position == chatsRow) {
             presentFragment(new OpenExteraChatsActivity());
         } else if (position == pluginsRow) {
@@ -202,6 +211,8 @@ public class OpenExteraSettingsActivity extends BaseNekoSettingsActivity {
                         cell.setTextAndIcon(getString(R.string.OpenExteraGeneral), R.drawable.msg_media, true);
                     } else if (position == appearanceRow) {
                         cell.setTextAndIcon(getString(R.string.OpenExteraAppearance), R.drawable.msg_theme, true);
+                    } else if (position == regramFeaturesRow) {
+                        cell.setTextAndIcon(getString(R.string.RegramFeatures), R.drawable.msg_theme, true);
                     } else if (position == chatsRow) {
                         cell.setTextAndIcon(getString(R.string.OpenExteraChats), R.drawable.msg_discussion, true);
                     } else if (position == pluginsRow) {

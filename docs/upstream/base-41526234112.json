@@ -1,0 +1,1452 @@
+{
+  "actions_run": "https://github.com/exteraless/exteraless/actions/runs/41526234112",
+  "upstream_commit": "4771c553fee84618f8fa8dfc034c9e85317c2c72",
+  "previous_commit": "8b7ec40ecada6ab3cfcc24e9f3d8ae262c02de63",
+  "archive_sha256": "e1a1888bcf862dba45aab01f623b667ee94675377f45f0d744069384e659ad02",
+  "base_version": "13.1.1",
+  "base_version_code": 7237,
+  "api_layer": 232,
+  "gitlinks": {
+    "TMessagesProj/chaquopy": "eab341a401913ac50254ff20e9efeebeaae872ef",
+    "TMessagesProj/jni/tgcalls": "1398c1648f52666b3249111ec3c5b531946e41e4",
+    "TMessagesProj/jni/third_party/absl": "54fac219c4ef0bc379dfffb0b8098725d77ac81b",
+    "TMessagesProj/jni/third_party/boost-regex": "4cbcd3078e6ae10d05124379623a1bf03fcb9350",
+    "TMessagesProj/jni/third_party/dav1d": "54706fc6bc0cdecab7e9593974a4039cc038fca7",
+    "TMessagesProj/jni/third_party/ffmpeg": "45f1910444f34b02621f9f0426ea1a538a613c41",
+    "TMessagesProj/jni/third_party/libprisma": "31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d",
+    "TMessagesProj/jni/third_party/libvpx": "1024874c5919305883187e2953de8fcb4c3d7fa6",
+    "TMessagesProj/jni/third_party/wamr": "25bd7eb63e828e4bd242cc9b38d260b4b31c6605",
+    "TMessagesProj/jni/third_party/xiph/ogg": "be05b13e98b048f0b5a0f5fa8ce514d56db5f822",
+    "TMessagesProj/jni/third_party/xiph/opus": "22244de5a79bd1d6d623c32e72bf1954b56235be",
+    "TMessagesProj/jni/third_party/xiph/opusfile": "a55c164e9891a9326188b7d4d216ec9a88373739",
+    "TMessagesProj/jni/tlottie": "31f1b542f88e7b4be9a01e749920d857535fc715",
+    "TMessagesProj/jni/wallet-engine": "5c65e47cb8d68727c20d89382d0bc51292486b9a",
+    "TMessagesProj/lib/jlatexmath": "f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4",
+    "TMessagesProj_Modules/media": "09b6c97c0d691c50cd4541e1573995d4066d6f5c"
+  },
+  "delta": [
+    {
+      "path": "TMessagesProj/build.gradle",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/jni/audio.c",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/image.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/CMakeLists.txt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/org_telegram_messenger_voip_Instance.cpp",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/api/peer_connection_interface.cc",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/api/peer_connection_interface.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/p2p/base/ice_transport_internal.cc",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/pc/peer_connection.cc",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/pc/peer_connection.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/pc/peer_connection_internal.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/voip/webrtc/pc/sdp_offer_answer.cc",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_amoled.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_amoled_gram.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_dark.attheme",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_dark_gram.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_light.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_light_gram.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_0.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_1.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_2.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_3.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_4.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_5.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_6.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_0_7.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_0.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_1.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_2.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_3.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_4.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_5.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_6.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/face_1_7.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/finish_dark.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/finish_light.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/grain.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/groove_across.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/groove_along.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_0.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_1.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_2.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_3.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_4.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_5.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_6.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_dark_7.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_0.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_1.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_2.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_3.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_4.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_5.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_6.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_light_7.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_info_mask.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_0.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_1.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_2.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_3.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_4.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_5.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_6.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_dark_7.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_0.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_1.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_2.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_3.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_4.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_5.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_6.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_light_7.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/icon_qr_mask.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/qr_brush_dark.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/wallet_card_2d/qr_brush_light.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/components/ProfileMusicCard.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/crash/CrashLog.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/MorphButton.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/OnlineLyrics.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerIcon.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerQueueSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerSheet.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerStyle.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerStyleEditor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginsController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/menus/MenuInjector.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginInstallBottomSheet.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginsInfoActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/xposed/HookGate.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/xposed/XposedHooks.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/privacy/BotAccountPolicy.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/privacy/BotAccountRouter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/privacy/BotStartDeduplicator.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraChatsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraGeneralActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/exteragram/messenger/preferences/appearance/components/FilterTabsPreviewCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/radolyn/ayugram/proprietary/AyuHistoryHook.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/AppGlobalConfig.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/AudioRecorderV2Controller.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/FileLoadOperation.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/RichMessageLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/RichQuote.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/UserObject.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/Utilities.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/browser/Browser.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/utils/tlutils/TlUtils.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/TLRPC.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_bots.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_communities.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_stars.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_wallet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/AlertDialog.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheetTabDialog.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/AudioRecorderSettingsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/CameraScanActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatUnreadCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/TextSelectionHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertGramLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/LoadingSpan.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/PasscodeView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/GLIconTextureView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/GLProgramCache.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/GLIcon/WalletDiamondTextureView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/StarParticlesView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/boosts/UserSelectorBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileBalanceView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileGalleryBlurView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/QrColorsPanel.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/QuoteHighlight.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsLayoutInBubble.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RoundVideoSettings.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ShareAlert.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/TelegramRoundVideoUpload.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/DocumentSelectActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Gifts/GiftMessageBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Gifts/GiftSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Gifts/ProfileGiftsContainer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Gifts/SendGiftSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LinkManager.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/MessageSendPreview.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/OrientationController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PeerColorActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity2.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileStoriesCollectionTabs.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/Backdrops.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/EmojiPickOverlay.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrBackdrops.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrCodeLayer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrEmojiPanel.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrGiftSymbol.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrGlass.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrRender.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrScanOverlay.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareServer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrShareView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/QrStarDrawable.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/RimPainter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrShare/RimTune.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/RoundVideoSettingsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/GiftOfferSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/MessageSuggestionOfferSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/StarGiftSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/StarGiftUniqueActionLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsIntroActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/StatisticActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/HintView2.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/TopicsFragment.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/TwoStepVerificationActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/TwoStepVerificationSetupActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/CollectibleCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWalletTonConnect.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/NewBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/ProfileWalletCardDialog.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/TransactionCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletActionLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCard2DMaterial.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCard2DView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardComponent.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardMotion.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardProjection.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletDiamondSprite.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletGiftCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletGiftPalette.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletGiftStickers.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletKeysBackupFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletQrDiamond.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSearchTabs.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendEnterAmount.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendSelectSender.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletSendTransition.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletStickerOutline.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletTransactionAmountView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/bots/BotVerifySheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/bots/BotWebViewAttachedSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/bots/BotWebViewSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/audio/AudioCapture.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/audio/AudioNoiseSuppressor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/audio/AudioRecorderDiagnostics.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/audio/AudioRecorderNative.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/audio/AudioRecordingSession.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCodecRecorder.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoDiagnostics.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoGlProcessor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoMp4Writer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoOverlayRenderer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoRemuxer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoSession.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoSwitchTimingStore.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/settings/SharedSettings.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/SettingsHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/app/regram/appearance/AppearanceConfig.kt",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/app/regram/chats/ChatsConfig.kt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/app/regram/general/GeneralConfig.kt",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/elyx_runtime/loader.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/elyx_runtime/namespace.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/audit_gate.py",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/plugin_loader.py",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_card_add.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_card_color.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_card_color_28.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_card_remove.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_gift_send.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/filled_wallet_move.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/menu_hide_from_profile.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/menu_show_on_profile.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/mini_gram_72_white.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/profile_balance_gram.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/profile_balance_gram_color.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable/wallet_card_diamond.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-hdpi/msg_qr_scan.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-mdpi/msg_qr_scan.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-xhdpi/msg_qr_scan.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-xxhdpi/msg_qr_scan.webp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/raw/qr_resistance_dog.json",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/raw/wallet_gift_trash.json",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_bot_privacy.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_chats.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_plugins.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_general.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_bot_privacy.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_plugins.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj_Modules/media3/effect/.gitkeep",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj_Modules/media3/exoplayer.gradle",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj_Modules/media3/test-utils/.gitkeep",
+      "mode": "upstream"
+    },
+    {
+      "path": "docs/bot-privacy-plan.md",
+      "mode": "upstream"
+    },
+    {
+      "path": "docs/bot-privacy.md",
+      "mode": "upstream"
+    },
+    {
+      "path": "gradle.properties",
+      "mode": "conflict"
+    },
+    {
+      "path": "settings.gradle",
+      "mode": "merged"
+    },
+    {
+      "path": "tests/bot_privacy/BotAccountPolicyTest.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/bot_privacy/BotStartDeduplicatorTest.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_bot_privacy.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_elyx_namespace.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_message_bubble_layout.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_sdk_nx_port.py",
+      "mode": "merged"
+    },
+    {
+      "path": "tests/test_send_preview_focus.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_storage_gate.py",
+      "mode": "upstream"
+    }
+  ],
+  "deletions": [
+    {
+      "path": "TMessagesProj/src/main/assets/codelng.gzip",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/QrActivity.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoSwitchTimingStore.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoSession.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoMp4Writer.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoGlProcessor.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoRemuxer.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoOverlayRenderer.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCodecRecorder.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoDiagnostics.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/utils/camera/roundvideo/RoundVideoCameraController.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardFrameHistory.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardView.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardFlecks.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCard3D.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletCardGLRenderer.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/nowplaying/ProfileMusicMark.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/nowplaying/LastFmNowPlaying.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/nowplaying/ProfileMusicStamp.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/nowplaying/ZeroWidthCodec.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/nowplaying/LastFmWebFetcher.java",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card_back.binobj",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card.binobj",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card_edge.binobj",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card.obj",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/models/card_front.binobj",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_content_fragment.glsl",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_fragment.glsl",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_diamond_fragment.glsl",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/shaders/wallet_card_vertex.glsl",
+      "mode": "deleted"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/drawable-nodpi/wallet_card_diamond.webp",
+      "mode": "deleted"
+    }
+  ],
+  "workflow_policy": "No upstream workflow delta; re:gram CI retained.",
+  "manual_resolution": [
+    "ApplicationLoader: retain initialization and add OOM report",
+    "MediaController: retain Glyph and new recorder branch; normalize namespace despite embedded NUL",
+    "GeneralConfig: retain notification delay and add bot privacy; remove Last.fm with upstream",
+    "gradle.properties: upstream version with re:gram package and independent version",
+    "monet_dark.attheme: key-wise merge retaining local overrides",
+    "ChatMessageCell: use isOutOwnerForLayout for the new rich quote highlight"
+  ]
+}

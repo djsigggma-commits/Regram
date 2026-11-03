@@ -20,6 +20,7 @@
 #include <string>
 #include <cinttypes>
 #include "ConnectionsManager.h"
+#include "DownloadRequestBudget.h"
 #include "FileLog.h"
 #include "EventObject.h"
 #include "MTProtoScheme.h"
@@ -258,10 +259,11 @@ void ConnectionsManager::select() {
 
     if (lastPauseTime != 0 && llabs(now - lastPauseTime) >= nextSleepTimeout) {
         bool dontSleep = !requestingSaltsForDc.empty();
+        bool keepForGeneric = backgroundPauseTime != 0 && llabs(now - backgroundPauseTime) < CONNECTION_BACKGROUND_PENDING_KEEP_TIME;
         if (!dontSleep) {
             for (auto & runningRequest : runningRequests) {
                 Request *request = runningRequest.get();
-                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload) {
+                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload || (keepForGeneric && request->connectionType & ConnectionTypeGeneric && !request->cancelled)) {
                     dontSleep = true;
                     break;
                 }
@@ -270,7 +272,7 @@ void ConnectionsManager::select() {
         if (!dontSleep) {
             for (auto & iter : requestsQueue) {
                 Request *request = iter.get();
-                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload) {
+                if (request->connectionType & ConnectionTypeDownload || request->connectionType & ConnectionTypeUpload || (keepForGeneric && request->connectionType & ConnectionTypeGeneric && !request->cancelled)) {
                     dontSleep = true;
                     break;
                 }
@@ -287,7 +289,7 @@ void ConnectionsManager::select() {
             return;
         } else {
             lastPauseTime = now;
-            if (LOGS_ENABLED) DEBUG_D("don't sleep because of salt, upload or download request");
+            if (LOGS_ENABLED) DEBUG_D("don't sleep because of salt, upload, download or pending generic request");
         }
     }
     if (networkPaused) {
@@ -822,7 +824,8 @@ void ConnectionsManager::onConnectionConnected(Connection *connection) {
             if (networkPaused && lastPauseTime != 0) {
                 lastPauseTime = getCurrentTimeMonotonicMillis();
             }
-            processRequestQueue(connection->getConnectionType(), datacenter->getDatacenterId());
+            processRequestQueue(connectionType, datacenter->getDatacenterId(),
+                                connectionType == ConnectionTypeDownload ? connection : nullptr);
         }
     }
 }
@@ -985,6 +988,13 @@ void ConnectionsManager::onConnectionDataReceived(Connection *connection, Native
             if (processedStatus == 2) {
                 if (object == nullptr) {
                     connection->recreateSession();
+                    for (auto & runningRequest : runningRequests) {
+                        Request *request = runningRequest.get();
+                        Datacenter *requestDatacenter = getDatacenterWithId(request->datacenterId);
+                        if (request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
+                            request->clear(true);
+                        }
+                    }
                     connection->reconnect();
                     return;
                 } else {
@@ -1125,7 +1135,10 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
             for (auto & runningRequest : runningRequests) {
                 Request *request = runningRequest.get();
                 Datacenter *requestDatacenter = getDatacenterWithId(request->datacenterId);
-                if (request->messageId < response->first_msg_id && request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
+                // A new download session says nothing about requests on sibling sockets.
+                bool sameDownloadConnection = connection->getConnectionType() != ConnectionTypeDownload ||
+                                              (request->connectionType >> 16) == connection->getConnectionNum();
+                if (sameDownloadConnection && request->messageId < response->first_msg_id && request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
                     if (LOGS_ENABLED) DEBUG_D("clear request %p - %s", request->rawRequest, typeid(*request->rawRequest).name());
                     request->clear(true);
                 }
@@ -1158,6 +1171,13 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
             if (processedStatus == 2) {
                 if (innerMessage->unparsedBody != nullptr) {
                     connection->recreateSession();
+                    for (auto & runningRequest : runningRequests) {
+                        Request *request = runningRequest.get();
+                        Datacenter *requestDatacenter = getDatacenterWithId(request->datacenterId);
+                        if (request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
+                            request->clear(true);
+                        }
+                    }
                     connection->reconnect();
                     return;
                 }
@@ -1595,7 +1615,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                 }
 
                 if (realId != 0) {
-                    auto time = (int64_t) (messageId / 4294967296.0 * 1000);
+                    auto time = (int64_t) (realId / 4294967296.0 * 1000);
                     int64_t currentTime = getCurrentTimeMillis();
                     timeDifference = (int32_t) ((time - currentTime) / 1000 - currentPingTime / 2);
                 }
@@ -2451,7 +2471,12 @@ inline void addMessageToDatacenter(uint32_t datacenterId, NetworkMessage *networ
 #define MAX_DOWNLOAD_REQUESTS 16 * 2
 #define MAX_UPLOAD_REQUESTS 10 * 3
 
-void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t dc) {
+static uint32_t getDownloadSize(Request *request) {
+    auto apiRequest = dynamic_cast<TL_api_request *>(request->rawRequest);
+    return apiRequest != nullptr ? apiRequest->downloadSize : 0;
+}
+
+void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t dc, Connection *connectedDownload) {
     genericMessagesToDatacenters.clear();
     genericMediaMessagesToDatacenters.clear();
     tempMessagesToDatacenters.clear();
@@ -2590,7 +2615,10 @@ void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t 
 
         uint32_t requestConnectionType = request->connectionType & 0x0000ffff;
 
-        bool forceThisRequest = (connectionTypes & requestConnectionType) && requestDatacenter->getDatacenterId() == dc;
+        // Opening one download socket must not resend requests on its siblings.
+        // Salt/session recovery calls without a socket still apply to the whole DC.
+        bool forceThisRequest = (connectionTypes & requestConnectionType) && requestDatacenter->getDatacenterId() == dc &&
+                                (connectedDownload == nullptr || connection == connectedDownload);
 
         if (typeInfo == typeid(TL_get_future_salts)) {
             if (request->messageId != 0) {
@@ -2706,6 +2734,16 @@ void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t 
             }
         }
         iter++;
+    }
+
+    // Snapshot after retries/migrations, which can remove or requeue requests.
+    // No persistent reservations to leak on cancellation or DC changes.
+    DownloadRequestBudget downloadBudget(currentUserPremium);
+    for (const auto &request : runningRequests) {
+        if (!request->cancelled && (request->connectionType & 0xffff) == ConnectionTypeDownload) {
+            uint32_t datacenterId = request->datacenterId == DEFAULT_DATACENTER_ID ? currentDatacenterId : request->datacenterId;
+            downloadBudget.account(datacenterId, (request->requestFlags & RequestFlagSmallDownload) != 0, getDownloadSize(request.get()));
+        }
     }
 
     Connection *genericConnection = nullptr;
@@ -2834,7 +2872,9 @@ void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t 
 
         Connection *connection = requestDatacenter->getConnectionByType(request->connectionType, true, canUseUnboundKey);
 
-        if (request->connectionType & ConnectionTypeGeneric && connection->getConnectionToken() == 0) {
+        // Keep budgeted chunks queued until the socket is ready. Otherwise they
+        // are buffered here and then sent again by onConnectionConnected.
+        if (((request->connectionType & ConnectionTypeGeneric) || getDownloadSize(request) != 0) && connection->getConnectionToken() == 0) {
             iter++;
             continue;
         }
@@ -2865,6 +2905,15 @@ void ConnectionsManager::processRequestQueue(uint32_t connectionTypes, uint32_t 
                         DEBUG_D("skip queue, token = %d: download type: network unavailable", request->requestToken);
                     continue;
                 }
+                uint32_t bytes = getDownloadSize(request);
+                if (bytes != 0) {
+                    if (!downloadBudget.acquire(datacenterId, (request->requestFlags & RequestFlagSmallDownload) != 0, bytes)) {
+                        iter++;
+                        continue;
+                    }
+                    break;
+                }
+                // Non-opted-in requests retain the original count-based scheduling.
                 int max;
                 if (request->isCancelRequest()) {
                     max = MAX_DOWNLOAD_REQUESTS_CANCELS;
@@ -3825,6 +3874,7 @@ void ConnectionsManager::resumeNetwork(bool partial) {
         } else {
             lastPauseTime = 0;
             lastMonotonicPauseTime = 0;
+            backgroundPauseTime = 0;
             lastSystemPauseTime = 0;
             networkPaused = false;
             if (LOGS_ENABLED) DEBUG_D("wakeup network account%u", instanceNum);
@@ -3845,7 +3895,7 @@ void ConnectionsManager::pauseNetwork() {
     if (lastPauseTime != 0) {
         return;
     }
-    lastMonotonicPauseTime = lastPauseTime = getCurrentTimeMonotonicMillis();
+    backgroundPauseTime = lastMonotonicPauseTime = lastPauseTime = getCurrentTimeMonotonicMillis();
     lastSystemPauseTime = getCurrentTime();
     saveConfig();
 }

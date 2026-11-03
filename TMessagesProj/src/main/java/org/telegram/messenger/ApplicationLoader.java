@@ -317,6 +317,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
         }
         SharedPrefsHelper.init(applicationContext);
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(AndroidUtil.shouldEnableCrashlytics());
+        Utilities.globalQueue.postRunnable(app.regram.crash.CrashLog::reportOutOfMemory);
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             UserConfig.getInstance(a).loadConfig();
             if (a != UserConfig.selectedAccount && !UserConfig.getInstance(a).isClientActivated()) continue;
@@ -411,7 +412,8 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
         try {
             ConnectionsManager.native_setJava(false);
         } catch (UnsatisfiedLinkError error) {
-            throw new RuntimeException("can't load native libraries " +  Build.CPU_ABI + " lookup folder " + NativeLoader.getAbiFolder());
+            throw new RuntimeException("can't load native libraries " + Build.CPU_ABI
+                    + " lookup folder " + NativeLoader.getAbiFolder() + "\n" + NativeLoader.log, error);
         }
         new ForegroundDetector(this) {
             @Override
@@ -910,6 +912,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
     private void installCrashReportFilter() {
         Thread.UncaughtExceptionHandler crashlyticsHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, error) -> {
+            app.regram.plugins.PluginsWatchdog.onUncaughtException(error);
             app.regram.crash.CrashLog.record(thread, error);
             if (AndroidUtil.shouldReportCrashToCrashlytics(error)) {
                 if (crashlyticsHandler != null) {

@@ -1,0 +1,900 @@
+{
+  "actions_run": "https://github.com/exteraless/exteraless/actions/runs/39628177709",
+  "upstream_commit": "8b7ec40ecada6ab3cfcc24e9f3d8ae262c02de63",
+  "previous_commit": "1ad6a60a6834ffca722b1a22f4fba27ecb29a061",
+  "archive_sha256": "3efec65f81408a1e875ad5bf81dea33f4c6701414923b5829c3318a96351984b",
+  "base_version": "13.0.2",
+  "base_version_code": 7175,
+  "gitlinks": {
+    "TMessagesProj/chaquopy": "eab341a401913ac50254ff20e9efeebeaae872ef",
+    "TMessagesProj/jni/tgcalls": "ccbb57965020768c94f5b205ea08547a7e0fe49d",
+    "TMessagesProj/jni/third_party/absl": "54fac219c4ef0bc379dfffb0b8098725d77ac81b",
+    "TMessagesProj/jni/third_party/boost-regex": "4cbcd3078e6ae10d05124379623a1bf03fcb9350",
+    "TMessagesProj/jni/third_party/dav1d": "54706fc6bc0cdecab7e9593974a4039cc038fca7",
+    "TMessagesProj/jni/third_party/ffmpeg": "45f1910444f34b02621f9f0426ea1a538a613c41",
+    "TMessagesProj/jni/third_party/libprisma": "31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d",
+    "TMessagesProj/jni/third_party/libvpx": "1024874c5919305883187e2953de8fcb4c3d7fa6",
+    "TMessagesProj/jni/third_party/wamr": "25bd7eb63e828e4bd242cc9b38d260b4b31c6605",
+    "TMessagesProj/jni/third_party/xiph/ogg": "be05b13e98b048f0b5a0f5fa8ce514d56db5f822",
+    "TMessagesProj/jni/third_party/xiph/opus": "22244de5a79bd1d6d623c32e72bf1954b56235be",
+    "TMessagesProj/jni/third_party/xiph/opusfile": "a55c164e9891a9326188b7d4d216ec9a88373739",
+    "TMessagesProj/jni/tlottie": "31f1b542f88e7b4be9a01e749920d857535fc715",
+    "TMessagesProj/jni/wallet-engine": "5c65e47cb8d68727c20d89382d0bc51292486b9a",
+    "TMessagesProj/lib/jlatexmath": "f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4",
+    "TMessagesProj_Modules/media": "c430d207677071b1873f9f18266d55ec45722180"
+  },
+  "delta": [
+    {
+      "path": ".github/scripts/send_apk.py",
+      "mode": "upstream"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/ConnectionsManager.cpp",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/ConnectionsManager.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/jni/tgnet/Defines.h",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/proguard-rules.pro",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/AndroidManifest.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_amoled.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_amoled_gram.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_dark.attheme",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_dark_gram.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_light.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/assets/monet_light_gram.attheme",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/ai/AiConfig.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/ai/TelegramAiReplacement.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/ai/ui/AiSettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/appearance/Material3SwitchHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/backup/EtgBackup.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/chats/DeletedReplyQuote.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/chats/DoubleTapCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/components/QRCodeSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/crash/CrashLog.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/crash/CrashReportDialog.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/DrawerContainer.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/DrawerMenuItemView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/MainMenuHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/drawer/MainMenuItem.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/feed/ui/FeedActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/notifications/NotificationsHelper.kt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/BasePill.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/CachePill.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/GhostPill.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/LastSeenPill.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/ProxyPill.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/RatePill.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/TelemetryPill.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/pillstack/pills/WeatherPill.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/ControlsRow.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/CoverImage.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerColors.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerIcon.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerMiniView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerSheet.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerStyle.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerStyleEditor.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/RingPlayButton.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/WavySeekBar.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginInstallHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginServices.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginSinkGate.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginsBackup.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginsConstants.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginsController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PluginsWatchdog.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/PythonPluginsEngine.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/files/FilesControllerJava.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/intents/IntentsDispatcher.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginActivityLogActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginInstallBottomSheet.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginSettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/components/PluginCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/components/PluginSettingsLinkDelegate.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/utils/ClassProxyFactory.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/xposed/XposedHooks.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraAppearanceActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraAyuMomentsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraChatsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraSettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/utils/FaveStickersBackup.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/radolyn/ayugram/messages/AyuDeletedDialogs.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/radolyn/ayugram/messages/AyuMessagesController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/radolyn/ayugram/messages/AyuSavePreferences.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/radolyn/ayugram/utils/AyuGhostUtils.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/com/radolyn/ayugram/utils/AyuState.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/CodeHighlighting.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/LiteMode.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/LruCache.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessageObject.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/RichMessageLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/tgnet/tl/TL_bots.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheetTabDialog.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ArticleViewer.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/AvatarPreviewer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageUnsupportedCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/StickerSetNameCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/TextSelectionHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/UserInfoCell.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AnimatedFileDrawable.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/AnimatedTextView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/Painting.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/ShaderSet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/Texture.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/Views/MaskPaintView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/Views/StickerMakerView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/PremiumPreviewBottomSheet.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileGalleryBlurView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/TableLayout.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateAlert2.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/UItem.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/UniversalAdapter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ContentPreviewViewer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ExternalActionActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/LiteModeSettingsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stories/PeerStoriesView.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Stories/StoryViewer.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Wallet/WalletPluginFreeze.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/filters/AyuFilter.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/filters/ReactionFilter.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/MessageHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/SettingsBackupHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/SettingsHelper.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/TimeStringHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/TypefaceHelper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/menu/saveDeleted/SaveExclusionPopupWrapper.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/settings/BaseNekoSettingsActivity.java",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/settings/NekoChatSettingsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/settings/NekoGeneralSettingsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/settings/NekoSettingsActivity.java",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/app/regram/appearance/AppearanceConfig.kt",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/app/regram/chats/ChatsConfig.kt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/xyz/nextalone/nagram/NaConfig.kt",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/kotlin/xyz/nextalone/nagram/helper/DoubleTap.kt",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/base_plugin.py",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/elyx_runtime/metadata.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/elyx_runtime/settings.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/capability_scan.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/plugin_loader.py",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/plugin_settings.py",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/drawables.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_nax.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe.xml",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_ai.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_appearance.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_chats.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_plugins.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_ai.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_appearance.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_general.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ar/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe.xml",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_ai.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_appearance.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-es-rES/strings_nax.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_nax.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe.xml",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_ai.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_appearance.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-pl-rPL/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_nax.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe.xml",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_ai.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_appearance.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_plugins.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_nax.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe.xml",
+      "mode": "conflict"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_ai.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_appearance.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_chats.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_general.xml",
+      "mode": "merged"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_player.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-zh-rCN/strings_oe_plugins.xml",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_elyx_archive.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_plugin_settings_types.py",
+      "mode": "upstream"
+    },
+    {
+      "path": "tests/test_sdk_nx_port.py",
+      "mode": "merged"
+    }
+  ],
+  "deletions": [],
+  "workflow_policy": "Upstream .github delta archived under docs/upstream; re:gram CI retained.",
+  "theme_local_overrides": [
+    "chat_editMediaButton",
+    "dialogFloatingButton",
+    "dialogFloatingButtonPressed",
+    "dialogFloatingIcon"
+  ]
+}

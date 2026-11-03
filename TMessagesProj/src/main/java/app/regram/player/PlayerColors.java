@@ -147,7 +147,8 @@ public final class PlayerColors {
     public static int noCoverSeed(Theme.ResourcesProvider resourcesProvider) {
         Integer override = PlayerColorOverride.currentColor();
         if (override != null) return override;
-        if (Build.VERSION.SDK_INT >= 31) {
+        Theme.ThemeInfo theme = Theme.getActiveTheme();
+        if (Build.VERSION.SDK_INT >= 31 && theme != null && theme.isMonet()) {
             Integer monet = MonetHelper.getColorOrNull("a1_500");
             if (monet != null && Color.alpha(monet) != 0) {
                 return monet | 0xff000000;

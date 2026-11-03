@@ -29,7 +29,7 @@ class RegramIntegrationTests(unittest.TestCase):
     def test_credits_are_reachable_and_source_handles_are_preserved(self):
         credits = (JAVA / "app/regram/ui/RegramCreditsActivity.java").read_text()
         root = (JAVA / "app/regram/settings/OpenExteraSettingsActivity.java").read_text()
-        other = (JAVA / "app/regram/settings/OpenExteraOtherActivity.java").read_text()
+        other = (JAVA / "app/regram/settings/RegramFeaturesActivity.java").read_text()
         for name in ("@ihufe", "@lime_2612", "@atb_ptzhn", "@croweer",
                      "@nagramxf", "@exteraless", "@inugram", "@exteragram", "@ayugram"):
             self.assertIn('"' + name + '"', credits)
@@ -92,7 +92,7 @@ class RegramIntegrationTests(unittest.TestCase):
         config = (JAVA / "tw/nekomimi/nekogram/NekoConfig.java").read_text()
         options = re.findall(r'ConfigItem (regram\w+) = addConfig\("(Regram\w+)", configTypeBool, false\)', config)
         # Native visual controls have their own policy/UI tests (array-backed settings).
-        native_visual = {"regramMonoColor", "regramMonoGradient", "regramAllLeft", "regramAllLeftPrivate", "regramMentionAvatars", "regramPlayerColor", "regramQuickTheme"}
+        native_visual = {"regramMonoColor", "regramMonoGradient", "regramAllLeft", "regramAllLeftPrivate", "regramMentionAvatars", "regramPlayerColor", "regramQuickTheme", "regramQuickHideNavigationBackdrop"}
         options = [(field, key) for field, key in options if field not in native_visual]
         self.assertEqual(len(options), 10)
         destinations = {

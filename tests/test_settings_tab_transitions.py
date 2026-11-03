@@ -35,12 +35,16 @@ def test_keyboard_does_not_restart_fragment_open_transition():
     open_fragment = layout.split("public boolean presentFragment(NavigationParams params)", 1)[1].split(
         "private boolean shouldOpenFragmentOverlay", 1
     )[0]
-    keyboard_ready = open_fragment.split("waitingForKeyboardCloseRunnable = new Runnable()", 1)[1]
-    no_delay = keyboard_ready.split("if (noDelay) {", 1)[1].split(
-        "} else if (delayedOpenAnimationRunnable != null)", 1
+    # Upstream no longer waits for the IME: no second callback may restart opening.
+    assert "waitingForKeyboardCloseRunnable = new Runnable()" not in open_fragment
+    assert "private Runnable waitingForKeyboardCloseRunnable" not in layout
+    assert "currentFragment.saveKeyboardPositionBeforeTransition()" in open_fragment
+    animation = open_fragment.split("if (animation == null) {", 1)[1].split(
+        "currentAnimation = animation;", 1
     )[0]
-    assert "startLayoutAnimation(true, true, preview)" in no_delay
-    assert "onTransitionAnimationStart" not in no_delay
+    immediate = animation.split("AndroidUtilities.runOnUIThread(delayedOpenAnimationRunnable, 200);", 1)[1]
+    assert "startLayoutAnimation(true, true, preview)" in immediate
+    assert "onTransitionAnimationStart" not in immediate
 
 
 def test_settings_do_not_reanimate_all_rows_on_first_open():

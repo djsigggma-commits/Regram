@@ -146,4 +146,5 @@
     <string name="OEAppearanceHidingInfo">Stories, buttons, tabs and AI features</string>
     <string name="OEAppearanceHidingInChats">In Chats</string>
     <string name="OEAppearanceHidingAiPremium">AI and Premium</string>
+    <string name="OEKillApp">Close App</string>
 </resources>

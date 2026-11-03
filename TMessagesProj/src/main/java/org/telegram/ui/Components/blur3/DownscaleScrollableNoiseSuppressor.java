@@ -133,6 +133,7 @@ public class DownscaleScrollableNoiseSuppressor {
         }
 
         public void setPrimaryEffectBlur(float radius) {
+            if (radius <= 0) { setPrimaryEffect(null); return; }
             final float downsampledRadiusX = downscaleRadius(radius, scaleX);
             final float downsampledRadiusY = downscaleRadius(radius, scaleY);
             setPrimaryEffect(RenderEffect.createBlurEffect(
@@ -143,6 +144,7 @@ public class DownscaleScrollableNoiseSuppressor {
         }
 
         public void setPrimaryEffectBlur(float radius, RenderEffect secondEffect) {
+            if (radius <= 0) { setPrimaryEffect(secondEffect); return; }
             final float downsampledRadiusX = downscaleRadius(radius, scaleX);
             final float downsampledRadiusY = downscaleRadius(radius, scaleY);
 
@@ -369,6 +371,7 @@ public class DownscaleScrollableNoiseSuppressor {
         int updatedCount = 0;
         for (int a = 0; a < rectRenderNodesCount; a++) {
             final SourcePart sourcePart = rectRenderNodes.get(a);
+            sourcePart.updateQuickBlur();
             final Rect position = sourcePart.position;
             tmpRectF.set(position);
 
@@ -428,6 +431,23 @@ public class DownscaleScrollableNoiseSuppressor {
             }
         }
 
+
+        private int quickBlurPercent = -1;
+
+        private void updateQuickBlur() {
+            int percent = app.regram.appearance.QuickTheme.blurPercent();
+            if (quickBlurPercent == percent) return;
+            quickBlurPercent = percent;
+            float scale = percent / 100f;
+            if (isLiquidGlassEnabled) {
+                renderNodesForGlass.setPrimaryEffectBlur(dpf2(6f) * scale, RenderNodeEffects.getSaturationX3RenderEffect());
+                renderNodesForBlur.setPrimaryEffectBlur(dpf2(40 - 1.66f) * scale);
+            } else if (simpleMode) {
+                renderNodesForBlur.setPrimaryEffectBlur(dpf2(40) * scale, RenderNodeEffects.getSaturationX3RenderEffect());
+            } else {
+                renderNodesForBlur.setPrimaryEffectBlur(dpf2(40) * scale);
+            }
+        }
 
         private void setPosition(RectF position) {
             this.position.left = roundDown(position.left, 16);

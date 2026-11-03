@@ -2630,6 +2630,7 @@ public class ActionBarMenuItem extends FrameLayout {
         public CharSequence text;
         public boolean dismiss, needCheck;
         public View viewToSwipeBack;
+        private Utilities.Callback0Return<View> swipeBackViewFactory;
         public int textSizeDp;
         public View customView;
         public LinearLayout.LayoutParams customLayoutParams;
@@ -2734,6 +2735,10 @@ public class ActionBarMenuItem extends FrameLayout {
                 layoutParams.width = LayoutHelper.MATCH_PARENT;
                 layoutParams.height = AndroidUtilities.dp(48);
                 cell.setLayoutParams(layoutParams);
+                if (swipeBackViewFactory != null) {
+                    viewToSwipeBack = swipeBackViewFactory.run();
+                    swipeBackViewFactory = null;
+                }
                 int swipeBackIndex = parent.popupLayout.addViewToSwipeBack(viewToSwipeBack);
                 cell.openSwipeBackLayout = () -> {
                     if (parent.popupLayout.getSwipeBack() != null) {
@@ -2853,6 +2858,12 @@ public class ActionBarMenuItem extends FrameLayout {
         if (item.view == null) {
             AndroidUtilities.removeFromParent(item.viewToSwipeBack);
         }
+        return putLazyItem(item);
+    }
+
+    public Item lazilyAddSwipeBackItem(int icon, Drawable iconDrawable, String text, Utilities.Callback0Return<View> viewFactory) {
+        Item item = Item.asSwipeBackItem(icon, iconDrawable, text, null);
+        item.swipeBackViewFactory = viewFactory;
         return putLazyItem(item);
     }
     public Item lazilyAddSubItem(int id, int icon, CharSequence text) {

@@ -57,6 +57,7 @@ public class TableLayout extends View {
     public static final int ALIGN_MARGINS = 1;
 
     static final int MAX_SIZE = 100000;
+    private static final int MAX_GRID_COUNT = 1024;
     static final int UNINITIALIZED_HASH = 0;
     private TextSelectionHelper.ArticleTextSelectionHelper textSelectionHelper;
 
@@ -411,6 +412,23 @@ public class TableLayout extends View {
     private TableLayoutDelegate delegate;
 
     private ArrayList<Child> childrens = new ArrayList<>();
+
+    // html caps colspan at 1000
+    private static final int MAX_COLSPAN = 1000;
+
+    public static int sanitizeSpans(ArrayList<TL_iv.pageTableRow> rows) {
+        int columns = 0;
+        for (int r = 0; r < rows.size(); r++) {
+            int cols = 0;
+            for (TL_iv.pageTableCell cell : rows.get(r).cells) {
+                cell.colspan = Math.max(1, Math.min(cell.colspan, MAX_COLSPAN));
+                cell.rowspan = Math.max(1, Math.min(cell.rowspan, rows.size() - r));
+                cols += cell.colspan;
+            }
+            columns = Math.max(columns, cols);
+        }
+        return columns;
+    }
 
     public void addChild(int x, int y, int colspan, int rowspan) {
         Child child = new Child(childrens.size());
@@ -846,6 +864,9 @@ public class TableLayout extends View {
         final boolean horizontal = (mOrientation == HORIZONTAL);
         final Axis axis = horizontal ? mHorizontalAxis : mVerticalAxis;
         final int count = (axis.definedCount != UNDEFINED) ? axis.definedCount : 0;
+        if (count < 0 || count > MAX_GRID_COUNT) {
+            handleInvalidParams("Table grid count out of bounds");
+        }
 
         int major = 0;
         int minor = 0;
@@ -858,12 +879,18 @@ public class TableLayout extends View {
             final Interval majorRange = majorSpec.span;
             final boolean majorWasDefined = majorSpec.startDefined;
             final int majorSpan = majorRange.size();
+            if (majorSpan <= 0 || majorSpan > MAX_GRID_COUNT) {
+                handleInvalidParams("Table row or column span out of bounds");
+            }
             if (majorWasDefined) {
                 major = majorRange.min;
             }
 
             final Spec minorSpec = horizontal ? lp.columnSpec : lp.rowSpec;
             final Interval minorRange = minorSpec.span;
+            if (minorRange.size() <= 0 || minorRange.size() > MAX_GRID_COUNT) {
+                handleInvalidParams("Table row or column span out of bounds");
+            }
             final boolean minorWasDefined = minorSpec.startDefined;
             final int minorSpan = clip(minorRange, minorWasDefined, count);
             if (minorWasDefined) {
@@ -1309,7 +1336,11 @@ public class TableLayout extends View {
         }
 
         public int getCount() {
-            return max(definedCount, getMaxIndex());
+            int count = max(definedCount, getMaxIndex());
+            if (count > MAX_GRID_COUNT) {
+                handleInvalidParams("Table grid count out of bounds");
+            }
+            return count;
         }
 
         public void setCount(int count) {

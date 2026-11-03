@@ -59,11 +59,14 @@
     <string name="OEChatsTapToSwitchRecord">Tap to Switch Voice and Video</string>
     <string name="OEChatsKeepAttachButton">Keep the Attach Button While Typing</string>
     <string name="OEChatsRemoveMessageTail">Remove Message Tail</string>
+    <string name="OEChatsUnreadCapsule">Compact unread messages label</string>
     <string name="OEChatsReplaceEditedWithIcon">Replace \"%1$s\" with an Icon</string>
     <string name="OEChatsShowOnlineStatus">Show Online Indicator</string>
     <string name="OEChatsHideShareButton">Hide Side \"%1$s\" Button</string>
     <string name="OEChatsHideGiftButton">Hide Gift Button in Channels</string>
     <string name="OEChatsHideSearchButton">Hide Search Button in Channels</string>
+    <string name="OEChatsHideCallButton">Hide Call Button</string>
+    <string name="OEChatsHideMoneyButton">Hide \"%1$s\" in Attach Menu</string>
     <string name="OEChatsShowResultsBeforeVoting">Show Results Before Voting</string>
     <string name="OEChatsShowResultsBeforeVotingInfo">Results of public polls will be visible without casting a vote.</string>
     <string name="OEChatsHideReactions">Hide Reactions</string>
@@ -167,4 +170,6 @@
     <string name="OEChatsMenusHeader">Menus</string>
     <string name="OEChatsPlaybackHeader">Playback</string>
     <string name="OEChatsVoiceHeader">Voice Messages</string>
+    <string name="OEDoubleTapSaveToDevice">Save to device</string>
+    <string name="OESendAfterSlowMode">Send when slow mode ends</string>
 </resources>

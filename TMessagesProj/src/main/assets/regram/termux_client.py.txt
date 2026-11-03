@@ -1,0 +1,1051 @@
+# Termux Bridge 1.0.0 by @S1mclick; adapted for native re:gram.
+import contextlib
+import inspect
+import io
+import json
+import keyword
+import os
+import re
+import shlex
+import shutil
+import socket
+import subprocess
+import sys
+import textwrap
+import threading
+import time
+
+HOST = "127.0.0.1"
+PORT = @@PORT@@
+TOKEN = "@@TOKEN@@"
+VER = "1.0"
+PKG = os.environ.get("TGB_PKG", "@@PACKAGE@@")
+SID = os.urandom(6).hex()
+
+R = "\033[0m"
+B = "\033[1m"
+
+
+def col(n):
+    return "\033[38;5;%dm" % n
+
+
+ACC, OK, ERR, MUT, TXT = col(75), col(78), col(203), col(245), col(252)
+ANSI = re.compile(r"\033\[[0-9;]*m")
+API_USE = re.compile(r"\b(show|tg|notify|clip|Panel)\(|b\.send\(|\bjava\.")
+POSITIONS = ("top", "bottom", "center", "top_start", "top_end", "bottom_start", "bottom_end")
+COLORS = {
+    "yellow": "#FFD600", "желтый": "#FFD600", "жёлтый": "#FFD600",
+    "red": "#FF3B30", "красный": "#FF3B30",
+    "green": "#34C759", "зеленый": "#34C759", "зелёный": "#34C759",
+    "blue": "#0A84FF", "синий": "#0A84FF",
+    "pink": "#FF2D92", "розовый": "#FF2D92",
+    "orange": "#FF9500", "оранжевый": "#FF9500",
+    "purple": "#AF52DE", "фиолетовый": "#AF52DE",
+    "white": "#FFFFFF", "белый": "#FFFFFF",
+}
+state = {"pos": "bottom"}
+NS = {"__name__": "__tgb__"}
+HISTORY = []
+CALLBACKS = {}
+OPEN = set()
+QUICK = []
+
+DOCS = {
+    "": [
+        ("Что это", "Termux Bridge выводит результат скриптов из Termux поверх экрана re:gram и даёт скриптам кнопки и панели. Схема: Termux → localhost → мост → экран."),
+        ("Ввод", "Пиши Python (print(2+2)), shell-команды (ls) или встроенные команды (help). Результат появится в Telegram. !команда — принудительно shell."),
+        ("Оверлей", "Нажми на текст поверх экрана, и он исчезнет. Пример: show Привет --pos top --timeout 5"),
+        ("Кнопки", "btn Пинг = ping -c1 8.8.8.8 — на экране Telegram появится кнопка, нажатие запускает команду. Подробнее: docs ui"),
+        ("Нейросеть", "ai <запрос>: ИИ пишет скрипт, ты подтверждаешь запуск. Настройка в мосте, раздел «Нейросеть». Подробнее: docs ai"),
+        ("Не работает?", "status показывает диагностику. Включены ли мост и «Сервер включён»? start запускает re:gram в фоне."),
+    ],
+    "api": [
+        ("Функции", "java — доступ к любым Android-классам (docs java). show(текст, title=, pos=, fg=, bg=, size=, mono=, timeout=, max_lines=) показывает текст на экране. notify(текст, kind) — уведомление (info, success, error). clip(текст) — в буфер обмена. tg(код) выполняет код внутри Telegram. b.send(cmd, **kw) вызывает мост напрямую."),
+        ("Команды моста", "ping, diag, show, append, clear, ball, notify, clip, panel, set, close, exec, ai, ai_docs."),
+        ("Позиции", "top, bottom, center, top_start, top_end, bottom_start, bottom_end."),
+        ("Свой скрипт", "from tgbridge import Panel, show, notify, wait — работает из любого скрипта в Termux. Если импорт не находит модуль: sys.path.insert(0, os.path.expanduser('~/.tgbridge'))."),
+        ("Внутри Telegram", "Нужен переключатель «Разрешить exec». Доступны jclass, ui, fragment, show, append, clear, notify. Код, меняющий интерфейс, оборачивай в ui(lambda: ...)."),
+    ],
+    "ui": [
+        ("Кнопки без кода", "btn Пинг = ping -c1 8.8.8.8 создаёт панель с кнопкой. Нажатие запускает команду и показывает вывод на экране. btn list — список, btn clear — убрать. Кнопки живут, пока открыт tgb."),
+        ("Панель из Python", "p = Panel('Пульт', pos='bottom_end'); p.button('Привет', lambda: notify('Привет!')); p.show()"),
+        ("Элементы", "text, button, toggle, slider, input и with p.row(): для ряда. p.toggle('Свет', lambda v: ...), p.slider('Громкость', 0, 100, 50, lambda v: ...), p.input('Имя', lambda s: ...)."),
+        ("Обновление", "p.set(id, text=, value=, enabled=, visible=) меняет элемент на лету, p.close() убирает панель. Панель двигается за заголовок, крестик закрывает."),
+        ("В скриптах", "В конце отдельного скрипта вызови wait(), иначе кнопки исчезнут вместе со скриптом. В оболочке tgb этого не нужно."),
+    ],
+    "java": [
+        ("Зачем", "Скрипт из Termux может создавать и настраивать любые Android-компоненты внутри Telegram: View, диалоги, сервисы. Нужен переключатель «Разрешить exec и Java» в настройках моста."),
+        ("Основа", "act = java.activity(); tv = java.new('android.widget.TextView', act); tv.setText('Привет'); java.add_view(tv, x=40, y=200). Любой метод объекта вызывается как обычный Python-метод."),
+        ("Классы", "T = java.cls('android.widget.Toast'); T.makeText(act, 'hi', 1).show(). Константа: java.const('android.graphics.Color', 'WHITE'). Поля: java.get(obj, 'name'), java.set(obj, 'name', v)."),
+        ("Типы", "Python int и float подбираются автоматически. Для перегруженных методов: java.i(5), java.f(1.5), java.d(), java.l(), java.b(True), java.array('int', [1, 2])."),
+        ("Слушатели", "java.listener('android.view.View$OnClickListener', onClick=lambda v: ...) отдай в setOnClickListener. Нужен обработчик на каждый метод интерфейса. Если метод возвращает значение: returns={'onTouch': True}."),
+        ("Полезное", "java.dp(16) переводит dp в пиксели, java.info() — размеры экрана, java.toast(текст), java.vibrate(мс), java.remove_view(view), java.str(obj), java.list(obj)."),
+        ("Время жизни", "Добавленные view и слушатели исчезают, когда закрывается скрипт или tgb. keep=True в add_view оставляет view на экране."),
+    ],
+    "ai": [
+        ("Настройка", "Мост → Нейросеть: эндпоинт (OpenAI-совместимый), API-ключ, модель. Кнопка «Проверить нейросеть» проверит связь."),
+        ("Использование", "ai таймер на 10 секунд по центру. Запрос → код → подтверждение y → запуск. ai reset забывает диалог."),
+        ("Безопасность", "Код всегда показывается и запускается только после твоего y. Ключ хранится в настройках моста и не копируется в Termux."),
+        ("Документация для ИИ", "docs ai show покажет, что видит модель. В настройках моста её можно скопировать. Свои правила добавь в «Доп. инструкции для ИИ»."),
+    ],
+}
+
+
+def short_err(err):
+    err = str(err or "ошибка").strip()
+    if "Traceback" in err:
+        err = [x for x in err.splitlines() if x.strip()][-1]
+    if "exec disabled" in err:
+        return "exec выключен: включи «Разрешить exec» в настройках моста"
+    if err == "bad token":
+        return "неверный токен: заново нажми «Подключить Termux» в мосте"
+    return err
+
+
+def vis(s):
+    return len(ANSI.sub("", s))
+
+
+def box(lines, color=ACC):
+    w = max(vis(x) for x in lines)
+    print(color + "╭" + "─" * (w + 2) + "╮" + R)
+    for x in lines:
+        print(color + "│" + R + " " + x + " " * (w - vis(x)) + " " + color + "│" + R)
+    print(color + "╰" + "─" * (w + 2) + "╯" + R)
+
+
+def port_open():
+    try:
+        socket.create_connection((HOST, PORT), timeout=0.5).close()
+        return True
+    except OSError:
+        return False
+
+
+def quiet(cmd):
+    p = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return p.returncode == 0 and "Error" not in p.stdout + p.stderr
+
+
+def launch_extera():
+    if port_open():
+        return True
+    print(MUT + "◌ запускаю re:gram в фоне…" + R)
+    started = quiet("am start --user 0 -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -p " + shlex.quote(PKG))
+    if not started:
+        print(ERR + "✖ не удалось запустить " + PKG + R + MUT + "  (открой Telegram вручную)" + R)
+        return False
+    for _ in range(60):
+        if port_open():
+            break
+        time.sleep(0.5)
+    else:
+        print(ERR + "✖ мост не ответил за 30 секунд" + R)
+        return False
+    time.sleep(1.0)
+    quiet("am start --user 0 -n com.termux/com.termux.app.TermuxActivity")
+    print(OK + "✔ re:gram запущен" + R)
+    return True
+
+
+class Bridge:
+    def __init__(self):
+        self.sock = None
+        self.buf = b""
+        self.launched = False
+        self.lock = threading.RLock()
+
+    def connect(self):
+        self.close()
+        s = socket.create_connection((HOST, PORT), timeout=3)
+        s.settimeout(120)
+        self.sock = s
+        self.buf = b""
+
+    def close(self):
+        if self.sock is not None:
+            try:
+                self.sock.close()
+            except OSError:
+                pass
+        self.sock = None
+
+    def roundtrip(self, payload):
+        self.sock.sendall(payload)
+        while b"\n" not in self.buf:
+            chunk = self.sock.recv(65536)
+            if not chunk:
+                raise ConnectionError("closed")
+            self.buf += chunk
+        line, self.buf = self.buf.split(b"\n", 1)
+        return json.loads(line.decode("utf-8"))
+
+    def send(self, cmd, **kw):
+        kw.update(cmd=cmd, token=TOKEN, sid=SID)
+        payload = (json.dumps(kw, ensure_ascii=False) + "\n").encode("utf-8")
+        with self.lock:
+            for attempt in (0, 1):
+                try:
+                    if self.sock is None:
+                        self.connect()
+                    return self.roundtrip(payload)
+                except ConnectionRefusedError:
+                    if self.launched or os.environ.get("TGB_AUTOSTART") == "0":
+                        raise
+                    self.launched = True
+                    if not launch_extera():
+                        raise
+                except OSError:
+                    self.close()
+                    raise
+
+
+_bridge = None
+
+
+def get_bridge():
+    global _bridge
+    if _bridge is None:
+        _bridge = Bridge()
+    return _bridge
+
+
+def check(r):
+    if not r.get("ok"):
+        raise RuntimeError(short_err(r.get("error")))
+    return r
+
+
+def show(text, **kw):
+    check(get_bridge().send("show", text=str(text), **{"pos": state["pos"], **kw}))
+
+
+def notify(text, kind="info"):
+    check(get_bridge().send("notify", text=str(text), kind=kind))
+
+
+def clip(text):
+    check(get_bridge().send("clip", text=str(text)))
+
+
+def tg(code):
+    r = check(get_bridge().send("exec", code=code, overlay=True))
+    if r.get("output"):
+        print(r["output"], end="")
+
+
+def call(cb, *args):
+    try:
+        n = len(inspect.signature(cb).parameters)
+    except (TypeError, ValueError):
+        n = len(args)
+    return cb(*args[:n])
+
+
+def drop_callbacks(pid):
+    for k in [k for k in CALLBACKS if k[0] == pid]:
+        CALLBACKS.pop(k, None)
+
+
+class Events:
+    def __init__(self):
+        self.sock = None
+        self.thread = None
+
+    def alive(self):
+        return self.thread is not None and self.thread.is_alive()
+
+    def start(self):
+        if self.alive():
+            return
+        s = socket.create_connection((HOST, PORT), timeout=3)
+        s.settimeout(None)
+        hello = {"cmd": "subscribe", "token": TOKEN, "sid": SID}
+        s.sendall((json.dumps(hello) + "\n").encode("utf-8"))
+        self.sock = s
+        self.thread = threading.Thread(target=self.loop, args=(s,), daemon=True)
+        self.thread.start()
+
+    def loop(self, s):
+        buf = b""
+        try:
+            while True:
+                chunk = s.recv(65536)
+                if not chunk:
+                    return
+                buf += chunk
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    try:
+                        ev = json.loads(line.decode("utf-8"))
+                    except ValueError:
+                        continue
+                    if "event" in ev:
+                        self.dispatch(ev)
+        except OSError:
+            return
+
+    def dispatch(self, ev):
+        kind, pid, iid = ev.get("event"), ev.get("panel"), ev.get("id")
+        if kind == "jcall":
+            cb = CALLBACKS.get(("j", ev.get("h"), ev.get("method")))
+            args = tuple(dec(a) for a in ev.get("args") or [])
+        elif kind == "close":
+            OPEN.discard(pid)
+            cb = CALLBACKS.get((pid, None, "close"))
+            drop_callbacks(pid)
+            args = ()
+        else:
+            cb = CALLBACKS.get((pid, iid, kind))
+            args = (ev["value"],) if "value" in ev else ()
+        if cb is None:
+            return
+        try:
+            call(cb, *args)
+        except Exception as e:
+            print("\r" + ERR + "✖ callback: " + str(e) + R)
+
+
+EVENTS = Events()
+
+
+def wait():
+    try:
+        while OPEN and EVENTS.alive():
+            time.sleep(0.2)
+    except KeyboardInterrupt:
+        pass
+
+
+class JavaError(RuntimeError):
+    pass
+
+
+class Cast:
+    def __init__(self, kind, value):
+        self.kind, self.value = kind, value
+
+
+class Arr:
+    def __init__(self, kind, values):
+        self.kind, self.values = kind, list(values)
+
+
+def enc(v):
+    if isinstance(v, JObj):
+        return {"$h": v.h}
+    if isinstance(v, Cast):
+        return {"$cast": v.kind, "v": v.value}
+    if isinstance(v, Arr):
+        return {"$arr": v.kind, "v": [enc(x) for x in v.values]}
+    if isinstance(v, (list, tuple)):
+        return [enc(x) for x in v]
+    return v
+
+
+def dec(v):
+    if isinstance(v, dict) and "$h" in v:
+        return JObj(v["$h"], v.get("t", ""))
+    if isinstance(v, list):
+        return [dec(x) for x in v]
+    return v
+
+
+class JMethod:
+    def __init__(self, obj, name):
+        self.obj, self.name = obj, name
+
+    def __call__(self, *args):
+        return JAVA.rpc("j_call", h=self.obj.h, name=self.name, args=[enc(a) for a in args])
+
+
+class JObj:
+    __slots__ = ("h", "t", "__weakref__")
+
+    def __init__(self, h, t=""):
+        object.__setattr__(self, "h", h)
+        object.__setattr__(self, "t", t)
+
+    def __getattr__(self, name):
+        if name.startswith("__"):
+            raise AttributeError(name)
+        return JMethod(self, name)
+
+    def __setattr__(self, name, value):
+        JAVA.rpc("j_set", h=self.h, name=name, value=enc(value))
+
+    def __call__(self, *args):
+        return JAVA.rpc("j_new", h=self.h, args=[enc(a) for a in args])
+
+    def __str__(self):
+        return JAVA.rpc("j_str", h=self.h)
+
+    def __iter__(self):
+        return iter(JAVA.rpc("j_list", h=self.h))
+
+    def __repr__(self):
+        return "<java %s #%s>" % (self.t or "object", self.h)
+
+    def __del__(self):
+        try:
+            JAVA.pending.append(self.h)
+        except Exception:
+            pass
+
+
+GRAV = {
+    "top_start": 51, "top": 49, "top_end": 53, "center": 17,
+    "bottom_start": 83, "bottom": 81, "bottom_end": 85,
+}
+
+
+class Java:
+    def __init__(self):
+        self.pending = []
+        self.meta = None
+        self.classes = {}
+
+    def rpc(self, cmd, **kw):
+        if self.pending:
+            kw["release"], self.pending = self.pending, []
+        r = get_bridge().send(cmd, **kw)
+        if not r.get("ok"):
+            raise JavaError(short_err(r.get("error")))
+        return dec(r.get("r"))
+
+    def cls(self, name):
+        c = self.classes.get(name)
+        if c is None:
+            c = self.classes[name] = self.rpc("j_cls", name=name)
+        return c
+
+    def new(self, name, *args):
+        return self.cls(name)(*args)
+
+    def activity(self):
+        return self.rpc("j_activity")
+
+    def info(self):
+        if self.meta is None:
+            self.meta = check(get_bridge().send("j_info"))
+        return self.meta
+
+    def dp(self, value):
+        return int(round(value * float(self.info()["density"])))
+
+    def get(self, obj, name):
+        return self.rpc("j_get", h=obj.h, name=name)
+
+    def set(self, obj, name, value):
+        self.rpc("j_set", h=obj.h, name=name, value=enc(value))
+
+    def const(self, cls_name, field):
+        return self.get(self.cls(cls_name), field)
+
+    def str(self, obj):
+        return self.rpc("j_str", h=obj.h)
+
+    def list(self, obj):
+        return self.rpc("j_list", h=obj.h)
+
+    def array(self, kind, values):
+        return Arr(kind, values)
+
+    def i(self, v):
+        return Cast("int", v)
+
+    def f(self, v):
+        return Cast("float", v)
+
+    def d(self, v):
+        return Cast("double", v)
+
+    def l(self, v):
+        return Cast("long", v)
+
+    def b(self, v):
+        return Cast("boolean", v)
+
+    def listener(self, iface, returns=None, **handlers):
+        EVENTS.start()
+        proxy = self.rpc("j_listener", iface=iface, methods=sorted(handlers), returns=returns or {})
+        for name, fn in handlers.items():
+            CALLBACKS[("j", proxy.h, name)] = fn
+        return proxy
+
+    def add_view(self, view, x=None, y=None, gravity="top_start", width=None, height=None, keep=False):
+        def size(v):
+            if v is None:
+                return -2
+            return -1 if v == "match" else self.dp(v)
+
+        g = GRAV.get(gravity, 51) if isinstance(gravity, str) else int(gravity)
+        px = None if x is None else self.dp(x)
+        py = None if x is None and y is None else self.dp(y or 0)
+        self.rpc("j_add_view", h=view.h, x=px, y=py, gravity=g, w=size(width), ht=size(height), keep=bool(keep))
+
+    def remove_view(self, view):
+        self.rpc("j_remove_view", h=view.h)
+
+    def toast(self, text, long=False):
+        Toast = self.cls("android.widget.Toast")
+        Toast.makeText(self.activity(), str(text), 1 if long else 0).show()
+
+    def vibrate(self, ms=50):
+        vib = self.activity().getSystemService("vibrator")
+        vib.vibrate(self.cls("java.lang.Long").parseLong(str(int(ms))))
+
+
+JAVA = Java()
+java = JAVA
+
+
+class Panel:
+    def __init__(self, title="", pos="bottom_end", width=260, x=None, y=None, keep=False, id=None):
+        self.id = id or "p" + os.urandom(3).hex()
+        self.opts = {"title": title, "pos": pos, "width": width, "keep": keep}
+        if x is not None:
+            self.opts.update(x=x, y=y or 0)
+        self.items = []
+        self.stack = [self.items]
+        self.n = 0
+
+    def add(self, kind, event, cb, id, **props):
+        self.n += 1
+        iid = id or "i%d" % self.n
+        item = {"type": kind, "id": iid}
+        item.update({k: v for k, v in props.items() if v is not None})
+        self.stack[-1].append(item)
+        if cb is not None and event:
+            CALLBACKS[(self.id, iid, event)] = cb
+        return iid
+
+    def text(self, text, id=None, size=None, color=None, mono=None):
+        return self.add("text", None, None, id, text=text, size=size, color=color, mono=mono)
+
+    def button(self, text, callback=None, id=None, color=None):
+        return self.add("button", "click", callback, id, text=text, color=color)
+
+    def toggle(self, text, callback=None, value=False, id=None):
+        return self.add("toggle", "toggle", callback, id, text=text, value=value)
+
+    def slider(self, text, lo, hi, value=None, callback=None, step=1, id=None):
+        start = lo if value is None else value
+        return self.add("slider", "slide", callback, id, text=text, min=lo, max=hi, value=start, step=step)
+
+    def input(self, hint, callback=None, button="OK", id=None, clear=True):
+        return self.add("input", "submit", callback, id, hint=hint, button=button, clear=clear)
+
+    @contextlib.contextmanager
+    def row(self):
+        group = {"type": "row", "items": []}
+        self.stack[-1].append(group)
+        self.stack.append(group["items"])
+        try:
+            yield self
+        finally:
+            self.stack.pop()
+
+    def on_close(self, callback):
+        CALLBACKS[(self.id, None, "close")] = callback
+        return self
+
+    def show(self):
+        EVENTS.start()
+        spec = dict(self.opts)
+        spec.update(id=self.id, items=self.items)
+        check(get_bridge().send("panel", **spec))
+        OPEN.add(self.id)
+        return self
+
+    def set(self, id, **props):
+        check(get_bridge().send("set", panel=self.id, id=id, **props))
+
+    def close(self):
+        get_bridge().send("close", panel=self.id)
+        OPEN.discard(self.id)
+        drop_callbacks(self.id)
+
+
+def banner(b):
+    try:
+        b.send("ping")
+        st = OK + "● подключено" + R
+    except OSError:
+        st = ERR + "● мост не отвечает" + R
+    box([
+        B + ACC + "◆ Telegram Bridge" + R + MUT + "  v" + VER + R,
+        st + MUT + "  " + HOST + ":" + str(PORT) + R,
+        MUT + "help — список команд" + R,
+    ])
+
+
+def show_help(b, rest):
+    rows = [
+        ("<python-код>", "Python в Termux → экран Telegram"),
+        ("<команда>", "shell: ls, echo… (или !команда)"),
+        ("ai <запрос>", "нейросеть пишет и запускает скрипт"),
+        ("btn <текст> = <команда>", "кнопка на экране Telegram"),
+        ("show <текст>", "текст поверх экрана"),
+        ("notify <текст>", "уведомление в Telegram"),
+        ("copy <текст>", "в буфер обмена"),
+        ("ball [цвет] [размер]", "двигаемый шарик, ball off — убрать"),
+        ("run <файл.py>", "запустить файл, вывод на экран"),
+        ("tg <код>", "Python внутри Telegram (exec)"),
+        ("tgrun <файл.py>", "файл внутри Telegram (exec)"),
+        ("pos <место>", "top · bottom · center …"),
+        ("docs", "документация (api, ui, java, ai)"),
+        ("start", "запустить re:gram в фоне"),
+        ("clear", "убрать оверлей"),
+        ("status", "диагностика"),
+        ("exit", "выйти"),
+    ]
+    cols = shutil.get_terminal_size((48, 20)).columns
+    w = max(len(r[0]) for r in rows)
+    wide = w + 2 + max(len(r[1]) for r in rows) + 4 <= cols
+    lines = []
+    for a, d in rows:
+        if wide:
+            lines.append(ACC + B + a.ljust(w) + R + "  " + MUT + d + R)
+        else:
+            lines.append(ACC + B + a + R)
+            lines.append(MUT + "  " + d + R)
+    box(lines, MUT)
+
+
+def offline():
+    box([
+        ERR + B + "✖ Мост не отвечает" + R,
+        MUT + "1. Открой Telegram (re:gram)" + R,
+        MUT + "2. Настройки → openExtera → Other → Termux Bridge" + R,
+        MUT + "3. Включи мост и «Сервер включён»" + R,
+    ], ERR)
+
+
+def reply(r):
+    if r.get("output"):
+        print(TXT + r["output"].rstrip("\n") + R)
+    if r.get("ok"):
+        print(OK + "✔" + R)
+        return True
+    print(ERR + "✖ " + short_err(r.get("error")) + R)
+    return False
+
+
+def cmd_status(b, rest):
+    r = b.send("diag")
+    if not r.get("ok"):
+        reply(r)
+        return
+
+    def row(ok, text, hint=""):
+        mark = OK + "✔" if ok is True else (ERR + "✖" if ok is False else MUT + "○")
+        return mark + R + " " + TXT + text + R + (MUT + "  " + hint + R if hint else "")
+
+    ai_ok = bool(r.get("ai"))
+    box([
+        row(True, "мост %s · порт %s" % (r.get("version"), r.get("port"))),
+        row(bool(r.get("screen")), "экран Telegram", "" if r.get("screen") else "открой re:gram"),
+        row(True if r.get("exec") else None, "exec и Java", "включены" if r.get("exec") else "выключены"),
+        row(ai_ok if not ai_ok or r.get("ai_key") else None, "нейросеть",
+            "не настроена" if not ai_ok else ("" if r.get("ai_key") else "ключ не задан")),
+        row(True, "панелей на экране: %s" % r.get("panels", 0)),
+    ])
+
+
+def cmd_start(b, rest):
+    if port_open():
+        print(OK + "✔ re:gram уже запущен" + R)
+    else:
+        launch_extera()
+
+
+def cmd_show(b, rest):
+    args = shlex.split(rest)
+    opts, words, it = {}, [], iter(args)
+    for a in it:
+        if a in ("--pos", "--title", "--timeout"):
+            opts[a[2:]] = next(it, "")
+        else:
+            words.append(a)
+    if "timeout" in opts:
+        opts["timeout"] = float(opts["timeout"] or 0)
+    opts.setdefault("pos", state["pos"])
+    reply(b.send("show", text=" ".join(words), **opts))
+
+
+def cmd_notify(b, rest):
+    kind = "info"
+    head = rest.split(None, 1)
+    if head and head[0] in ("info", "success", "error"):
+        kind, rest = head[0], (head[1] if len(head) > 1 else "")
+    reply(b.send("notify", text=rest, kind=kind))
+
+
+def cmd_copy(b, rest):
+    reply(b.send("clip", text=rest))
+
+
+def cmd_sh(b, command):
+    if not command:
+        print(MUT + "использование: !<команда>" + R)
+        return
+    b.send("clear")
+    p = subprocess.Popen(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, errors="replace", bufsize=1,
+    )
+    try:
+        for line in p.stdout:
+            line = line.rstrip("\n")
+            print(MUT + line + R)
+            b.send("append", text=line, pos=state["pos"])
+        code = p.wait()
+    except KeyboardInterrupt:
+        p.terminate()
+        code = -2
+    b.send("append", text="— exit %d —" % code, pos=state["pos"])
+    print(OK + "✔" + R if code == 0 else ERR + "✖ код выхода %d" % code + R)
+
+
+def cmd_run(b, rest):
+    path = os.path.expanduser(rest.strip())
+    if not os.path.isfile(path):
+        print(ERR + "✖ файл не найден" + R)
+        return
+    cmd_sh(b, "python3 " + shlex.quote(path))
+
+
+def cmd_py(b, code):
+    buf = io.StringIO()
+    failed = False
+    try:
+        try:
+            node, mode = compile(code, "<tgb>", "eval"), "eval"
+        except SyntaxError:
+            node, mode = compile(code, "<tgb>", "exec"), "exec"
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            val = eval(node, NS)
+            if mode == "eval" and val is not None:
+                print(repr(val))
+    except Exception as e:
+        failed = True
+        buf.write("%s: %s" % (type(e).__name__, e))
+    text = buf.getvalue().rstrip("\n")
+    if text:
+        print((ERR if failed else TXT) + text + R)
+    else:
+        print(OK + "✔" + R)
+    if failed:
+        b.send("show", text="✖ " + text, pos=state["pos"], timeout=6)
+    elif text and not API_USE.search(code):
+        b.send("show", text=text, pos=state["pos"])
+
+
+def cmd_tg(b, code):
+    reply(b.send("exec", code=code, overlay=True))
+
+
+def cmd_tgrun(b, rest):
+    path = os.path.expanduser(rest.strip())
+    if not os.path.isfile(path):
+        print(ERR + "✖ файл не найден" + R)
+        return
+    with open(path, encoding="utf-8") as f:
+        cmd_tg(b, f.read())
+
+
+def cmd_pos(b, rest):
+    name = rest.strip()
+    if name in POSITIONS:
+        state["pos"] = name
+        print(OK + "✔ " + R + MUT + "позиция: " + name + R)
+    else:
+        print(MUT + "варианты: " + ", ".join(POSITIONS) + R)
+
+
+def cmd_ball(b, rest):
+    opts = {}
+    for a in rest.split():
+        k = a.lower()
+        if k in ("off", "убрать", "выкл"):
+            reply(b.send("ball", off=True))
+            return
+        if k in COLORS:
+            opts["color"] = COLORS[k]
+        elif k.startswith("#"):
+            opts["color"] = a
+        elif k.isdigit():
+            opts["size"] = int(k)
+    reply(b.send("ball", **opts))
+
+
+def cmd_clear(b, rest):
+    reply(b.send("clear"))
+
+
+def cmd_pipe(b, rest):
+    b.send("clear")
+    for line in sys.stdin:
+        b.send("append", text=line.rstrip("\n"), pos=state["pos"])
+
+
+def cmd_cd(b, rest):
+    try:
+        os.chdir(os.path.expanduser(rest.strip() or "~"))
+        print(MUT + os.getcwd() + R)
+    except OSError as e:
+        print(ERR + "✖ " + str(e) + R)
+
+
+def run_quick(label, command):
+    try:
+        p = subprocess.run(command, shell=True, capture_output=True, text=True, errors="replace", timeout=30)
+        out = (p.stdout + p.stderr).strip() or "✔"
+        code = p.returncode
+    except subprocess.TimeoutExpired:
+        out, code = "превышено время (30 с)", -1
+    get_bridge().send("show", title=label + ("" if code == 0 else " ✖"), text=out, pos="top", timeout=8)
+
+
+def build_quick():
+    panel = Panel("Кнопки", pos="bottom_end", id="quick")
+    for i, (label, command) in enumerate(QUICK):
+        panel.button(label, lambda l=label, c=command: run_quick(l, c), id="b%d" % i)
+    panel.show()
+
+
+def cmd_btn(b, rest):
+    rest = rest.strip()
+    if rest in ("clear", "off", "убрать"):
+        QUICK.clear()
+        Panel(id="quick").close()
+        print(OK + "✔ " + R + MUT + "кнопки убраны" + R)
+        return
+    if not rest or rest == "list":
+        for i, (label, command) in enumerate(QUICK, 1):
+            print(ACC + str(i) + R + " " + TXT + label + R + MUT + "  →  " + command + R)
+        if not QUICK:
+            print(MUT + "использование: btn <текст> = <команда>" + R)
+        return
+    if "=" in rest:
+        label, command = [x.strip() for x in rest.split("=", 1)]
+    else:
+        label = command = rest
+    if not label or not command:
+        print(ERR + "✖ нужен текст и команда: btn Пинг = ping -c1 8.8.8.8" + R)
+        return
+    QUICK.append((label, command))
+    build_quick()
+    print(OK + "✔ " + R + MUT + "кнопка добавлена: " + label + R)
+
+
+def cmd_docs(b, rest):
+    key = rest.strip().lower()
+    if key == "ai show":
+        r = b.send("ai_docs")
+        print(TXT + str(r.get("text", r.get("error", ""))) + R)
+        return
+    sections = DOCS.get(key)
+    if sections is None:
+        print(MUT + "разделы: docs · docs api · docs ui · docs java · docs ai · docs ai show" + R)
+        return
+    cols = max(30, shutil.get_terminal_size((48, 20)).columns - 4)
+    for head, body in sections:
+        print(ACC + B + "▎" + head + R)
+        for line in textwrap.wrap(body, cols):
+            print("  " + TXT + line + R)
+        print()
+    if not key:
+        print(MUT + "docs api · docs ui · docs java · docs ai · docs ai show" + R)
+
+
+class Tee:
+    def __init__(self):
+        self.buf = io.StringIO()
+
+    def write(self, s):
+        self.buf.write(s)
+        sys.__stdout__.write(s)
+        sys.__stdout__.flush()
+        return len(s)
+
+    def flush(self):
+        pass
+
+
+def pick_code(text):
+    m = re.search(r"```(?:python|py)?[ \t]*\n(.*?)```", text, re.S)
+    return m.group(1).rstrip() if m else None
+
+
+def plain(text):
+    return re.sub(r"```.*?```", "", text, flags=re.S).strip()
+
+
+def exec_code(b, code):
+    tee = Tee()
+    err = ""
+    try:
+        with contextlib.redirect_stdout(tee), contextlib.redirect_stderr(tee):
+            exec(compile(code, "<ai>", "exec"), NS)
+    except KeyboardInterrupt:
+        err = "прервано"
+    except Exception as e:
+        err = "%s: %s" % (type(e).__name__, e)
+    out = tee.buf.getvalue().strip()
+    if err:
+        print(ERR + "✖ " + err + R)
+        b.send("show", text="✖ " + err, pos=state["pos"], timeout=6)
+        return
+    if out and not API_USE.search(code):
+        b.send("show", text=out, pos=state["pos"])
+    print(OK + "✔" + R)
+
+
+def cmd_ai(b, rest):
+    rest = rest.strip()
+    if rest in ("reset", "сброс"):
+        HISTORY.clear()
+        print(OK + "✔ " + R + MUT + "диалог очищен" + R)
+        return
+    if not rest:
+        print(MUT + "использование: ai <что сделать>   (ai reset — забыть диалог)" + R)
+        return
+    print(MUT + "◌ думаю…" + R)
+    r = b.send("ai", prompt=rest, history=HISTORY[-10:])
+    if not r.get("ok"):
+        reply(r)
+        return
+    text = str(r.get("text", ""))
+    HISTORY.extend([{"role": "user", "content": rest}, {"role": "assistant", "content": text}])
+    code = pick_code(text)
+    note = plain(text)
+    if note:
+        print(TXT + note + R)
+    if code is None:
+        if note:
+            b.send("show", title="AI", text=note[:600], pos=state["pos"])
+        return
+    lines = code.split("\n")
+    # Show the complete script before approval, including code after line 40.
+    for line in lines:
+        print(ACC + "▎" + R + MUT + line + R)
+    try:
+        ans = input("\001" + ACC + "\002Выполнить? [y/N] \001" + R + "\002")
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return
+    if ans.strip().lower() in ("y", "yes", "д", "да"):
+        exec_code(b, code)
+
+
+COMMANDS = {
+    "help": show_help, "?": show_help, "h": show_help,
+    "status": cmd_status, "ping": cmd_status, "doctor": cmd_status,
+    "start": cmd_start,
+    "show": cmd_show,
+    "notify": cmd_notify,
+    "copy": cmd_copy,
+    "btn": cmd_btn,
+    "ai": cmd_ai,
+    "docs": cmd_docs,
+    "ball": cmd_ball,
+    "sh": cmd_sh,
+    "run": cmd_run,
+    "py": cmd_py,
+    "tg": cmd_tg,
+    "tgrun": cmd_tgrun,
+    "pos": cmd_pos,
+    "clear": cmd_clear,
+    "pipe": cmd_pipe,
+    "cd": cmd_cd,
+}
+
+
+def is_shell(line):
+    first = line.split(None, 1)[0]
+    if keyword.iskeyword(first):
+        return False
+    if shutil.which(first):
+        return True
+    for mode in ("eval", "exec"):
+        try:
+            compile(line, "<tgb>", mode)
+            return False
+        except SyntaxError:
+            continue
+    return True
+
+
+def dispatch(b, line):
+    line = line.strip()
+    if not line:
+        return
+    if line.startswith("!"):
+        cmd_sh(b, line[1:].strip())
+        return
+    word = line.split(None, 1)[0]
+    rest = line[len(word):].strip()
+    handler = COMMANDS.get(word.lower())
+    if handler is not None:
+        handler(b, rest)
+    elif is_shell(line):
+        cmd_sh(b, line)
+    else:
+        cmd_py(b, line)
+
+
+def setup_ns(b):
+    NS.update(b=b, show=show, notify=notify, clip=clip, tg=tg, Panel=Panel, wait=wait, java=JAVA)
+
+
+def shell(b):
+    try:
+        import readline
+    except ImportError:
+        pass
+    prompt = "\001" + ACC + B + "\002tgb \001" + MUT + "\002❯ \001" + R + "\002"
+    banner(b)
+    while True:
+        try:
+            line = input(prompt).strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if line in ("exit", "quit", "q"):
+            break
+        try:
+            dispatch(b, line)
+        except ConnectionRefusedError:
+            offline()
+        except KeyboardInterrupt:
+            print()
+        except Exception as e:
+            print(ERR + "✖ " + str(e) + R)
+
+
+def main():
+    b = get_bridge()
+    setup_ns(b)
+    if len(sys.argv) > 1:
+        argv = sys.argv[1:]
+        if argv[0] in ("sh", "py", "tg", "ai", "btn", "notify", "copy"):
+            line = " ".join(argv)
+        else:
+            line = " ".join(shlex.quote(a) for a in argv)
+        try:
+            dispatch(b, line)
+            if argv[0] == "btn" and OPEN:
+                print(MUT + "кнопки активны, Ctrl+C — выйти" + R)
+                wait()
+        except ConnectionRefusedError:
+            offline()
+            sys.exit(1)
+        return
+    shell(b)
+
+
+if __name__ == "__main__":
+    main()

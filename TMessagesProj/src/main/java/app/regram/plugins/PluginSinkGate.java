@@ -393,16 +393,34 @@ public final class PluginSinkGate {
      * подсистем) — поэтому через Class.forName с тихим пропуском, а не
      * ссылкой на класс.
      */
+    private static final String[][] SEND_SINKS = {
+            {"sendMessage", "send a message"},
+            {"prepareSendingText", "send a message"},
+            {"prepareSendingMedia", "send media"},
+            {"prepareSendingPhoto", "send a photo"},
+            {"prepareSendingVideo", "send a video"},
+            {"prepareSendingDocument", "send a file"},
+            {"prepareSendingDocuments", "send files"},
+            {"prepareSendingAudioDocuments", "send audio"},
+            {"prepareSendingLocation", "send a location"},
+            {"sendCurrentLocation", "send a location"},
+            {"prepareSendingPoll", "send a poll"},
+            {"prepareSendingArticle", "send an article"},
+            {"prepareSendingBotContextResult", "send an inline bot result"},
+            {"sendSticker", "send a sticker"},
+            {"sendGame", "send a game"},
+            {"sendScreenshotMessage", "send a screenshot notice"},
+            {"retrySendMessage", "resend a message"},
+            {"editMessage", "edit a message"},
+            {"editRichMessage", "edit a message"},
+    };
+
     private static int hookMessengerSinks() {
         int count = 0;
-        count += hookByName("org.telegram.messenger.SendMessagesHelper", "sendMessage",
-                PluginPermissions.MESSAGES_SEND, "send a message");
-        count += hookByName("org.telegram.messenger.SendMessagesHelper", "prepareSendingMedia",
-                PluginPermissions.MESSAGES_SEND, "send media");
-        count += hookByName("org.telegram.messenger.SendMessagesHelper", "prepareSendingDocument",
-                PluginPermissions.MESSAGES_SEND, "send a file");
-        count += hookByName("org.telegram.messenger.SendMessagesHelper", "prepareSendingPhoto",
-                PluginPermissions.MESSAGES_SEND, "send a photo");
+        for (String[] sink : SEND_SINKS) {
+            count += hookByName("org.telegram.messenger.SendMessagesHelper", sink[0],
+                    PluginPermissions.MESSAGES_SEND, sink[1]);
+        }
         // Ключ к базе сообщений: получив её, плагин читает переписку запросами
         // мимо всякого API.
         count += hookConnectionsManager();
