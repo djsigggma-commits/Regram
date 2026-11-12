@@ -493,7 +493,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 					FileLog.e("bt headset state = " + intent.getIntExtra(BluetoothProfile.EXTRA_STATE, 0));
 				}
 				updateBluetoothHeadsetState(intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED) == BluetoothProfile.STATE_CONNECTED);
-			} else if (AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED.equals(intent.getAction())) {
+			} else if (AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED.equals(intent.getAction()) && !BluetoothMediaAudio.isActive()) {
 				int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, AudioManager.SCO_AUDIO_STATE_DISCONNECTED);
 				if (BuildVars.LOGS_ENABLED) {
 					FileLog.e("Bluetooth SCO state updated: " + state);
@@ -3752,6 +3752,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	public void switchToSpeaker() {
+		if (BluetoothMediaAudio.isActive()) return;
 		AndroidUtilities.runOnUIThread(() -> {
 			VoipAudioManager vam = VoipAudioManager.get();
 			if ((isBluetoothHeadsetConnected() && hasEarpiece()) || isHeadsetPlugged || isSpeakerphoneOn()) {
@@ -3806,6 +3807,11 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			builder.show();
 			return;
 		}
+		if (BluetoothMediaAudio.isActive()) {
+			setAudioOutput(BluetoothMediaAudio.currentRoute() == AUDIO_ROUTE_SPEAKER
+					? (BluetoothMediaAudio.hasBluetoothOutput() ? 2 : 1) : 0);
+			return;
+		}
 		if (USE_CONNECTION_SERVICE && systemCallConnection != null && systemCallConnection.getCallAudioState() != null) {
 			if (hasEarpiece()) {
 				systemCallConnection.setAudioRoute(systemCallConnection.getCallAudioState().getRoute() == CallAudioState.ROUTE_SPEAKER ? CallAudioState.ROUTE_WIRED_OR_EARPIECE : CallAudioState.ROUTE_SPEAKER);
@@ -3837,6 +3843,15 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	public void setAudioOutput(int which) {
 		if (BuildVars.LOGS_ENABLED) {
 			FileLog.d("setAudioOutput " + which);
+		}
+		if (BluetoothMediaAudio.isActive()) {
+			int route = which == 2 ? AUDIO_ROUTE_BLUETOOTH : which == 0 ? AUDIO_ROUTE_SPEAKER : AUDIO_ROUTE_EARPIECE;
+			BluetoothMediaAudio.selectRoute(route);
+			audioRouteToSet = route;
+			speakerphoneStateToSet = route == AUDIO_ROUTE_SPEAKER;
+			updateOutputGainControlState();
+			for (StateListener l : stateListeners) l.onAudioSettingsChanged();
+			return;
 		}
 		VoipAudioManager vam = VoipAudioManager.get();
 		if (USE_CONNECTION_SERVICE && systemCallConnection != null) {
@@ -3913,6 +3928,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	public boolean isSpeakerphoneOn() {
+		if (BluetoothMediaAudio.isActive()) return BluetoothMediaAudio.currentRoute() == AUDIO_ROUTE_SPEAKER;
 		if (USE_CONNECTION_SERVICE && systemCallConnection != null && systemCallConnection.getCallAudioState() != null) {
 			int route = systemCallConnection.getCallAudioState().getRoute();
 			return hasEarpiece() ? route == CallAudioState.ROUTE_SPEAKER : route == CallAudioState.ROUTE_BLUETOOTH;
@@ -4203,6 +4219,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 				captureDevice[a] = 0;
 			}
 		}
+		BluetoothMediaAudio.end(this);
 		cpuWakelock.release();
 		AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
 		if (!playingSound) {
@@ -4634,6 +4651,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 		}
 		try {
 			AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+			BluetoothMediaAudio.begin(this, am, NekoConfig.regramHdBluetoothCalls.Bool() && !USE_CONNECTION_SERVICE);
 			if (am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER) != null) {
 				int outFramesPerBuffer = Integer.parseInt(am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER));
 				Instance.setBufferSize(outFramesPerBuffer);
@@ -4740,6 +4758,14 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void checkUpdateBluetoothHeadset() {
+		if (BluetoothMediaAudio.isActive()) {
+			BluetoothMediaAudio.devicesChanged();
+			isBtHeadsetConnected = BluetoothMediaAudio.hasBluetoothOutput();
+			currentBluetoothDeviceName = BluetoothMediaAudio.deviceName();
+			audioRouteToSet = BluetoothMediaAudio.currentRoute();
+			for (StateListener l : stateListeners) l.onAudioSettingsChanged();
+			return;
+		}
 		if (!USE_CONNECTION_SERVICE && btAdapter != null && btAdapter.isEnabled()) {
 			try {
 				MediaRouter mr = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
@@ -4779,10 +4805,11 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 
 	private void loadResources() {
 		if (Build.VERSION.SDK_INT >= 21) {
-			WebRtcAudioTrack.setAudioTrackUsageAttribute(AudioAttributes.USAGE_VOICE_COMMUNICATION);
+			WebRtcAudioTrack.setAudioTrackUsageAttribute(BluetoothMediaAudio.usage(AudioAttributes.USAGE_VOICE_COMMUNICATION));
+			WebRtcAudioTrack.setAudioStreamType(BluetoothMediaAudio.streamType(AudioManager.STREAM_VOICE_CALL));
 		}
 		Utilities.globalQueue.postRunnable(() -> {
-			soundPool = new SoundPool(1, AudioManager.STREAM_VOICE_CALL, 0);
+			soundPool = new SoundPool(1, BluetoothMediaAudio.streamType(AudioManager.STREAM_VOICE_CALL), 0);
 			spConnectingId = soundPool.load(this, R.raw.voip_connecting, 1);
 			spRingbackID = soundPool.load(this, R.raw.voip_ringback, 1);
 			spFailedID = soundPool.load(this, R.raw.voip_failed, 1);
@@ -4849,9 +4876,10 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 			FileLog.d("configureDeviceForCall, route to set = " + audioRouteToSet);
 		}
 
+		if (hasRtmpStream()) BluetoothMediaAudio.end(this);
 		if (Build.VERSION.SDK_INT >= 21) {
-			WebRtcAudioTrack.setAudioTrackUsageAttribute(hasRtmpStream() ? AudioAttributes.USAGE_MEDIA : AudioAttributes.USAGE_VOICE_COMMUNICATION);
-			WebRtcAudioTrack.setAudioStreamType(hasRtmpStream() ? AudioManager.USE_DEFAULT_STREAM_TYPE : AudioManager.STREAM_VOICE_CALL);
+			WebRtcAudioTrack.setAudioTrackUsageAttribute(hasRtmpStream() ? AudioAttributes.USAGE_MEDIA : BluetoothMediaAudio.usage(AudioAttributes.USAGE_VOICE_COMMUNICATION));
+			WebRtcAudioTrack.setAudioStreamType(hasRtmpStream() ? AudioManager.USE_DEFAULT_STREAM_TYPE : BluetoothMediaAudio.streamType(AudioManager.STREAM_VOICE_CALL));
 		}
 
 		needPlayEndSound = true;
@@ -4870,15 +4898,22 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 						return;
 					}
 
-					am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+					if (BluetoothMediaAudio.isActive()) {
+						BluetoothMediaAudio.configureSystem(am);
+					} else {
+						am.setMode(AudioManager.MODE_IN_COMMUNICATION);
+					}
 				} catch (Exception e) {
 					FileLog.e(e);
 				}
 				AndroidUtilities.runOnUIThread(() -> {
-					int focusResult = am.requestAudioFocus(VoIPService.this, AudioManager.STREAM_VOICE_CALL, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+					int focusResult = am.requestAudioFocus(VoIPService.this, BluetoothMediaAudio.streamType(AudioManager.STREAM_VOICE_CALL), AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
 					hasAudioFocus = focusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
 					final VoipAudioManager vam = VoipAudioManager.get();
-					if (isBluetoothHeadsetConnected() && hasEarpiece()) {
+					if (BluetoothMediaAudio.isActive()) {
+						audioRouteToSet = BluetoothMediaAudio.currentRoute();
+						bluetoothScoActive = bluetoothScoConnecting = needSwitchToBluetoothAfterScoActivates = false;
+					} else if (isBluetoothHeadsetConnected() && hasEarpiece()) {
 						switch (audioRouteToSet) {
 							case AUDIO_ROUTE_BLUETOOTH:
 								if (!bluetoothScoActive) {
@@ -5000,6 +5035,7 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	public boolean isBluetoothHeadsetConnected() {
+		if (BluetoothMediaAudio.isActive()) return BluetoothMediaAudio.hasBluetoothOutput();
 		if (USE_CONNECTION_SERVICE && systemCallConnection != null && systemCallConnection.getCallAudioState() != null) {
 			return (systemCallConnection.getCallAudioState().getSupportedRouteMask() & CallAudioState.ROUTE_BLUETOOTH) != 0;
 		}
@@ -5015,6 +5051,10 @@ public class VoIPService extends Service implements SensorEventListener, AudioMa
 	}
 
 	private void updateBluetoothHeadsetState(boolean connected) {
+		if (BluetoothMediaAudio.isActive()) {
+			checkUpdateBluetoothHeadset();
+			return;
+		}
 		if (connected == isBtHeadsetConnected) {
 			return;
 		}

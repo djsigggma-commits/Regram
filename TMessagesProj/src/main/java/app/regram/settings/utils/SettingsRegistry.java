@@ -154,6 +154,10 @@ public class SettingsRegistry {
         icons.put(OpenExteraGeneralActivity.class, R.drawable.msg_media);
         icons.put(OpenExteraAppearanceActivity.class, R.drawable.msg_theme);
         icons.put(app.regram.settings.RegramFeaturesActivity.class, R.drawable.msg_theme);
+        icons.put(app.regram.settings.BluetoothCallAudioSettingsActivity.class, R.drawable.msg_call_bluetooth);
+        icons.put(app.regram.settings.DualCameraSettingsActivity.class, R.drawable.msg_camera);
+        icons.put(app.regram.settings.RoundVideoZoomSettingsActivity.class, R.drawable.msg_camera);
+        icons.put(app.regram.settings.FontsSettingsActivity.class, R.drawable.msg_settings);
         icons.put(app.regram.settings.NativeVisualSettingsActivity.class, R.drawable.msg_theme);
         icons.put(app.regram.settings.ChipFoldersActivity.class, R.drawable.msg_theme);
         icons.put(OpenExteraChatsActivity.class, R.drawable.msg_discussion);

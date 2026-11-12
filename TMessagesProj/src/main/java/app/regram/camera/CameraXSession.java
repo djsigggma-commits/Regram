@@ -48,7 +48,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.SharedConfig;
-import org.telegram.ui.Stories.recorder.DualCameraView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -612,7 +611,7 @@ public class CameraXSession {
 
     /** Доступно ли бесшовное переключение: нужна и поддержка кружка, и пара линз. */
     public static boolean isRoundDualAvailable(Context context) {
-        return DualCameraView.roundDualAvailableStatic(context) && isSeamlessSwitchingAvailable(context);
+        return DualCameraSettings.canUse(context);
     }
 
     public static boolean isSeamlessSwitchingAvailable(Context context) {

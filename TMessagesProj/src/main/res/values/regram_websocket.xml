@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramWsTitle">Bypass blocking</string>
+    <string name="RegramWsEnabled">Use bypass</string>
+    <string name="RegramWsPoolSize">WS connection pool size</string>
+    <string name="RegramWsPoolOff">No preconnect</string>
+    <string name="RegramWsCloudflare">Try Cloudflare routes first</string>
+    <string name="RegramWsDomains">Cloudflare base domains</string>
+    <string name="RegramWsDomainsHint">Base domains, comma separated; empty for bundled pool</string>
+    <string name="RegramWsInvalidDomains">Enter up to 20 base domains, without URLs, ports or paths.</string>
+    <string name="RegramWsAutomatic">Bundled pool</string>
+    <string name="RegramWsFallback">Allow direct TCP fallback</string>
+    <string name="RegramWsLogs">Connection diagnostics</string>
+    <string name="RegramWsSource">Transport sources and authors</string>
+    <string name="RegramWsInfo">Experimental transport; device validation is required. Connects to Telegram DCs over WSS inside the client, without another app, local listening port or foreground service. Off by default. Settings apply to all accounts and reconnect the network.\n\nThe WS pool keeps up to 4 preconnected sockets per recently used route by default. Used MTProto connections are never returned to the pool. Pool size can be changed or set to zero to disable preconnect.\n\nAn enabled SOCKS/MTProto/WEB proxy takes priority. Cloudflare routes are on by default when the WebSocket transport is enabled; your saved choice is preserved. Cloudflare routes use third-party infrastructure: operators can see your IP and connection metadata, but cannot decrypt the MTProto connection to Telegram. TLS certificates and hostnames are verified.\n\nDirect TCP fallback is off by default. This setting covers supported DC 1–5 (203 → 2), including media and test DC paths. CDN downloads, temporary/bootstrap connections and calls keep their existing transports and may connect directly even with fallback off. This is not a VPN or an IP-hiding mode.\n\nBased on the routing conventions of Flowseal/tg-ws-proxy (MIT) and amurcanov/tg-ws-proxy-android (GPLv3). No automatic domain-list downloads, insecure TLS/fronting, separate app updater or proxy sharing.</string>
+</resources>

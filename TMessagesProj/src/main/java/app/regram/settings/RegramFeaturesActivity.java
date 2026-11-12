@@ -12,16 +12,21 @@ import tw.nekomimi.nekogram.settings.BaseNekoSettingsActivity;
 
 /** Navigation only: each feature retains its existing settings and preference storage. */
 public final class RegramFeaturesActivity extends BaseNekoSettingsActivity {
-    private int nativeVisualRow, quickThemeRow;
-    private int termuxRow, documentViewerRow, spenRow, creditsRow;
+    private int nativeVisualRow, quickThemeRow, bluetoothCallsRow, dualCameraRow, roundVideoZoomRow;
+    private int termuxRow, documentViewerRow, spenRow, webSocketRow, creditsRow, fontsRow;
 
     @Override protected void updateRows() {
         super.updateRows();
         nativeVisualRow = addRow("nativeVisual", "OEAppearanceNativeVisual");
         quickThemeRow = addRow("quickTheme", "RegramQuickTheme");
+        bluetoothCallsRow = addRow("RegramHdBluetoothCalls", "RegramHdBluetoothCallsTitle");
+        dualCameraRow = addRow("rounddual_available", "RegramDualCameraTitle");
+        roundVideoZoomRow = addRow("zoomSlider", "RegramRoundVideoZoomTitle");
+        fontsRow = addRow("regram_fonts", "RegramFontsTitle");
         termuxRow = addRow("regramTermuxBridge", "RegramTermuxTitle");
         documentViewerRow = addRow("regramDocumentViewer", "RegramDocTitle");
         spenRow = addRow("regramSPen", "RegramSPenTitle");
+        webSocketRow = addRow("regramWebSocket", "RegramWsTitle");
         creditsRow = addRow("regramCreatorsAndSources");
     }
 
@@ -38,12 +43,22 @@ public final class RegramFeaturesActivity extends BaseNekoSettingsActivity {
 
         } else if (position == quickThemeRow) {
             presentFragment(new QuickThemeActivity());
+        } else if (position == bluetoothCallsRow) {
+            presentFragment(new BluetoothCallAudioSettingsActivity());
+        } else if (position == dualCameraRow) {
+            presentFragment(new DualCameraSettingsActivity());
+        } else if (position == roundVideoZoomRow) {
+            presentFragment(new RoundVideoZoomSettingsActivity());
+        } else if (position == fontsRow) {
+            presentFragment(new FontsSettingsActivity());
         } else if (position == termuxRow) {
             presentFragment(new TermuxBridgeActivity());
         } else if (position == documentViewerRow) {
             presentFragment(new NativeDocumentSettingsActivity());
         } else if (position == spenRow) {
             presentFragment(new NativeSPenSettingsActivity());
+        } else if (position == webSocketRow) {
+            presentFragment(new TelegramWebSocketSettingsActivity());
         } else if (position == creditsRow) {
             presentFragment(new app.regram.ui.RegramCreditsActivity());
         }
@@ -52,7 +67,7 @@ public final class RegramFeaturesActivity extends BaseNekoSettingsActivity {
     private final class ListAdapter extends BaseListAdapter {
         ListAdapter(Context context) { super(context); }
         @Override public int getItemViewType(int position) {
-            return position == termuxRow || position == documentViewerRow || position == spenRow || position == creditsRow
+            return position == termuxRow || position == documentViewerRow || position == spenRow || position == webSocketRow || position == creditsRow
                     ? TYPE_TEXT : TYPE_DETAIL_SETTINGS;
         }
         @Override public void onBindViewHolder(RecyclerView.ViewHolder holder, int position, boolean partial) {
@@ -64,6 +79,8 @@ public final class RegramFeaturesActivity extends BaseNekoSettingsActivity {
                     cell.setTextAndIcon(getString(R.string.RegramDocTitle), R.drawable.msg_filehq, true);
                 } else if (position == spenRow) {
                     cell.setTextAndIcon(getString(R.string.RegramSPenTitle), R.drawable.msg_edit, true);
+                } else if (position == webSocketRow) {
+                    cell.setTextAndIcon(getString(R.string.RegramWsTitle), R.drawable.proxy_on_solar, true);
                 } else if (position == creditsRow) {
                     cell.setTextAndIcon(getString(R.string.RegramCreatorsAndSources), R.drawable.msg_groups, false);
                 }
@@ -77,6 +94,18 @@ public final class RegramFeaturesActivity extends BaseNekoSettingsActivity {
             } else if (position == quickThemeRow) {
                 cell.setTextAndValueAndIcon(getString(R.string.RegramQuickTheme),
                         getString(R.string.RegramQuickThemeSummary), R.drawable.msg_theme, true);
+            } else if (position == bluetoothCallsRow) {
+                cell.setTextAndValueAndIcon(getString(R.string.RegramHdBluetoothCallsTitle),
+                        getString(R.string.RegramHdBluetoothCallsSummary), R.drawable.msg_call_bluetooth, true);
+            } else if (position == dualCameraRow) {
+                cell.setTextAndValueAndIcon(getString(R.string.RegramDualCameraTitle),
+                        getString(R.string.RegramDualCameraSummary), R.drawable.msg_camera, true);
+            } else if (position == roundVideoZoomRow) {
+                cell.setTextAndValueAndIcon(getString(R.string.RegramRoundVideoZoomTitle),
+                        getString(R.string.RegramRoundVideoZoomSummary), R.drawable.msg_camera, true);
+            } else if (position == fontsRow) {
+                cell.setTextAndValueAndIcon(getString(R.string.RegramFontsTitle),
+                        getString(R.string.RegramFontsSummary), R.drawable.msg_settings, true);
             }
         }
     }

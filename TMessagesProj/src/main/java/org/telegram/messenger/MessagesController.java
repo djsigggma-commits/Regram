@@ -12523,14 +12523,24 @@ public class MessagesController extends BaseController implements NotificationCe
             if (!DialogObject.isEncryptedDialog(dialogId) && mode != ChatActivity.MODE_QUICK_REPLIES) {
                 int finalFirst_unread_final = first_unread_final;
                 Timer.Task t5 = Timer.start(loaderLogger, "loadReplyMessagesForMessages");
-                getMediaDataController().loadReplyMessagesForMessages(objects, dialogId, mode, threadMessageId, () -> {
+                // History is ready. Optional reply/story requests must not withhold a whole
+                // page indefinitely; late reply updates already use replyMessagesDidLoad.
+                app.regram.chats.HistoryPageDelivery delivery = new app.regram.chats.HistoryPageDelivery(() -> {
                     Timer.done(t5);
                     if (!needProcess) {
                         getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoadWithoutProcess, classGuid, resCount, isCache, isEnd, last_message_id);
                     } else {
                         getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoad, dialogId, count, objects, isCache, finalFirst_unread_final, last_message_id, unread_count, last_date, load_type, isEnd, classGuid, loadIndex, max_id, mentionsCount, mode);
                     }
-                }, classGuid, loaderLogger);
+                }, AndroidUtilities::cancelRunOnUIThread);
+                AndroidUtilities.runOnUIThread(delivery, app.regram.chats.HistoryPageDelivery.AUXILIARY_WAIT_MS);
+                try {
+                    getMediaDataController().loadReplyMessagesForMessages(objects, dialogId, mode, threadMessageId,
+                            () -> AndroidUtilities.runOnUIThread(delivery), classGuid, loaderLogger);
+                } catch (Exception e) {
+                    FileLog.e(e);
+                    delivery.run();
+                }
             } else {
                 getNotificationCenter().postNotificationName(NotificationCenter.messagesDidLoad, dialogId, count, objects, isCache, first_unread_final, last_message_id, unread_count, last_date, load_type, isEnd, classGuid, loadIndex, max_id, mentionsCount, mode);
             }

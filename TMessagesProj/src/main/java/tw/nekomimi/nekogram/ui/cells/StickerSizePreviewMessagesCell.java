@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
@@ -44,9 +45,15 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
     private final ChatMessageCell[] cells = new ChatMessageCell[2];
     private final MessageObject[] messageObjects = new MessageObject[2];
     private final Drawable shadowDrawable;
+    private final int currentAccount;
+    private static final String PREVIEW_STICKER_SET = "vaporeon_by_atb_by_fStikBot";
+    private static final int PREVIEW_STICKER_INDEX = 2; // Third sticker in pack order.
+    private boolean previewStickerLoading;
+    private boolean previewStickerLoaded;
 
     public StickerSizePreviewMessagesCell(Context context, BaseFragment fragment) {
         super(context);
+        currentAccount = UserConfig.selectedAccount;
 
         var resourcesProvider = fragment.getResourceProvider();
         fragmentView = (FrameLayout) fragment.getFragmentView();
@@ -63,7 +70,7 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
         message.dialog_id = 1;
         message.flags = 257;
         message.from_id = new TLRPC.TL_peerUser();
-        message.from_id.user_id = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
+        message.from_id.user_id = UserConfig.getInstance(currentAccount).getClientUserId();
         message.id = 1;
         message.media = new TLRPC.TL_messageMediaDocument();
         message.media.flags = 1;
@@ -73,7 +80,7 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
         message.media.document.access_hash = 0;
         message.media.document.date = date;
         TLRPC.TL_documentAttributeSticker attributeSticker = new TLRPC.TL_documentAttributeSticker();
-        attributeSticker.alt = "🐱";
+        attributeSticker.alt = "";
         message.media.document.attributes.add(attributeSticker);
         TLRPC.TL_documentAttributeImageSize attributeImageSize = new TLRPC.TL_documentAttributeImageSize();
         attributeImageSize.h = 512;
@@ -83,8 +90,9 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
         message.out = true;
         message.peer_id = new TLRPC.TL_peerUser();
         message.peer_id.user_id = 0;
-        messageObjects[0] = new MessageObject(UserConfig.selectedAccount, message, true, false);
-        messageObjects[0].useCustomPhoto = true;
+        messageObjects[0] = new MessageObject(currentAccount, message, true, false);
+        // Never use the built-in cat, including while the pack is loading.
+        messageObjects[0].useCustomPhoto = false;
 
         message = new TLRPC.TL_message();
         message.message = getString(R.string.StickerSizeDialogMessageReplyTo);
@@ -97,7 +105,7 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
         message.peer_id = new TLRPC.TL_peerUser();
         message.peer_id.user_id = 1;
         messageObjects[0].customReplyName = getString(R.string.StickerSizeDialogName);
-        messageObjects[0].replyMessageObject = new MessageObject(UserConfig.selectedAccount, message, true, false);
+        messageObjects[0].replyMessageObject = new MessageObject(currentAccount, message, true, false);
 
         message = new TLRPC.TL_message();
         message.message = NekoConfig.stickerSize.Float() < 9 ? getString(R.string.StickerSizeDialogMessageSmallOne) : getString(R.string.StickerSizeDialogMessageBigOne);
@@ -112,11 +120,11 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
         message.out = false;
         message.peer_id = new TLRPC.TL_peerUser();
         message.peer_id.user_id = 1;
-        messageObjects[1] = new MessageObject(UserConfig.selectedAccount, message, true, false);
+        messageObjects[1] = new MessageObject(currentAccount, message, true, false);
         messageObjects[1].replyMessageObject = messageObjects[0];
 
         for (int a = 0; a < cells.length; a++) {
-            cells[a] = new ChatMessageCell(context, UserConfig.selectedAccount, false, null, resourcesProvider);
+            cells[a] = new ChatMessageCell(context, currentAccount, false, null, resourcesProvider);
             cells[a].setDelegate(new ChatMessageCell.ChatMessageCellDelegate() {
 
                 @Override
@@ -139,6 +147,43 @@ public class StickerSizePreviewMessagesCell extends LinearLayout {
             cells[a].setMessageObject(messageObjects[a], null, false, false, false);
             addView(cells[a], LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        loadPreviewSticker();
+    }
+
+    private void loadPreviewSticker() {
+        if (previewStickerLoaded || previewStickerLoading) {
+            return;
+        }
+        previewStickerLoading = true;
+        TLRPC.TL_inputStickerSetShortName input = new TLRPC.TL_inputStickerSetShortName();
+        input.short_name = PREVIEW_STICKER_SET;
+        // Resolves memory/disk cache first; installing the pack is not required.
+        MediaDataController.getInstance(currentAccount).getStickerSet(input, null, false, set -> {
+            previewStickerLoading = false;
+            if (set == null || set.documents == null || set.documents.size() <= PREVIEW_STICKER_INDEX) {
+                return;
+            }
+            TLRPC.Document document = set.documents.get(PREVIEW_STICKER_INDEX);
+            if (document == null || document instanceof TLRPC.TL_documentEmpty) {
+                return;
+            }
+            MessageObject previous = messageObjects[0];
+            previous.messageOwner.media.document = document;
+            MessageObject sticker = new MessageObject(currentAccount, previous.messageOwner, true, false);
+            sticker.customReplyName = previous.customReplyName;
+            sticker.replyMessageObject = previous.replyMessageObject;
+            messageObjects[0] = sticker;
+            messageObjects[1].replyMessageObject = sticker;
+            messageObjects[1].forceUpdate = true;
+            previewStickerLoaded = true;
+            invalidate();
+            requestLayout();
+        });
     }
 
     private HintView2 timeHint;

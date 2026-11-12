@@ -326,6 +326,7 @@ public class WebRtcAudioTrack {
       releaseAudioResources();
       return -1;
     }
+    org.telegram.messenger.voip.BluetoothMediaAudio.bindPlayback(audioTrack);
     logMainParameters();
     logMainParametersExtended();
     return minBufferSizeInBytes;
@@ -455,10 +456,7 @@ public class WebRtcAudioTrack {
     }
     // Create an audio track where the audio usage is for VoIP and the content type is speech.
     return new AudioTrack(
-        new AudioAttributes.Builder()
-            .setUsage(usageAttribute)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-        .build(),
+        org.telegram.messenger.voip.BluetoothMediaAudio.playbackAttributes(usageAttribute),
         new AudioFormat.Builder()
           .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
           .setSampleRate(sampleRateInHz)

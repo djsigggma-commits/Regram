@@ -8086,6 +8086,9 @@ public class Theme {
         dialogs_tagTextPaint.setTextSize(dp(10));
         dialogs_searchNamePaint.setTextSize(dp(16));
         dialogs_searchNameEncryptedPaint.setTextSize(dp(16));
+        app.regram.fonts.ApplicationFonts.applyUi(dialogs_messagePaint[0], dialogs_messagePaint[1],
+                dialogs_messagePrintingPaint[0], dialogs_messagePrintingPaint[1], dialogs_timePaint,
+                dialogs_onlinePaint, dialogs_offlinePaint);
     }
 
     public static void applyDialogsTheme() {
@@ -8229,6 +8232,9 @@ public class Theme {
             chat_msgTextCodePaint.setTextSize(dp(Math.max(Math.min(10, SharedConfig.fontSize - 1), SharedConfig.fontSize - 2)));
             chat_msgTextCode2Paint.setTextSize(dp(Math.max(Math.min(10, SharedConfig.fontSize - 2), SharedConfig.fontSize - 3)));
             chat_msgTextCode3Paint.setTextSize(dp(Math.max(Math.min(10, SharedConfig.fontSize - 2), SharedConfig.fontSize - 5)));
+            app.regram.fonts.ApplicationFonts.applyUi(chat_msgTextPaint, chat_msgGameTextPaint,
+                    chat_replyTextPaint, chat_quoteTextPaint, chat_explanationTextPaint, chat_titleLabelTextPaint,
+                    chat_forwardNamePaint, chat_adminPaint, chat_timePaint, chat_ephemeralPaint);
         }
     }
 
@@ -8338,6 +8344,10 @@ public class Theme {
             addChatPaint(key_paint_chatComposeBackground, chat_composeBackgroundPaint, key_chat_messagePanelBackground);
             addChatPaint(key_paint_chatTimeBackground, chat_timeBackgroundPaint, key_chat_mediaTimeBackground);
         }
+        app.regram.fonts.ApplicationFonts.applyUi(chat_infoPaint, chat_locationAddressPaint,
+                chat_audioTimePaint, chat_audioPerformerPaint, chat_contactPhonePaint, chat_durationPaint,
+                chat_shipmentPaint, chat_timePaint, chat_adminPaint, chat_ephemeralPaint,
+                chat_forwardNamePaint, chat_replyTextPaint, chat_titleLabelTextPaint, chat_commentTextPaint);
     }
 
     public static void createChatResources(Context context, boolean fontsOnly) {

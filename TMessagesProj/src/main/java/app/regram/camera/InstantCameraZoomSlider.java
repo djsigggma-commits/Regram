@@ -702,7 +702,7 @@ public class InstantCameraZoomSlider extends CameraZoomSliderView {
 
     private void showAnimated() {
         setEnabled(true);
-        if (!app.regram.chats.ChatsConfig.zoomSlider.Bool()) {
+        if (!ChatsConfig.zoomSlider.Bool()) {
             hideImmediately();
             return;
         }
@@ -788,6 +788,9 @@ public class InstantCameraZoomSlider extends CameraZoomSliderView {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        if (!ChatsConfig.zoomSlider.Bool()) {
+            hideImmediately();
+        }
         if (backend != Backend.NONE
             && (getVisibility() != VISIBLE || !isEnabled() || animateNextConfiguration)) {
             bindRetries = 0;
@@ -818,7 +821,7 @@ public class InstantCameraZoomSlider extends CameraZoomSliderView {
     @Override
     @SuppressLint("ClickableViewAccessibility")
     public boolean onTouchEvent(MotionEvent event) {
-        if (!isEnabled() || getAlpha() < 0.5f) {
+        if (!ChatsConfig.zoomSlider.Bool() || getVisibility() != VISIBLE || !isEnabled() || getAlpha() < 0.5f) {
             return false;
         }
         return super.onTouchEvent(event);

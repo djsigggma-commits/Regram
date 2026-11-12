@@ -133,6 +133,7 @@ public class NekoConfig {
     public static ConfigItem customSavePath = addConfig("customSavePath", configTypeString, "regram");
 
     // re:gram ports. Reuse the existing persistence and settings backup machinery.
+    public static ConfigItem regramHdBluetoothCalls = addConfig("RegramHdBluetoothCalls", configTypeBool, false);
     public static ConfigItem regramM3Sliders = addConfig("RegramM3Sliders", configTypeBool, false);
     public static ConfigItem regramDisableBrowserCollapse = addConfig("RegramDisableBrowserCollapse", configTypeBool, false);
     public static ConfigItem regramSortAlbumsBySize = addConfig("RegramSortAlbumsBySize", configTypeBool, false);

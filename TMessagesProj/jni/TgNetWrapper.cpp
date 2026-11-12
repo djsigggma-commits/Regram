@@ -39,6 +39,24 @@ jmethodID jclass_ConnectionsManager_getInitFlags;
 jmethodID jclass_ConnectionsManager_onPremiumFloodWait;
 jmethodID jclass_ConnectionsManager_onIntegrityCheckClassic;
 jmethodID jclass_ConnectionsManager_onCaptchaCheck;
+jmethodID jclass_ConnectionsManager_openTelegramWebSocket;
+
+int openTelegramWebSocket(int32_t account, int32_t dc, bool media, bool test,
+                         const std::string &address, uint16_t port) {
+    JNIEnv *env = jniEnv[account];
+    if (env == nullptr) return -2;
+    jstring host = env->NewStringUTF(address.c_str());
+    if (host == nullptr) { env->ExceptionClear(); return -2; }
+    jint fd = env->CallStaticIntMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_openTelegramWebSocket,
+                                     dc, (jboolean) media, (jboolean) test, host, (jint) port);
+    env->DeleteLocalRef(host);
+    if (env->ExceptionCheck()) { env->ExceptionClear(); return -2; }
+    return fd;
+}
+
+void onTransportChanged(JNIEnv *env, jclass c, jint account) {
+    ConnectionsManager::getInstance(account).onTransportChanged();
+}
 
 bool check_utf8(const char *data, size_t len);
 
@@ -543,6 +561,7 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_applyDatacenterAddress", "(IILjava/lang/String;I)V", (void *) applyDatacenterAddress},
         {"native_moveToDatacenter", "(II)V", (void *) moveToDatacenter},
         {"native_setProxySettings", "(ILjava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) setProxySettings},
+        {"native_onTransportChanged", "(I)V", (void *) onTransportChanged},
         {"native_getConnectionState", "(I)I", (void *) getConnectionState},
         {"native_setUserId", "(IJ)V", (void *) setUserId},
         {"native_init", "(IIIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IJZZZII)V", (void *) init},
@@ -618,6 +637,8 @@ extern "C" int registerNativeTgNetFunctions(JavaVM *vm, JNIEnv *env) {
     if (jclass_ConnectionsManager == 0) {
         return JNI_FALSE;
     }
+    jclass_ConnectionsManager_openTelegramWebSocket = env->GetStaticMethodID(jclass_ConnectionsManager, "openTelegramWebSocket", "(IZZLjava/lang/String;I)I");
+    if (jclass_ConnectionsManager_openTelegramWebSocket == nullptr) return JNI_FALSE;
     jclass_ConnectionsManager_onRequestClear = env->GetStaticMethodID(jclass_ConnectionsManager, "onRequestClear", "(IIZ)V");
     if (jclass_ConnectionsManager_onRequestClear == 0) {
         return JNI_FALSE;

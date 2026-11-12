@@ -338,7 +338,7 @@ public class WebRtcAudioRecord {
       }
     } else {
       try {
-        audioRecord = new AudioRecord(audioSource, sampleRate, channelConfig,
+        audioRecord = new AudioRecord(org.telegram.messenger.voip.BluetoothMediaAudio.recordingSource(audioSource), sampleRate, channelConfig,
                 AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes);
       } catch (IllegalArgumentException e) {
         reportWebRtcAudioRecordInitError("AudioRecord ctor error: " + e.getMessage());
@@ -348,6 +348,11 @@ public class WebRtcAudioRecord {
     }
     if (audioRecord == null || audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
       reportWebRtcAudioRecordInitError("Failed to create a new AudioRecord instance");
+      releaseAudioResources(false);
+      return -1;
+    }
+    if (captureType == 0 && !org.telegram.messenger.voip.BluetoothMediaAudio.bindMicrophone(audioRecord)) {
+      reportWebRtcAudioRecordInitError("Phone microphone route unavailable for Bluetooth media call");
       releaseAudioResources(false);
       return -1;
     }

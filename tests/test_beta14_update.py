@@ -8,7 +8,8 @@ def test_current_base_version_and_chaquopy_revision():
     props = (ROOT / 'gradle.properties').read_text()
     assert 'APP_VERSION_NAME=13.1.1\n' in props
     assert 'APP_VERSION_CODE=7237\n' in props
-    assert 'REGRAM_VERSION=1.4.8.8\n' in props
+    assert 'REGRAM_VERSION=13.1.1.1\n' in props
+    assert 'REGRAM_LEGACY_VERSION=1.4.8.9\n' in props
     restore = (ROOT / 'tools/restore_submodules.sh').read_text()
     assert '4771c553' in restore
     assert 'eab341a401913ac50254ff20e9efeebeaae872ef' in restore

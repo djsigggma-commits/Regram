@@ -93,7 +93,10 @@ class RegramIntegrationTests(unittest.TestCase):
         options = re.findall(r'ConfigItem (regram\w+) = addConfig\("(Regram\w+)", configTypeBool, false\)', config)
         # Native visual controls have their own policy/UI tests (array-backed settings).
         native_visual = {"regramMonoColor", "regramMonoGradient", "regramAllLeft", "regramAllLeftPrivate", "regramMentionAvatars", "regramPlayerColor", "regramQuickTheme", "regramQuickHideNavigationBackdrop"}
-        options = [(field, key) for field, key in options if field not in native_visual]
+        # The call-audio toggle has a dedicated screen and executable device-routing
+        # contract in test_bluetooth_media_calls.py, not the legacy ten-port UI shape.
+        separately_tested = native_visual | {"regramHdBluetoothCalls"}
+        options = [(field, key) for field, key in options if field not in separately_tested]
         self.assertEqual(len(options), 10)
         destinations = {
             "regramDisableBrowserCollapse": "OpenExteraGeneralActivity",

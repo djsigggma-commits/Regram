@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramFontsTitle">Шрифты</string>
+    <string name="RegramFontsSummary">Шрифт приложения, импорт, видимость и порядок шрифтов редактора</string>
+    <string name="RegramFontsApplication">Шрифт приложения</string>
+    <string name="RegramFontsApplicationInfo">Использовать импортированный шрифт в интерфейсе приложения, включая список чатов, сообщения и настройки. Можно выбрать только импортированные шрифты. Применяется после перезапуска. Код, декоративные надписи, веб-страницы и системные экраны сохраняют собственные шрифты. Android может синтезировать жирное и курсивное начертания.</string>
+    <string name="RegramFontsAvailable">Доступные шрифты</string>
+    <string name="RegramFontsSystem">Включить системные шрифты</string>
+    <string name="RegramFontsSystemInfo">Показывать системные семейства шрифтов, поддерживаемые медиаредактором</string>
+    <string name="RegramFontsEditorInfo">Видимые шрифты доступны в инструменте текста медиаредактора. Перетаскивайте за ручку, чтобы изменить порядок; нажмите на глаз, чтобы скрыть или показать шрифт. Нажмите на импортированный шрифт, чтобы удалить его. Скрытие не меняет сохранённый текст медиа и шрифт приложения. Если скрыть все шрифты, редактор оставит доступным стандартный.</string>
+    <string name="RegramFontsAdd">Добавить шрифт</string>
+    <string name="RegramFontsReset">Сбросить порядок</string>
+    <string name="RegramFontsDefault">По умолчанию</string>
+    <string name="RegramFontsBuiltin">СТАНДАРТНЫЙ</string>
+    <string name="RegramFontsImported">ИМПОРТИРОВАННЫЙ</string>
+    <string name="RegramFontsSystemLabel">СИСТЕМНЫЙ</string>
+    <string name="RegramFontsDelete">Удалить импортированный шрифт? Если он выбран шрифтом приложения, после перезапуска восстановится стандартный. В тексте медиа, использующем этот шрифт, может примениться замена.</string>
+    <string name="RegramFontsImportInfo">Выберите файл TTF, OTF или TTC размером до 20 МиБ. Можно импортировать до 32 шрифтов. Файлы копируются в закрытое хранилище приложения.</string>
+    <string name="RegramFontsError">Не удалось загрузить или сохранить шрифт. Выберите корректный файл TTF, OTF или TTC размером до 20 МиБ, проверьте свободное место и убедитесь, что импортировано меньше 32 шрифтов.</string>
+    <string name="RegramFontsImportedDone">Шрифт импортирован</string>
+    <string name="RegramFontsShow">Показывать шрифт в редакторе</string>
+    <string name="RegramFontsHide">Скрыть шрифт в редакторе</string>
+    <string name="RegramFontsReorder">Перетащить шрифт</string>
+</resources>

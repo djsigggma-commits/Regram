@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramRoundVideoZoomTitle">Round video zoom slider</string>
+    <string name="RegramRoundVideoZoomSummary">Optional zoom control below the camera while recording</string>
+    <string name="RegramRoundVideoZoomInfo">Show a zoom slider below the round video camera while recording. Drag the control to change zoom within the active camera’s supported range. Works with the built-in Camera1, Camera2 and CameraX engines; the slider stays hidden when the camera does not support zoom.\n\nYou can turn this control off without disabling pinch-to-zoom or other zoom gestures. The setting is shared with Chats → Media → Round video zoom slider and applies the next time the camera opens. Your existing choice is preserved.</string>
+</resources>

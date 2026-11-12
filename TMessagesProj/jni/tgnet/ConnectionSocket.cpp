@@ -38,6 +38,12 @@
 
 #define MAX_GREASE 8
 
+#ifdef ANDROID
+// Returns an in-process socketpair fd, -1 when disabled, -2 on allocation failure.
+extern int openTelegramWebSocket(int32_t account, int32_t dc, bool media, bool test,
+                                 const std::string &address, uint16_t port);
+#endif
+
 static BIGNUM *get_y2(BIGNUM *x, const BIGNUM *mod, BN_CTX *big_num_context) {
     // returns y^2 = x^3 + 486662 * x^2 + x
     BIGNUM *y = BN_dup(x);
@@ -472,7 +478,7 @@ ConnectionSocket::~ConnectionSocket() {
     }
 }
 
-void ConnectionSocket::openConnection(std::string address, uint16_t port, std::string secret, bool ipv6, int32_t networkType) {
+void ConnectionSocket::openConnection(std::string address, uint16_t port, std::string secret, bool ipv6, int32_t networkType, int32_t wsDc, bool wsMedia) {
     currentNetworkType = networkType;
     isIpv6 = ipv6;
     currentAddress = address;
@@ -480,7 +486,29 @@ void ConnectionSocket::openConnection(std::string address, uint16_t port, std::s
     waitingForHostResolve = "";
     adjustWriteOpAfterResolve = false;
     tlsState = 0;
+    webSocketTransport = webSocketReady = false;
     ConnectionsManager::getInstance(instanceNum).attachConnection(this);
+
+#ifdef ANDROID
+    if (wsDc != 0 && overrideProxyAddress.empty() && ConnectionsManager::getInstance(instanceNum).proxyAddress.empty()) {
+        int fd = openTelegramWebSocket(instanceNum, wsDc, wsMedia,
+                ConnectionsManager::getInstance(instanceNum).testBackend, address, port);
+        if (fd != -1) {
+            if (fd < 0) { closeSocket(1, -1); return; }
+            socketFd = fd;
+            webSocketTransport = true;
+            proxyAuthState = 0;
+            if (fcntl(socketFd, F_SETFL, O_NONBLOCK) == -1) { closeSocket(1, -1); return; }
+            // Read one readiness byte before allowing any outgoing MTProto traffic.
+            eventMask.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLET;
+            eventMask.data.ptr = eventObject;
+            if (epoll_ctl(ConnectionsManager::getInstance(instanceNum).epolFd, EPOLL_CTL_ADD, socketFd, &eventMask) != 0) {
+                closeSocket(1, -1);
+            }
+            return;
+        }
+    }
+#endif
 
     memset(&socketAddress, 0, sizeof(sockaddr_in));
     memset(&socketAddress6, 0, sizeof(sockaddr_in6));
@@ -687,6 +715,7 @@ void ConnectionSocket::closeSocket(int32_t reason, int32_t error) {
     adjustWriteOpAfterResolve = false;
     proxyAuthState = 0;
     tlsState = 0;
+    webSocketTransport = webSocketReady = false;
     onConnectedSent = false;
     outgoingByteStream->clean();
     if (tlsBuffer != nullptr) {
@@ -697,6 +726,17 @@ void ConnectionSocket::closeSocket(int32_t reason, int32_t error) {
 }
 
 void ConnectionSocket::onEvent(uint32_t events) {
+    if (webSocketTransport && !webSocketReady && (events & EPOLLIN)) {
+        uint8_t ready;
+        ssize_t n = recv(socketFd, &ready, 1, 0);
+        if (n == 1 && ready == 1) {
+            webSocketReady = true;
+            adjustWriteOp();
+        } else if (n == 0 || (n < 0 && errno != EAGAIN && errno != EINTR) || n > 0) {
+            closeSocket(1, -1);
+            return;
+        }
+    }
     if (events & EPOLLIN) {
         int32_t error;
         if (checkSocketError(&error) != 0) {
@@ -711,6 +751,7 @@ void ConnectionSocket::onEvent(uint32_t events) {
                 int err = errno;
 //                if (LOGS_ENABLED) DEBUG_D("connection(%p) recv resulted with %d, errno=%d", this, readCount, err);
                 if (readCount < 0) {
+                    if (err == EINTR) continue;
                     if (err == EAGAIN) {
                         break;
                     }
@@ -909,6 +950,10 @@ void ConnectionSocket::onEvent(uint32_t events) {
                         }
                     }
                 } else if (readCount == 0) {
+                    if (webSocketTransport) {
+                        closeSocket(1, 0);
+                        return;
+                    }
                     break;
                 }
 //                if (readCount != READ_BUFFER_SIZE) {
@@ -917,7 +962,7 @@ void ConnectionSocket::onEvent(uint32_t events) {
             }
         }
     }
-    if (events & EPOLLOUT) {
+    if ((events & EPOLLOUT) && (!webSocketTransport || webSocketReady)) {
         int32_t error;
         if (checkSocketError(&error) != 0) {
             closeSocket(1, error);
@@ -1053,6 +1098,10 @@ void ConnectionSocket::onEvent(uint32_t events) {
                         }
                     } else {
                         if ((sentLength = send(socketFd, buffer->bytes(), remaining, 0)) < 0) {
+                            if (webSocketTransport && (errno == EAGAIN || errno == EINTR)) {
+                                adjustWriteOp();
+                                return;
+                            }
                             if (LOGS_ENABLED) DEBUG_D("connection(%p) send failed", this);
                             closeSocket(1, -1);
                             return;
@@ -1101,7 +1150,8 @@ void ConnectionSocket::adjustWriteOp() {
         return;
     }
     eventMask.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLET;
-    if (proxyAuthState == 0 && (outgoingByteStream->hasData() || !onConnectedSent) || proxyAuthState == 1 || proxyAuthState == 3 || proxyAuthState == 5 || proxyAuthState == 10) {
+    if ((!webSocketTransport || webSocketReady) &&
+        ((proxyAuthState == 0 && (outgoingByteStream->hasData() || !onConnectedSent)) || proxyAuthState == 1 || proxyAuthState == 3 || proxyAuthState == 5 || proxyAuthState == 10)) {
         eventMask.events |= EPOLLOUT;
     }
     eventMask.data.ptr = eventObject;

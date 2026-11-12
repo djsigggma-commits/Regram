@@ -610,7 +610,7 @@ public class DualCameraView extends CameraView {
     }
 
     public static boolean roundDualAvailableStatic(Context context) {
-        return MessagesController.getGlobalMainSettings().getBoolean("rounddual_available", roundDualAvailableDefault(context));
+        return app.regram.camera.DualCameraSettings.canUse(context);
     }
 
     public static boolean roundDualAvailableDefault(Context context) {

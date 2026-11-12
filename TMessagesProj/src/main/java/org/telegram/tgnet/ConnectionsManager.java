@@ -1088,6 +1088,7 @@ public class ConnectionsManager extends BaseController {
     }
 
     public static void setProxySettings(boolean enabled, ProxySettings settings) {
+        if (enabled && settings != null && settings.isValid()) TelegramWebSocketTransport.stopPool();
         String address = "";
         int port = 0;
         String username = "";
@@ -1127,6 +1128,12 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
+    // Called by tgnet on its network thread; retained with this class by the existing R8 rules.
+    public static int openTelegramWebSocket(int dc, boolean media, boolean test, String address, int port) {
+        return TelegramWebSocketTransport.open(dc, media, test, address, port);
+    }
+
+    public static native void native_onTransportChanged(int currentAccount);
     public static native void native_switchBackend(int currentAccount, boolean restart);
     public static native int native_isTestBackend(int currentAccount);
     public static native void native_pauseNetwork(int currentAccount);

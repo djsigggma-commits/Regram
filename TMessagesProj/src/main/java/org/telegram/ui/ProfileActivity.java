@@ -10906,7 +10906,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return chatId != 0;
     }
 
-    private void updateRowsIds() {
+    public void updateRowsIds() {
         updateNotifications(false);
 
         boolean hasJoinRow = false;

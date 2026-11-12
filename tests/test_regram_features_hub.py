@@ -31,7 +31,14 @@ def test_hub_routes_retained_screens_without_changing_settings():
     assert 'getString(R.string.RegramFeatures)' in source
     for mutation in ('SharedPreferences','setConfig','saveConfig','preferences().edit','PluginStyles.put'):
         assert mutation not in source
-    assert source.count('setTextAndValueAndIcon(')==2
+    assert 'bluetoothCallsRow = addRow("RegramHdBluetoothCalls", "RegramHdBluetoothCallsTitle")' in source
+    assert 'presentFragment(new BluetoothCallAudioSettingsActivity())' in source
+    assert 'dualCameraRow = addRow("rounddual_available", "RegramDualCameraTitle")' in source
+    assert 'presentFragment(new DualCameraSettingsActivity())' in source
+    assert 'roundVideoZoomRow = addRow("zoomSlider", "RegramRoundVideoZoomTitle")' in source
+    assert 'presentFragment(new RoundVideoZoomSettingsActivity())' in source
+    assert 'presentFragment(new FontsSettingsActivity())' in source
+    assert source.count('setTextAndValueAndIcon(')==6
     assert 'nativePluginStyles' not in source
     assert 'R.drawable.msg_groups, false' in source
 

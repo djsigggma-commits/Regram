@@ -33,13 +33,17 @@ import java.util.Set;
 public class PaintTypeface {
     private final static boolean SYSTEM_FONTS_ENABLED = true;
 
-    public static final PaintTypeface ROBOTO_MEDIUM = new PaintTypeface("roboto", "PhotoEditorTypefaceRoboto", new LazyTypeface(() -> AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM)));
-    public static final PaintTypeface ROBOTO_ITALIC = new PaintTypeface("italic", "PhotoEditorTypefaceItalic", new LazyTypeface(() -> AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM_ITALIC)));
+    private static Typeface editorAsset(String path) {
+        return Typeface.createFromAsset(org.telegram.messenger.ApplicationLoader.applicationContext.getAssets(), path);
+    }
+
+    public static final PaintTypeface ROBOTO_MEDIUM = new PaintTypeface("roboto", "PhotoEditorTypefaceRoboto", new LazyTypeface(() -> editorAsset(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM)));
+    public static final PaintTypeface ROBOTO_ITALIC = new PaintTypeface("italic", "PhotoEditorTypefaceItalic", new LazyTypeface(() -> editorAsset(AndroidUtilities.TYPEFACE_ROBOTO_MEDIUM_ITALIC)));
     public static final PaintTypeface ROBOTO_SERIF = new PaintTypeface("serif", "PhotoEditorTypefaceSerif", new LazyTypeface(() -> Typeface.create("serif", Typeface.BOLD)));
-    public static final PaintTypeface ROBOTO_CONDENSED = new PaintTypeface("condensed", "PhotoEditorTypefaceCondensed", new LazyTypeface(() -> AndroidUtilities.getTypeface("fonts/rcondensedbold.ttf")));
+    public static final PaintTypeface ROBOTO_CONDENSED = new PaintTypeface("condensed", "PhotoEditorTypefaceCondensed", new LazyTypeface(() -> editorAsset("fonts/rcondensedbold.ttf")));
     public static final PaintTypeface ROBOTO_MONO = new PaintTypeface ("mono", "PhotoEditorTypefaceMono", new LazyTypeface(() -> AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MONO)));
-    public static final PaintTypeface MW_BOLD = new PaintTypeface("mw_bold", "PhotoEditorTypefaceMerriweather", new LazyTypeface(() -> AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_MERRIWEATHER_BOLD)));
-    public static final PaintTypeface OSWALD_BOLD = new PaintTypeface("oswald", "PhotoEditorTypefaceOswald", new LazyTypeface(() -> AndroidUtilities.getTypeface("fonts/oswald_bold.ttf")));
+    public static final PaintTypeface MW_BOLD = new PaintTypeface("mw_bold", "PhotoEditorTypefaceMerriweather", new LazyTypeface(() -> editorAsset(AndroidUtilities.TYPEFACE_MERRIWEATHER_BOLD)));
+    public static final PaintTypeface OSWALD_BOLD = new PaintTypeface("oswald", "PhotoEditorTypefaceOswald", new LazyTypeface(() -> editorAsset("fonts/oswald_bold.ttf")));
 
     public final static List<PaintTypeface> BUILT_IN_FONTS = Arrays.asList(ROBOTO_MEDIUM, ROBOTO_ITALIC, ROBOTO_SERIF, ROBOTO_CONDENSED, ROBOTO_MONO, OSWALD_BOLD, MW_BOLD);
 
@@ -191,7 +195,21 @@ public class PaintTypeface {
         });
     }
 
-    public static List<PaintTypeface> get() {
+    public static PaintTypeface imported(String key, String name, Typeface typeface) {
+        return new PaintTypeface(key, null, typeface, name);
+    }
+
+    private PaintTypeface(String key, String nameKey, Typeface typeface, String name) {
+        this.key = key;
+        this.nameKey = nameKey;
+        this.name = name;
+        this.typeface = typeface;
+        this.lazyTypeface = null;
+        this.font = null;
+    }
+
+    /** Unfiltered catalog is also used to resolve fonts in existing saved editor entities. */
+    public static List<PaintTypeface> getAll() {
         if (typefaces == null) {
             load();
             return BUILT_IN_FONTS;
@@ -199,11 +217,16 @@ public class PaintTypeface {
         return typefaces;
     }
 
+    public static List<PaintTypeface> get() {
+        return app.regram.fonts.ApplicationFonts.catalog(getAll(), false);
+    }
+
     public static PaintTypeface find(String key) {
         if (key == null || TextUtils.isEmpty(key)) {
             return null;
         }
-        List<PaintTypeface> typefaces = get();
+        ArrayList<PaintTypeface> typefaces = new ArrayList<>(getAll());
+        typefaces.addAll(app.regram.fonts.ApplicationFonts.imported());
         for (int i = 0; i < typefaces.size(); ++i) {
             PaintTypeface typeface = typefaces.get(i);
             if (typeface != null && TextUtils.equals(key, typeface.key)) {

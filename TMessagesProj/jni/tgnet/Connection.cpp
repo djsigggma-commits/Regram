@@ -364,8 +364,14 @@ void Connection::connect() {
     lastPacketLength = 0;
     wasConnected = false;
     hasSomeDataSinceLastConnect = false;
-    openConnection(hostAddress, hostPort, secret, ipv6 != 0, ConnectionsManager::getInstance(currentDatacenter->instanceNum).currentNetworkType);
-    if (connectionType == ConnectionTypeProxy) {
+    bool wsEligible = !currentDatacenter->isCdnDatacenter && connectionType != ConnectionTypeTemp && connectionType != ConnectionTypeProxy;
+    int32_t dcId = (int32_t) currentDatacenter->getDatacenterId();
+    wsEligible = wsEligible && ((dcId >= 1 && dcId <= 5) || dcId == 203);
+    openConnection(hostAddress, hostPort, secret, ipv6 != 0, ConnectionsManager::getInstance(currentDatacenter->instanceNum).currentNetworkType,
+                   wsEligible ? dcId : 0, isMediaConnection);
+    if (webSocketTransport) {
+        setTimeout(30);
+    } else if (connectionType == ConnectionTypeProxy) {
         setTimeout(10);
     } else if (connectionType == ConnectionTypePush) {
         if (isTryingNextPort) {
@@ -447,7 +453,10 @@ void Connection::sendData(NativeByteBuffer *buff, bool reportAck, bool encrypted
 
     uint8_t useSecret = 0;
     if (!firstPacketSent) {
-        if (!overrideProxyAddress.empty()) {
+        if (webSocketTransport) {
+            // WSS terminates at the DC: use unkeyed obfuscated abridged, not a proxy secret.
+            useSecret = 0;
+        } else if (!overrideProxyAddress.empty()) {
             if (!overrideProxySecret.empty()) {
                 useSecret = 1;
             } else if (!secret.empty()) {
@@ -533,16 +542,18 @@ void Connection::sendData(NativeByteBuffer *buff, bool reportAck, bool encrypted
                     bytes[56] = bytes[57] = bytes[58] = bytes[59] = 0xee;
                 }
 
-                if (useSecret != 0) {
+                if (useSecret != 0 || webSocketTransport) {
                     int16_t datacenterId;
+                    // WSS selects test DCs by /apiws_test, not the MTProxy +10000 convention.
+                    bool proxyTestDc = !webSocketTransport && ConnectionsManager::getInstance(currentDatacenter->instanceNum).testBackend;
                     if (isMediaConnection) {
-                        if (ConnectionsManager::getInstance(currentDatacenter->instanceNum).testBackend) {
+                        if (proxyTestDc) {
                             datacenterId = -(int16_t) (10000 + currentDatacenter->getDatacenterId());
                         } else {
                             datacenterId = -(int16_t) currentDatacenter->getDatacenterId();
                         }
                     } else {
-                        if (ConnectionsManager::getInstance(currentDatacenter->instanceNum).testBackend) {
+                        if (proxyTestDc) {
                             datacenterId = (int16_t) (10000 + currentDatacenter->getDatacenterId());
                         } else {
                             datacenterId = (int16_t) currentDatacenter->getDatacenterId();

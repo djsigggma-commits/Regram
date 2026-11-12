@@ -1,8 +1,6 @@
 package app.regram.settings;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.text.TextUtils;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.view.HapticFeedbackConstants;
@@ -16,9 +14,7 @@ import app.regram.icons.IconPacksConfig;
 import app.regram.icons.IconShapeHelper;
 
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildConfig;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
@@ -27,7 +23,7 @@ import org.telegram.ui.Components.LayoutHelper;
 /**
  * About-шапка корневого экрана re:gram.
  * Порт HeaderSettingsCell из exteraGram 12.9.0: логотип 72dp,
- * название 20sp bold, версия 15sp bold с кодом сборки в скобках.
+ * название 20sp bold, версия 15sp bold без дополнительных маркеров.
  *
  * Форма логотипа — маска лаунчера, а не жёсткий круг: на прошивке со сквирклом
  * или каплей иконка в настройках выглядит так же, как на рабочем столе
@@ -104,20 +100,8 @@ public class AboutHeaderCell extends LinearLayout {
         logo.setOnClickListener(listener);
     }
 
-    /** "12.9.2 (1258)" — версия плюс versionCode из PackageInfo, как в оригинале. */
+    /** Only the app version, e.g. "13.1.1". */
     public static String buildVersionString() {
-        StringBuilder sb = new StringBuilder(BuildConfig.VERSION_NAME);
-        try {
-            PackageInfo info = ApplicationLoader.applicationContext.getPackageManager()
-                    .getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            if (info != null) {
-                sb.append(" (").append(info.versionCode).append(")");
-            }
-        } catch (Exception ignore) {
-        }
-        if (!TextUtils.isEmpty(BuildVars.BUILD_COMMIT_ID)) {
-            sb.append(" · ").append(BuildVars.BUILD_COMMIT_ID);
-        }
-        return sb.toString();
+        return BuildConfig.VERSION_NAME;
     }
 }

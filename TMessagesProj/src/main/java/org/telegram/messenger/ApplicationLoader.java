@@ -376,6 +376,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
 
         // AndroidUtilities must be initialized before FileLog
         final String helloWorld = AndroidUtilities.getHelloWorld();
+        app.regram.fonts.FontWindows.register(this);
 
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d(helloWorld);
@@ -916,6 +917,7 @@ public class ApplicationLoader extends Application implements CameraXConfig.Prov
             app.regram.crash.CrashLog.record(thread, error);
             if (AndroidUtil.shouldReportCrashToCrashlytics(error)) {
                 if (crashlyticsHandler != null) {
+                    app.regram.crash.CrashLog.putCrashlyticsKeys(error);
                     crashlyticsHandler.uncaughtException(thread, error);
                     return;
                 }

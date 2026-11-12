@@ -1,0 +1,196 @@
+{
+  "repository": "https://github.com/exteraless/exteraless",
+  "branch": "main",
+  "upstream_commit": "c83765c4151d50ba514325ddf0a3262769729dc6",
+  "previous_commit": "4771c553fee84618f8fa8dfc034c9e85317c2c72",
+  "base_version": "13.1.1",
+  "base_version_code": 7237,
+  "api_layer": 232,
+  "gitlinks": {
+    "TMessagesProj/chaquopy": "eab341a401913ac50254ff20e9efeebeaae872ef",
+    "TMessagesProj/jni/tgcalls": "1398c1648f52666b3249111ec3c5b531946e41e4",
+    "TMessagesProj/jni/third_party/absl": "54fac219c4ef0bc379dfffb0b8098725d77ac81b",
+    "TMessagesProj/jni/third_party/boost-regex": "4cbcd3078e6ae10d05124379623a1bf03fcb9350",
+    "TMessagesProj/jni/third_party/dav1d": "54706fc6bc0cdecab7e9593974a4039cc038fca7",
+    "TMessagesProj/jni/third_party/ffmpeg": "45f1910444f34b02621f9f0426ea1a538a613c41",
+    "TMessagesProj/jni/third_party/libprisma": "31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d",
+    "TMessagesProj/jni/third_party/libvpx": "1024874c5919305883187e2953de8fcb4c3d7fa6",
+    "TMessagesProj/jni/third_party/wamr": "25bd7eb63e828e4bd242cc9b38d260b4b31c6605",
+    "TMessagesProj/jni/third_party/xiph/ogg": "be05b13e98b048f0b5a0f5fa8ce514d56db5f822",
+    "TMessagesProj/jni/third_party/xiph/opus": "22244de5a79bd1d6d623c32e72bf1954b56235be",
+    "TMessagesProj/jni/third_party/xiph/opusfile": "a55c164e9891a9326188b7d4d216ec9a88373739",
+    "TMessagesProj/jni/tlottie": "31f1b542f88e7b4be9a01e749920d857535fc715",
+    "TMessagesProj/jni/wallet-engine": "5c65e47cb8d68727c20d89382d0bc51292486b9a",
+    "TMessagesProj/lib/jlatexmath": "f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4",
+    "TMessagesProj_Modules/media": "09b6c97c0d691c50cd4541e1573995d4066d6f5c"
+  },
+  "delta": [
+    {
+      "path": "TMessagesProj/src/main/AndroidManifest.xml",
+      "mode": "merged",
+      "sha256": "c782a7ab27afc2a47a960ed984a4555b1dbb14e814f74ecac418827d4820eb5d",
+      "upstream_path": "TMessagesProj/src/main/AndroidManifest.xml",
+      "upstream_sha256": "7ae8359fbab81dec34ae6540f8086cb1b98f4398ed2d7e46a1571708cd651e2a"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/crash/CrashLog.java",
+      "mode": "merged",
+      "sha256": "9e1f84b16d57cb03233ce6326200378b19724cf2b877a596240016979dff9f35",
+      "upstream_path": "TMessagesProj/src/main/java/app/exteraless/crash/CrashLog.java",
+      "upstream_sha256": "7d2bc9f635c1b0b3cd6d7b6eb238a4e2fb49fddbeca40adf33499bf4c2bb9693"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/player/PlayerSheet.java",
+      "mode": "merged",
+      "sha256": "f461b85d16939b91b86d2422857e3b7b7be9bf1ac12ea413f7c6ef9d701f90a7",
+      "upstream_path": "TMessagesProj/src/main/java/app/exteraless/player/PlayerSheet.java",
+      "upstream_sha256": "bb14ea78067848886281f11849e0466fe9aed2a9ac7c893d2aba92d6abf7e2b3"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/plugins/ui/PluginSettingsActivity.java",
+      "mode": "merged",
+      "sha256": "0abeb36b2527fe92c87204f4d7211171052d625ed11ef7a474ef4132833037fa",
+      "upstream_path": "TMessagesProj/src/main/java/app/exteraless/plugins/ui/PluginSettingsActivity.java",
+      "upstream_sha256": "621eb0a50ee8cbccc630f74eb15de30493fa6444ef1886da12f7ba6515c155bc"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/app/regram/settings/OpenExteraAppNavigationActivity.java",
+      "mode": "merged",
+      "sha256": "1a8ff48e93ffd6606572785a897c50ae848e81b5f702c79d181ec5e4c572ba67",
+      "upstream_path": "TMessagesProj/src/main/java/app/exteraless/settings/OpenExteraAppNavigationActivity.java",
+      "upstream_sha256": "7c53f7cf6ea5ee89bea406631fc121216ae932eec9f634b315ceaeb203ced229"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java",
+      "mode": "merged",
+      "sha256": "f6dcc036fa08bebe58e3e688d82c0f867a08a5e312bb5693f9df61f565ab2238",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java",
+      "upstream_sha256": "bfa75d7ce2db8035bd10fd112125dc9c615f8b2e5a86ac54be84fca5fc18af49"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/messenger/ImageLocation.java",
+      "mode": "merged",
+      "sha256": "8a7ca0c56c95cc1f358f583f74d26938f314fb85e05b25112814d3a0c9256277",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/messenger/ImageLocation.java",
+      "upstream_sha256": "a7e4dd0dd0f3eec89d90b8d5f0abf8ea5934097e1f55fbab025e89078ed23a02"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/TextSelectionHelper.java",
+      "mode": "merged",
+      "sha256": "cc3e31f4a6dc5b9b1ad6683526f0e601f1ae46dfdca3b056621488e7a55e7976",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/Cells/TextSelectionHelper.java",
+      "upstream_sha256": "bf83d07ad3cc24ed491b8893bba188e398bb520a3f2cf6098bbd7a1b278c3905"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java",
+      "mode": "merged",
+      "sha256": "6655726cf7745c9026589a218f7db1bb2b5a9fd14d5883a90cebad12cb9c314f",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java",
+      "upstream_sha256": "d37ab6d4b385acd1c7e52ec9114a54a3ca40786e86b49f03d684730382e672ad"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/CircularProgressDrawable.java",
+      "mode": "upstream",
+      "sha256": "fa83b885ce0cabb2f00a803bc438b5cf82d5145b088d71ee1c341589946aa9d7",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/Components/CircularProgressDrawable.java",
+      "upstream_sha256": "0737d7a01a0c85e145ef7420cd75cb39126f7c50fe68394d935081fc52d7956f"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java",
+      "mode": "upstream",
+      "sha256": "17c2029157e4cb0a0bb815734339b401c20107f1bf984bd52188dd2fe9bfc58a",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java",
+      "upstream_sha256": "578ff1389d8c1f5cd8ad8d6d949f52743903b6522ef65add42129b49f8877582"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RLottieDrawable.java",
+      "mode": "upstream",
+      "sha256": "99b77fb2fbe393df1d1e56bc1801058a9de0518aac3596c5776edb90bdae3e57",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RLottieDrawable.java",
+      "upstream_sha256": "99b77fb2fbe393df1d1e56bc1801058a9de0518aac3596c5776edb90bdae3e57"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RadialProgressView.java",
+      "mode": "upstream",
+      "sha256": "cfe61ab77473de4e0c82d4f4573e2db5e633c64aff581f40eea97153a6a5b613",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/Components/RadialProgressView.java",
+      "upstream_sha256": "37acc5e682fe302d0300963db4f14f181d11c8223fd53b99409fdebabad03f31"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java",
+      "mode": "merged",
+      "sha256": "a76f53603661733e9e6e81d154c7673e13ea2950752caa060bb0905967551752",
+      "upstream_path": "TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java",
+      "upstream_sha256": "f053a0330cc0e6093a70a21cbb8e8c83898d74d1271065ff56e893203a7f846c"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/SettingsHelper.java",
+      "mode": "merged",
+      "sha256": "a37246e8f7d11da7704d808f9be7f039a0a0e77293753591e933dfaf6804bf13",
+      "upstream_path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/helpers/SettingsHelper.java",
+      "upstream_sha256": "5ff47c09b4fd54a61809591622ab2d7d2a55ca1e6b5e07d67d0144137d383c37"
+    },
+    {
+      "path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/utils/AndroidUtil.java",
+      "mode": "merged",
+      "sha256": "5f121772f8a6a14d3837003dd11b8abd26c44102826c2e0d01d1ebe4e00b4738",
+      "upstream_path": "TMessagesProj/src/main/java/tw/nekomimi/nekogram/utils/AndroidUtil.java",
+      "upstream_sha256": "baca99dc6a225e1124ad35fd8a9e5daccd6d7e201d23e3dc49639a37a764f4f8"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/android_utils.py",
+      "mode": "merged",
+      "sha256": "d539b603578a2ce489f50048d68f18edc0534e61d44b1ee7fb19dd0a046c3ff5",
+      "upstream_path": "TMessagesProj/src/main/python/android_utils.py",
+      "upstream_sha256": "ecae1f61d63daa0453c70f6118eaa791d798dd7440d12ab2704ccc5386886863"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/audit_gate.py",
+      "mode": "merged",
+      "sha256": "8aacaf29b637e83493c38e590b48191f94118100b4461df86d5e8905b59c9627",
+      "upstream_path": "TMessagesProj/src/main/python/extera_utils/audit_gate.py",
+      "upstream_sha256": "bea9ef82832a61f21537150ddb4cff5f5bd4c2ccf4fca90b0d2307d0e8c2dff5"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/extera_utils/plugin_loader.py",
+      "mode": "merged",
+      "sha256": "3629104cba1b1cf15182977a59451f8b0a5052e24e18874045c158f1296be711",
+      "upstream_path": "TMessagesProj/src/main/python/extera_utils/plugin_loader.py",
+      "upstream_sha256": "c90134bde58559d675ffeff313eecd4223f39d60edbe0992137b41461b6547f5"
+    },
+    {
+      "path": "TMessagesProj/src/main/python/intents.py",
+      "mode": "merged",
+      "sha256": "579f7aee7d8c375567d235342411c7d4a738ff753c3a7a9c86fc152e62ebccc2",
+      "upstream_path": "TMessagesProj/src/main/python/intents.py",
+      "upstream_sha256": "dddd13ff0d2dbbc1a991acee45a28c8ee006440bb230f95cee67b2f27a41ba13"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values/strings_oe_plugins.xml",
+      "mode": "merged",
+      "sha256": "dcac2c30de76fa4087dfda2aa5de3c7c8ab1b76fa90a21a673bf78f0a3b04a9c",
+      "upstream_path": "TMessagesProj/src/main/res/values/strings_oe_plugins.xml",
+      "upstream_sha256": "24643f37570f8499fbb76aa6581b88892d6f3b4344b148b465d2cdbafcde6348"
+    },
+    {
+      "path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_plugins.xml",
+      "mode": "merged",
+      "sha256": "931e15f31c970379c70735a3fcc1b5d70b8602c92faf76e069b1698699928ce2",
+      "upstream_path": "TMessagesProj/src/main/res/values-ru-rRU/strings_oe_plugins.xml",
+      "upstream_sha256": "0eb557a37e67ec96e324b3406f9490e7ef107b0f0cad78c3059484247a04837b"
+    },
+    {
+      "path": "tests/test_storage_gate.py",
+      "mode": "upstream",
+      "sha256": "cd1ed0f7575b31a26c9d306dc90e8bff613f955d03d9516f3ea373d46ed0c7dc",
+      "upstream_path": "tests/test_storage_gate.py",
+      "upstream_sha256": "cd1ed0f7575b31a26c9d306dc90e8bff613f955d03d9516f3ea373d46ed0c7dc"
+    }
+  ],
+  "deletions": [],
+  "documentation": {
+    "upstream_path": "README.md",
+    "path": "docs/upstream/exteraless.md",
+    "sha256": "ed0fa88daa3aadd7875aa147ab00c438bb0bd29f70a1a6f9a5cb463d99f15450"
+  }
+}

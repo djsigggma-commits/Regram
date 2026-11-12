@@ -95,6 +95,15 @@ public class ReleaseDebloatCheck {
         check(code(ReleaseVersion.parse("1.1.6.1")) == 1010601);
         check(code(ReleaseVersion.parse("1.1.6.1")) > 10100);
         check(code(ReleaseVersion.parse("1.1.7")) > code(ReleaseVersion.parse("1.1.6.1")));
+        check(ReleaseVersion.compare("1.4.8.9", "v13.1.1") > 0);
+        check(ReleaseVersion.compare("13.1.1", "v1.4.8.9") < 0);
+        check(ReleaseVersion.compare("13.1.1", "v13.1.1") == 0);
+        check(ReleaseVersion.compare("13.1.1", "v13.1.1.1") > 0);
+        check(ReleaseVersion.compare("13.1.1.1", "v13.1.2") > 0);
+        check(ReleaseVersion.compare("13.1.1 (13.1.1 - 1.4.8.9)", "v13.1.1") == 0);
+        check(code(ReleaseVersion.parse("13.1.1")) == 13010100);
+        check(code(ReleaseVersion.parse("13.1.1")) > code(ReleaseVersion.parse("1.4.8.9")));
+        check(code(ReleaseVersion.parse("13.1.1.1")) == 13010101);
         check(code(new int[]{2099,99,99,99}) <= 2100000000);
 
         SineWave wave = new SineWave();

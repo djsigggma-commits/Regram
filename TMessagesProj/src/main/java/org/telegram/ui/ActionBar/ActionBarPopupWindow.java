@@ -857,6 +857,7 @@ public class ActionBarPopupWindow extends PopupWindow {
     public void showAsDropDown(View anchor, int xoff, int yoff) {
         try {
             super.showAsDropDown(anchor, xoff, yoff);
+            app.regram.fonts.FontWindows.install(getContentView());
             registerListener(anchor);
         } catch (Exception e) {
             FileLog.e(e);
@@ -1048,6 +1049,7 @@ public class ActionBarPopupWindow extends PopupWindow {
     @Override
     public void showAtLocation(View parent, int gravity, int x, int y) {
         super.showAtLocation(parent, gravity, x, y);
+        app.regram.fonts.FontWindows.install(getContentView());
         unregisterListener();
     }
 

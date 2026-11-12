@@ -34,6 +34,12 @@ public class VoipAudioManager {
      * On Samsung devices {@link AudioManager#setSpeakerphoneOn} and {@link AudioManager#isSpeakerphoneOn} take too much time.
      */
     public void setSpeakerphoneOn(boolean on) {
+        if (BluetoothMediaAudio.isActive()) {
+            if (on || BluetoothMediaAudio.currentRoute() == VoIPService.AUDIO_ROUTE_SPEAKER) {
+                BluetoothMediaAudio.selectRoute(on ? VoIPService.AUDIO_ROUTE_SPEAKER : VoIPService.AUDIO_ROUTE_EARPIECE);
+            }
+            return;
+        }
         isSpeakerphoneOn = on;
         final AudioManager audioManager = getAudioManager();
         if (audioManager == null) {
@@ -49,6 +55,9 @@ public class VoipAudioManager {
      * {@link AudioManager#isSpeakerphoneOn} is fast if {@link AudioManager#setSpeakerphoneOn} has not been called before.
      */
     public boolean isSpeakerphoneOn() {
+        if (BluetoothMediaAudio.isActive()) {
+            return BluetoothMediaAudio.currentRoute() == VoIPService.AUDIO_ROUTE_SPEAKER;
+        }
         if (isSpeakerphoneOn == null) {
             AudioManager audioManager = getAudioManager();
             if (audioManager == null) {
@@ -91,6 +100,9 @@ public class VoipAudioManager {
     }
 
     public boolean isBluetoothOn() {
+        if (BluetoothMediaAudio.isActive()) {
+            return BluetoothMediaAudio.currentRoute() == VoIPService.AUDIO_ROUTE_BLUETOOTH;
+        }
         AudioManager audioManager = getAudioManager();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             return isBluetoothDevice(audioManager.getCommunicationDevice());
@@ -99,6 +111,10 @@ public class VoipAudioManager {
     }
 
     public void startBluetooth() {
+        if (BluetoothMediaAudio.isActive()) {
+            BluetoothMediaAudio.selectRoute(VoIPService.AUDIO_ROUTE_BLUETOOTH);
+            return;
+        }
         final AudioManager audioManager = getAudioManager();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AudioDeviceInfo device = findBluetoothDevice();
@@ -113,6 +129,12 @@ public class VoipAudioManager {
     }
 
     public void stopBluetooth() {
+        if (BluetoothMediaAudio.isActive()) {
+            if (BluetoothMediaAudio.currentRoute() == VoIPService.AUDIO_ROUTE_BLUETOOTH) {
+                BluetoothMediaAudio.selectRoute(VoIPService.AUDIO_ROUTE_EARPIECE);
+            }
+            return;
+        }
         final AudioManager audioManager = getAudioManager();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Utilities.globalQueue.postRunnable(() -> {
@@ -126,6 +148,10 @@ public class VoipAudioManager {
     }
 
     public void setBluetoothOn(boolean on) {
+        if (BluetoothMediaAudio.isActive()) {
+            if (on) startBluetooth(); else stopBluetooth();
+            return;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (on) {
                 startBluetooth();
@@ -145,7 +171,7 @@ public class VoipAudioManager {
                 return;
             }
             boolean isBluetoothOn = isBluetoothOn();
-            boolean isSpeakerphoneOn = audioManager.isSpeakerphoneOn();
+            boolean isSpeakerphoneOn = isSpeakerphoneOn();
             AndroidUtilities.runOnUIThread(() -> onDone.run(isBluetoothOn, isSpeakerphoneOn));
         });
     }

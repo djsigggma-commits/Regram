@@ -327,6 +327,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
         if (!AndroidUtilities.isSafeToShow(getContext())) return;
         dismissed = false;
         super.show();
+        app.regram.fonts.FontWindows.install(getWindow());
         if (progressViewContainer != null && progressViewStyle == ALERT_TYPE_SPINNER) {
             progressViewContainer.setScaleX(0);
             progressViewContainer.setScaleY(0);

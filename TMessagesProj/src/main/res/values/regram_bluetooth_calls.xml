@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramHdBluetoothCallsTitle">HD call audio over Bluetooth</string>
+    <string name="RegramHdBluetoothCallsSummary">Media-quality output with the phone microphone</string>
+    <string name="RegramHdBluetoothCallsInfo">Play call audio as media through Bluetooth headphones (A2DP) and use the phone microphone instead of switching to the low-quality headset profile. Applies only if compatible headphones are connected when the call service starts. Changes apply to the next call.\n\nVolume is controlled as media. A2DP may add delay; actual quality and routing depend on Android and the headphones. If headphones disconnect, audio moves to the earpiece, or is muted when there is no earpiece until you select an output. Requires Android 6 or newer. Does not change livestream playback or system-managed calls.</string>
+</resources>

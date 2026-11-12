@@ -27,7 +27,7 @@ public:
 
     void writeBuffer(uint8_t *data, uint32_t size);
     void writeBuffer(NativeByteBuffer *buffer);
-    void openConnection(std::string address, uint16_t port, std::string secret, bool ipv6, int32_t networkType);
+    void openConnection(std::string address, uint16_t port, std::string secret, bool ipv6, int32_t networkType, int32_t wsDc = 0, bool wsMedia = false);
     void setTimeout(time_t timeout);
     time_t getTimeout();
     bool isDisconnected();
@@ -37,6 +37,7 @@ public:
 
 protected:
     int32_t instanceNum;
+    bool webSocketTransport = false;
     void onEvent(uint32_t events);
     bool checkTimeout(int64_t now);
     void resetLastEventTime();
@@ -60,6 +61,7 @@ private:
     int socketFd = -1;
     time_t timeout = 12;
     bool onConnectedSent = false;
+    bool webSocketReady = false;
     int64_t lastEventTime = 0;
     EventObject *eventObject;
     int32_t currentNetworkType;

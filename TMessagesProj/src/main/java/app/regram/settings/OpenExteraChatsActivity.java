@@ -42,7 +42,6 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.Stories.recorder.DualCameraView;
 import org.telegram.ui.ThemeActivity;
 
 import java.util.ArrayList;
@@ -658,7 +657,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
             if (extendedSettingsExpanded) {
                 // Бесшовное переключение есть не на всяком железе.
                 if (cameraTypeIndex() != CAMERA_TYPE_TELEGRAM && isSeamlessSwitchingAvailable()) {
-                    seamlessSwitchingRow = addRow();
+                    seamlessSwitchingRow = addRow("rounddual_available", "RegramDualCameraTitle");
                 }
                 extendedFpsRow = addRow();
                 cameraStabilizationRow = addRow();
@@ -667,10 +666,6 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
                     cameraMirrorModeRow = addRow();
                     startWithWideAngleRow = addRow();
                 }
-            }
-            if (!isSeamlessSwitchingAvailable() && isSeamlessSwitchingEnabled()) {
-                // На устройстве без второй камеры флаг гасится принудительно.
-                setSeamlessSwitching(false);
             }
         } else {
             extendedSettingsGroupRow = -1;
@@ -682,7 +677,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
         } else {
             rememberLastUsedCameraRow = -1;
         }
-        zoomSliderRow = addRow("zoomSlider");
+        zoomSliderRow = addRow("zoomSlider", "RegramRoundVideoZoomTitle");
         staticZoomRow = addRow("staticZoom");
         cameraDividerRow = addRow();
 
@@ -1369,12 +1364,11 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
     /** Вторая камера для «бесшовного переключения» есть не на всех устройствах. */
     private static boolean isSeamlessSwitchingAvailable() {
         Context context = ApplicationLoader.applicationContext;
-        return context != null && app.regram.camera.CameraXSession.isSeamlessSwitchingAvailable(context);
+        return app.regram.camera.DualCameraSettings.isSupported(context);
     }
 
     private static boolean isSeamlessSwitchingEnabled() {
-        Context context = ApplicationLoader.applicationContext;
-        return context != null && DualCameraView.roundDualAvailableStatic(context);
+        return app.regram.camera.DualCameraSettings.isEnabled();
     }
 
     /**
@@ -1382,7 +1376,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
      * читает InstantCameraView.
      */
     private static void setSeamlessSwitching(boolean value) {
-        MessagesController.getGlobalMainSettings().edit().putBoolean("rounddual_available", value).apply();
+        app.regram.camera.DualCameraSettings.setEnabled(value);
     }
 
     private static final int CAMERA_TYPE_SYSTEM = 0;
@@ -2736,7 +2730,7 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
             } else if (position == actionBarForwardRow) {
                 cell.setText(getString(R.string.Forward), "", NaConfig.INSTANCE.getActionBarButtonForward().Bool(), true, true);
             } else if (position == seamlessSwitchingRow) {
-                cell.setText(getString(R.string.OEChatsSeamlessSwitching), "", isSeamlessSwitchingEnabled(), true, true);
+                cell.setText(getString(R.string.RegramDualCameraTitle), getString(R.string.RegramDualCameraSummary), isSeamlessSwitchingEnabled(), true, true);
             } else if (position == extendedFpsRow) {
                 cell.setText(getString(R.string.OEChatsExtendedFps), "", ChatsConfig.extendedFramesPerSecond.Bool(), true, true);
             } else if (position == cameraStabilizationRow) {
@@ -2884,8 +2878,8 @@ public class OpenExteraChatsActivity extends BaseNekoSettingsActivity {
                         getString(R.string.OEChatsRememberLastUsedCameraInfo),
                         ChatsConfig.rememberLastUsedCamera.Bool(), true, true);
             } else if (position == zoomSliderRow) {
-                cell.setTextAndValueAndCheck(getString(R.string.OEChatsZoomSlider),
-                        getString(R.string.OEChatsZoomSliderInfo),
+                cell.setTextAndValueAndCheck(getString(R.string.RegramRoundVideoZoomTitle),
+                        getString(R.string.RegramRoundVideoZoomSummary),
                         ChatsConfig.zoomSlider.Bool(), true, true);
             } else if (position == staticZoomRow) {
                 cell.setTextAndCheck(getString(R.string.OEChatsStaticZoom), ChatsConfig.staticZoom.Bool(), false);

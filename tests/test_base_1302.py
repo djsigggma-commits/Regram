@@ -13,7 +13,8 @@ def test_version_and_package_identity_are_separate():
     assert props['APP_VERSION_NAME']=='13.1.1'
     assert props['APP_VERSION_CODE']=='7237'
     assert props['APP_PACKAGE']=='app.regram.android'
-    assert props['REGRAM_VERSION']=='1.4.8.8'  # Client version, independent of upstream 13.1.1.
+    assert props['REGRAM_VERSION']==props['APP_VERSION_NAME']+'.1'  # Revision of the same Telegram base.
+    assert props['REGRAM_LEGACY_VERSION']=='1.4.8.9'
     assert 'public static final int LAYER = 232;' in (MAIN/'java/org/telegram/tgnet/TLRPC.java').read_text()
 
 

@@ -48,6 +48,7 @@ public class Text {
         paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         paint.setTextSize(dp(textSizeDp));
         paint.setTypeface(typeface);
+        app.regram.fonts.ApplicationFonts.applyUi(paint);
         setText(text);
     }
 

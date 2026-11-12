@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="regram_font_preview" />
+    <item type="id" name="regram_font_window" />
+    <string name="RegramFontsTitle">Fonts</string>
+    <string name="RegramFontsSummary">Application font, import, editor font visibility and order</string>
+    <string name="RegramFontsApplication">Application font</string>
+    <string name="RegramFontsApplicationInfo">Use an imported font throughout the app interface, including chats, messages and settings. Only imported fonts can be selected. Apply by restarting the app. Code, decorative fonts, web pages and system screens keep their own fonts. Android may synthesize bold and italic styles.</string>
+    <string name="RegramFontsAvailable">Available fonts</string>
+    <string name="RegramFontsSystem">Include system fonts</string>
+    <string name="RegramFontsSystemInfo">Show the system font families supported by the media editor</string>
+    <string name="RegramFontsEditorInfo">Visible fonts are available in the media editor text tool. Drag the handle to reorder them; tap the eye to hide or show a font. Tap an imported font to delete it. Hiding a font does not change saved media text or the application font. If all fonts are hidden, the editor keeps its default font available.</string>
+    <string name="RegramFontsAdd">Add font</string>
+    <string name="RegramFontsReset">Reset order</string>
+    <string name="RegramFontsDefault">Default</string>
+    <string name="RegramFontsBuiltin">BUILT-IN</string>
+    <string name="RegramFontsImported">IMPORTED</string>
+    <string name="RegramFontsSystemLabel">SYSTEM</string>
+    <string name="RegramFontsDelete">Delete this imported font? If selected as the application font, the default will be restored after restart. Media text using this font may fall back to another font.</string>
+    <string name="RegramFontsImportInfo">Choose a TTF, OTF or TTC file up to 20 MiB. Up to 32 imported fonts are supported. Files are copied into the app’s private storage.</string>
+    <string name="RegramFontsError">Could not load or save the font. Choose a valid TTF, OTF or TTC file up to 20 MiB, check free storage, and make sure the library has fewer than 32 imported fonts.</string>
+    <string name="RegramFontsImportedDone">Font imported</string>
+    <string name="RegramFontsShow">Show font in editor</string>
+    <string name="RegramFontsHide">Hide font in editor</string>
+    <string name="RegramFontsReorder">Drag to reorder font</string>
+</resources>

@@ -227,6 +227,7 @@ public class AnimatedTextView extends View {
             this.startFromEnd = startFromEnd;
             this.enforceByLetter = enforceByLetter;
             this.startEndDiff = startEndDiff;
+            app.regram.fonts.ApplicationFonts.applyUi(textPaint);
         }
 
         public void setAllowCancel(boolean allowCancel) {
@@ -1148,6 +1149,7 @@ public class AnimatedTextView extends View {
 
         public void setTypeface(Typeface typeface) {
             textPaint.setTypeface(typeface);
+            app.regram.fonts.ApplicationFonts.applyUi(textPaint);
         }
 
         public void setGravity(int gravity) {

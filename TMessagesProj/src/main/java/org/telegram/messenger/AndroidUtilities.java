@@ -303,6 +303,8 @@ public class AndroidUtilities {
     }
 
     public static Typeface bold() {
+        Typeface custom = app.regram.fonts.ApplicationFonts.ui(500, false);
+        if (custom != null) return custom;
         if (mediumTypeface == null) {
             if (SharedConfig.useSystemBoldFont && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 mediumTypeface = TypefaceHelper.createTypeface(500, false);
@@ -2459,6 +2461,8 @@ public class AndroidUtilities {
     public static Typeface getTypeface(String assetPath) {
         return typefaceCache.computeIfAbsent(assetPath, path -> {
             try {
+                Typeface custom = app.regram.fonts.ApplicationFonts.forAsset(path);
+                if (custom != null) return custom;
                 if (NekoConfig.typeface.Bool()) {
                     return TypefaceHelper.createTypeface(path);
                 }

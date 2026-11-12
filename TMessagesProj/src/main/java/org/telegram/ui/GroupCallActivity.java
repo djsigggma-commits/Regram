@@ -9630,8 +9630,8 @@ public class GroupCallActivity extends BottomSheet implements NotificationCenter
                 if (Build.VERSION.SDK_INT >= 32) {
                     boolean oldValue = WebRtcAudioTrack.isSpeakerMuted();
                     AudioManager am = (AudioManager) parentActivity.getSystemService(AUDIO_SERVICE);
-                    int minVolume = am.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
-                    boolean mute = am.getStreamVolume(AudioManager.STREAM_VOICE_CALL) == minVolume && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN;
+                    int minVolume = am.getStreamMinVolume(org.telegram.messenger.voip.BluetoothMediaAudio.streamType(AudioManager.STREAM_VOICE_CALL));
+                    boolean mute = am.getStreamVolume(org.telegram.messenger.voip.BluetoothMediaAudio.streamType(AudioManager.STREAM_VOICE_CALL)) == minVolume && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN;
                     WebRtcAudioTrack.setSpeakerMute(mute);
                     if (oldValue != WebRtcAudioTrack.isSpeakerMuted()) {
                         getUndoView().showWithAction(0, mute ? UndoView.ACTION_VOIP_SOUND_MUTED : UndoView.ACTION_VOIP_SOUND_UNMUTED, null);

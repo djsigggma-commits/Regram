@@ -149,6 +149,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
     public SimpleTextView(Context context) {
         super(context);
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        app.regram.fonts.ApplicationFonts.applyUi(textPaint);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
     }
 
@@ -305,6 +306,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
 
     public void setTypeface(Typeface typeface) {
         textPaint.setTypeface(typeface);
+        app.regram.fonts.ApplicationFonts.applyUi(textPaint);
     }
 
     public int getSideDrawablesSize() {

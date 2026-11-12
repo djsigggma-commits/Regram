@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="RegramDualCameraTitle">Dual camera</string>
+    <string name="RegramDualCameraSummary">Keep both cameras open for fast switching. May use more battery.</string>
+    <string name="RegramDualCameraInfo">Open the front and rear cameras simultaneously to switch between them without reopening the camera while recording a round video message. Requires compatible hardware and the Camera2 or CameraX engine (Chats → Media → Camera type).\n\nMay increase battery use, heat and camera resource usage. Changes apply the next time recording starts. Only the selected camera is recorded; this is not picture-in-picture. Does not change story dual-camera mode, video calls or the system camera. Off by default.</string>
+    <string name="RegramDualCameraUnavailable">Concurrent front/rear camera operation is not available under the current device requirements. Recording will use one camera and normal switching.</string>
+</resources>

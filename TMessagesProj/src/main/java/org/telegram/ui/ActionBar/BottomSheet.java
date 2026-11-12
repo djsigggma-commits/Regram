@@ -1623,6 +1623,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
         } else {
             super.show();
         }
+        app.regram.fonts.FontWindows.install(getWindow());
         setShowing(true);
         if (focusable) {
             getWindow().setSoftInputMode(focusableSoftInputMode);

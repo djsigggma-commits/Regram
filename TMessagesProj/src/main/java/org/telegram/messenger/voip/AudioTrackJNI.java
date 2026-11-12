@@ -32,7 +32,7 @@ public class AudioTrackJNI {
 			throw new IllegalStateException("already inited");
 		}
 		int size = getBufferSize(bufferSize, 48000);
-		audioTrack = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 48000, channels == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, size, AudioTrack.MODE_STREAM);
+		audioTrack = createTrack(48000, channels, size);
 		if (audioTrack.getState() != AudioTrack.STATE_INITIALIZED) {
 			VLog.w("Error initializing AudioTrack with 48k, trying 44.1k with resampling");
 			try {
@@ -41,9 +41,22 @@ public class AudioTrackJNI {
 			}
 			size = getBufferSize(bufferSize * 6, 44100);
 			VLog.d("buffer size: " + size);
-			audioTrack = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 44100, channels == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, size, AudioTrack.MODE_STREAM);
+			audioTrack = createTrack(44100, channels, size);
 			needResampling = true;
 		}
+		if (audioTrack.getState() == AudioTrack.STATE_INITIALIZED) BluetoothMediaAudio.bindPlayback(audioTrack);
+	}
+
+	private AudioTrack createTrack(int sampleRate, int channels, int size) {
+		int channelConfig = channels == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
+		if (BluetoothMediaAudio.isActive()) {
+			return new AudioTrack(BluetoothMediaAudio.playbackAttributes(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION),
+					new AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+							.setSampleRate(sampleRate).setChannelMask(channelConfig).build(),
+					size, AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE);
+		}
+		return new AudioTrack(AudioManager.STREAM_VOICE_CALL, sampleRate, channelConfig,
+				AudioFormat.ENCODING_PCM_16BIT, size, AudioTrack.MODE_STREAM);
 	}
 
 	public void stop() {
