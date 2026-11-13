@@ -17,14 +17,14 @@ def properties():
 def test_telegram_release_version_and_monotonic_android_code():
     props = properties()
     gradle = (ROOT / 'TMessagesProj/build.gradle').read_text()
-    assert props['REGRAM_VERSION'] == '13.1.1.1'
-    assert props['APP_VERSION_NAME'] == '13.1.1'
+    assert props['REGRAM_VERSION'] == '13.2.2'
+    assert props['APP_VERSION_NAME'] == '13.2.2'
     assert props['REGRAM_LEGACY_VERSION'] == '1.4.8.9'
     parts = [int(part) for part in props['REGRAM_VERSION'].split('.')]
     major, minor, patch, revision = (parts + [0] * 4)[:4]
     code = major * 1000000 + minor * 10000 + patch * 100 + revision
-    assert code == 13010101
-    assert code > 13010100  # Previous shipped release.
+    assert code == 13020200
+    assert code > 13010101  # Previous shipped release.
     assert code > 1040809  # Last shipped version in the old scheme.
     assert "def verName = project.findProperty('REGRAM_VERSION')" in gradle
     assert 'def verCode = major * 1000000 + minor * 10000 + patch * 100 + revision' in gradle
@@ -70,7 +70,7 @@ class TextUtils { static boolean isEmpty(String s) { return s == null || s.isEmp
 public class VersionLabelCheck {
 %s
     public static void main(String[] args) {
-        String expected = "13.1.1.1";
+        String expected = "13.2.2";
         if (!expected.equals(buildVersionString())) throw new AssertionError(buildVersionString());
         BuildVars.BUILD_COMMIT_ID = "c83765c";
         if (!expected.equals(buildVersionString())) throw new AssertionError();

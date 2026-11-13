@@ -37,6 +37,9 @@ public class UItem extends AdapterWithDiffUtils.Item implements Cloneable {
     public boolean reordering;
     public int pad;
     public boolean hideDivider;
+    public int checkBoxIconResId;
+    public Integer iconColor;
+    public boolean prioritizeTitleOverValue;
     public int iconResId;
     public Drawable drawable;
     public CharSequence text, subtext, textValue;
@@ -141,6 +144,16 @@ public class UItem extends AdapterWithDiffUtils.Item implements Cloneable {
 
     public static UItem asFullyCustom(View view) {
         UItem i = new UItem(UniversalAdapter.VIEW_TYPE_FULLY_CUSTOM, false);
+        i.view = view;
+        return i;
+    }
+
+    /**
+     * Adds a custom item whose wrapper always has the full measured height of its RecyclerView.
+     * Unlike asFullscreenCustom(), this method never subtracts ActionBar, inset or padding values.
+     */
+    public static UItem asViewportCustom(View view) {
+        UItem i = new UItem(UniversalAdapter.VIEW_TYPE_VIEWPORT_CUSTOM, false);
         i.view = view;
         return i;
     }
@@ -776,6 +789,37 @@ public class UItem extends AdapterWithDiffUtils.Item implements Cloneable {
 
     public UItem setTransparent(boolean transparent) {
         this.transparent = transparent;
+        return this;
+    }
+
+    public UItem setCheckBoxIcon(int resId) {
+        this.checkBoxIconResId = resId;
+        return this;
+    }
+
+    public UItem showDivider(boolean show) {
+        this.hideDivider = !show;
+        return this;
+    }
+
+    public UItem setColorfulIcon(int iconResId, int color) {
+        setIcon(iconResId);
+        this.iconColor = color;
+        return this;
+    }
+
+    public UItem prioritizeTitleOverValue(boolean value) {
+        this.prioritizeTitleOverValue = value;
+        return this;
+    }
+
+    public UItem setSearchable(com.exteragram.messenger.preferences.BasePreferencesActivity fragment) {
+        app.regram.settings.utils.SettingsRegistry.getInstance().addSearchEntry(fragment, this);
+        return this;
+    }
+
+    public UItem setLinkAlias(String alias, com.exteragram.messenger.preferences.BasePreferencesActivity fragment) {
+        app.regram.settings.utils.SettingsRegistry.getInstance().addLinkAliasForOption(alias, fragment, this);
         return this;
     }
 

@@ -7,6 +7,24 @@
 -keep class org.webrtc.audio.* { *; }
 -keep class org.webrtc.voiceengine.* { *; }
 -keep class org.telegram.messenger.* { *; }
+# org.telegram.messenger: only the names that native code and reflection resolve at runtime.
+# Before changing these rules see TMessagesProj/proguard-checklist.md and run Tools/r8_keep_check.py.
+# Static JNI exports Java_org_telegram_messenger_<Class>_<method> (Utilities, Intro, MediaController, MrzRecognizer).
+-keepclasseswithmembers,includedescriptorclasses class org.telegram.messenger.* {
+    native <methods>;
+}
+# gifvideo.cpp: FindClass + GetMethodID, called from the native reader.
+-keep class org.telegram.messenger.AnimatedFileDrawableStream {
+    int read(int, int);
+    void cancel();
+    boolean isFinishedLoadingFile();
+    boolean isCanceled();
+    java.lang.String getFinishedFilePath();
+}
+# NotificationBadge.BADGERS holds class literals, instances are made with Class.newInstance().
+-keep class org.telegram.messenger.NotificationBadge$* implements org.telegram.messenger.NotificationBadge$Badger {
+    <init>();
+}
 -keep class org.telegram.messenger.camera.* { *; }
 -keep class org.telegram.messenger.secretmedia.* { *; }
 -keep class org.telegram.messenger.support.* { *; }
@@ -20,6 +38,8 @@
 -keep class org.telegram.tgnet.RequestDelegate { *; }
 -keep class org.telegram.ui.ActionBar.* { *; }
 -keep class org.telegram.ui.Stories.recorder.FfmpegAudioWaveformLoader { *; }
+-keep class org.telegram.ui.Components.BlurredFrameLayout { *; }
+-keep class org.telegram.utils.glass.source.** { *; }
 -keep class androidx.mediarouter.app.MediaRouteButton { *; }
 # Loaded/registered by class and method name from libtmessages JNI_OnLoad.
 -keep class androidx.media3.decoder.ffmpeg.** { *; }
@@ -45,6 +65,16 @@
 
 # https://developers.google.com/ml-kit/known-issues#android_issues
 -keep class com.google.mlkit.nl.languageid.internal.ThickLanguageIdentifier { *; }
+
+# WidgetSandbox: JNI_OnLoad uses RegisterNatives; backend methods are called by native workers.
+-keep class org.telegram.utils.twidget.WidgetSandboxNative { *; }
+# The client's share (filters, gesture arbiter) in the client library: static Java_* exports, resolved by name.
+-keepclasseswithmembers,includedescriptorclasses class org.telegram.utils.twidget.WidgetClientNative {
+    native <methods>;
+}
+-keep class org.telegram.utils.twidget.WidgetSandboxBackend { *; }
+# The isolated engine process's backend (WidgetEngineService): the same JNI callbacks.
+-keep class org.telegram.utils.twidget.WidgetEngineBackend { *; }
 
 -keep class io.nano.tex.** {*;}
 
@@ -203,6 +233,8 @@
 -keep class app.regram.settings.utils.** { *; }
 -keep class app.regram.utils.text.** { *; }
 -keep class app.regram.pillstack.** { *; }
+-keep class app.regram.player.Md3Player { *; }
+-keep class app.regram.player.PlayerSheet { *; }
 -keep class app.regram.appearance.AltSeekbar { *; }
 -keep interface app.regram.appearance.AltSeekbar$OnDrag { *; }
 -keep class com.exteragram.messenger.** { *; }
@@ -222,6 +254,10 @@
 -keepclassmembers class org.telegram.messenger.MessageObject { *; }
 -keepclassmembers class org.telegram.messenger.SendMessagesHelper { *; }
 -keepclassmembers class org.telegram.messenger.BuildVars { *; }
+-keepclassmembers class androidx.media3.exoplayer.ExoPlayerImpl {
+    public void setAuxEffectInfo(androidx.media3.common.AuxEffectInfo);
+    public void clearAuxEffectInfo();
+}
 
 # Совместимость с тяжёлыми Python/Dex-плагинами каталога (в т.ч. Custom Profile
 # 1.9): их встроенный dex ищет профильные UI-классы, ячейки и поля через строки

@@ -85,6 +85,7 @@ public class ChatObject {
     public static final int ACTION_SEND_REACTIONS = 26;
     public static final int ACTION_MANAGE_LINKED_CHATS = 27;
     public static final int ACTION_MANAGE_WELCOME = 28;
+    public static final int ACTION_SEND_INLINE = 29;
 
     public final static int VIDEO_FRAME_NO_FRAME = 0;
     public final static int VIDEO_FRAME_REQUESTING = 1;
@@ -1636,6 +1637,7 @@ public class ChatObject {
             case ACTION_SEND_REACTIONS:
             case ACTION_SEND_PLAIN:
             case ACTION_MANAGE_LINKED_CHATS:
+            case ACTION_SEND_INLINE:
                 return true;
         }
         return false;
@@ -1701,6 +1703,8 @@ public class ChatObject {
                 return rights.send_plain;
             case ACTION_MANAGE_LINKED_CHATS:
                 return rights.manage_linked_peers;
+            case ACTION_SEND_INLINE:
+                return rights.send_inline;
         }
         return false;
     }
@@ -2172,6 +2176,13 @@ public class ChatObject {
         return canUserDoAction(chat, ACTION_SEND_STICKERS);
     }
 
+    public static boolean canSendInline(TLRPC.Chat chat) {
+        if (isIgnoredChatRestrictionsForBoosters(chat)) {
+            return true;
+        }
+        return canUserDoAction(chat, ACTION_SEND_INLINE);
+    }
+
     public static boolean canSendEmbed(TLRPC.Chat chat) {
         if (isIgnoredChatRestrictionsForBoosters(chat)) {
             return true;
@@ -2640,5 +2651,10 @@ public class ChatObject {
             return DialogConfig.isCustomForumTabsEnable(-chat.id);
         }
         return SharedConfig.forceForumTabs || chat != null && chat.forum_tabs;
+    }
+
+    /** The topics in a panel that slides in from the right: a forum's own choice, apart from its tabs; always in direct messages. */
+    public static boolean isSidebarEnabled(TLRPC.Chat chat) {
+        return chat != null && (chat.forum && chat.forum_sidebar || chat.monoforum);
     }
 }

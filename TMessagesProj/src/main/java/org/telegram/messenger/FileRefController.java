@@ -407,6 +407,13 @@ public class FileRefController extends BaseController {
         TLRPC.InputFileLocation location = locationAndKey.first;
         String locationKey = locationAndKey.second;
 
+        if ("fav".equals(parentObject) && location instanceof TLRPC.TL_inputDocumentFileLocation) {
+            TLRPC.InputStickerSet stickerSet = getMediaDataController().getFaveStickerSet(location.id);
+            if (stickerSet != null) {
+                parentObject = stickerSet;
+            }
+        }
+
         if (parentObject instanceof MessageObject) {
             MessageObject messageObject = (MessageObject) parentObject;
             if (messageObject.getRealId() < 0 && messageObject.messageOwner != null && messageObject.messageOwner.media != null && messageObject.messageOwner.media.webpage != null) {
@@ -1486,12 +1493,17 @@ public class FileRefController extends BaseController {
             if (result != null) {
                 if (onUpdateObjectReference(requester, result, locationReplacement != null ? locationReplacement[0] : null, fromCache)) {
                     found = true;
+                } else {
+                    requester.completed = false;
                 }
             } else {
                 sendErrorToObject(requester.args, 1);
             }
         }
-        locationRequester.remove(locationKey);
+        arrayList.removeIf(requester -> requester.completed);
+        if (arrayList.isEmpty()) {
+            locationRequester.remove(locationKey);
+        }
         if (found) {
             putReponseToCache(cacheKey, response);
         }

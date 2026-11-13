@@ -121,6 +121,7 @@ public class ControllerTest {
  void deliver(long dialogId, int mode, boolean needProcess) {
   int first_unread_final=7, classGuid=12, resCount=20, last_message_id=80;
   int count=20, unread_count=3, last_date=123, load_type=0, loadIndex=4, max_id=70, mentionsCount=2;
+  int deliveredLastMessageId=80;
   boolean isCache=true, isEnd=false;
   long threadMessageId=0;
   Object loaderLogger=null; ArrayList<Integer> objects=new ArrayList<>(Arrays.asList(70,69,68));

@@ -44,6 +44,7 @@ jmethodID jclass_ByteBuffer_allocateDirect = nullptr;
 #endif
 
 static bool done = false;
+static constexpr int32_t MAX_CAPTCHA_CHECKS = 5;
 
 ConnectionsManager::ConnectionsManager(int32_t instance) {
     instanceNum = instance;
@@ -970,6 +971,9 @@ void ConnectionsManager::onConnectionDataReceived(Connection *connection, Native
         uint32_t messageLength = data->readUint32(&error);
 
         int32_t processedStatus = connection->isMessageIdProcessed(messageId);
+        if (processedStatus == 0 && !connection->isMessageIdTimeValid(messageId)) {
+            processedStatus = 2;
+        }
 
         if (messageSeqNo % 2 != 0) {
             connection->addMessageToConfirm(messageId);
@@ -986,38 +990,28 @@ void ConnectionsManager::onConnectionDataReceived(Connection *connection, Native
                 req_msg_id = res->req_msg_id;
             }
             if (processedStatus == 2) {
-                if (object == nullptr) {
-                    connection->recreateSession();
-                    for (auto & runningRequest : runningRequests) {
-                        Request *request = runningRequest.get();
-                        Datacenter *requestDatacenter = getDatacenterWithId(request->datacenterId);
-                        if (request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
-                            request->clear(true);
-                        }
-                    }
-                    connection->reconnect();
-                    return;
-                } else {
-                    delete object;
-                    object = nullptr;
-                }
+                if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received too old message 0x%" PRIx64 " on 0x%" PRIx64 ", recreating session", connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), messageId, req_msg_id);
+                delete object;
+                recreateConnectionSession(connection);
+                return;
             }
         }
         if (!processedStatus) {
+            connection->addProcessedMessageId(messageId);
             if (object != nullptr) {
                 lastProtocolUsefullData = true;
                 connection->setHasUsefullData();
                 if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received object %s", connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), typeid(*object).name());
+                int64_t sessionId = connection->getSessionId();
                 processServerResponse(object, messageId, messageSeqNo, messageServerSalt, connection, 0, 0);
-                connection->addProcessedMessageId(messageId);
                 delete object;
-                if (connection->getConnectionType() == ConnectionTypePush) {
+                if (connection->getSessionId() == sessionId && connection->getConnectionType() == ConnectionTypePush) {
                     std::vector<std::unique_ptr<NetworkMessage>> messages;
                     sendMessagesToConnectionWithConfirmation(messages, connection, false);
                 }
             } else {
                 if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received unparsed packet on 0x%" PRIx64, connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), req_msg_id);
-                if (delegate != nullptr) {
+                if (shouldProcessUpdate(connection, messageId) && delegate != nullptr) {
                     delegate->onUnparsedMessageReceived(messageId, data, connection->getConnectionType(), instanceNum);
                 }
             }
@@ -1070,6 +1064,17 @@ TLObject *ConnectionsManager::getRequestWithMessageId(int64_t messageId) {
 }
 
 TLObject *ConnectionsManager::TLdeserialize(TLObject *request, uint32_t bytes, NativeByteBuffer *data) {
+    if (deserializeDepth >= MAX_DESERIALIZE_DEPTH) {
+        if (LOGS_ENABLED) DEBUG_E("too deep nesting in deserialize");
+        return nullptr;
+    }
+    deserializeDepth++;
+    TLObject *object = TLdeserializeInternal(request, bytes, data);
+    deserializeDepth--;
+    return object;
+}
+
+TLObject *ConnectionsManager::TLdeserializeInternal(TLObject *request, uint32_t bytes, NativeByteBuffer *data) {
     bool error = false;
     uint32_t position = data->position();
     uint32_t constructor = data->readUint32(&error);
@@ -1091,6 +1096,10 @@ TLObject *ConnectionsManager::TLdeserialize(TLObject *request, uint32_t bytes, N
             auto apiRequest = dynamic_cast<TL_api_request *>(request);
             if (apiRequest != nullptr) {
                 object = apiRequest->deserializeResponse(data, bytes, instanceNum, error);
+                if (object != nullptr && error) {
+                    delete object;
+                    object = nullptr;
+                }
                 if (LOGS_ENABLED) DEBUG_D("api request constructor 0x%x, don't parse", constructor);
             } else {
                 object = request->deserializeResponse(data, constructor, instanceNum, error);
@@ -1161,42 +1170,25 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
         auto response = (TL_msg_container *) message;
         size_t count = response->messages.size();
         if (LOGS_ENABLED) DEBUG_D("received container with %d items", (int32_t) count);
+        int64_t sessionId = connection->getSessionId();
         for (uint32_t a = 0; a < count; a++) {
             TL_message *innerMessage = response->messages[a].get();
             int64_t innerMessageId = innerMessage->msg_id;
             if (innerMessage->seqno % 2 != 0) {
                 connection->addMessageToConfirm(innerMessageId);
             }
-            int32_t processedStatus = connection->isMessageIdProcessed(innerMessageId);
-            if (processedStatus == 2) {
-                if (innerMessage->unparsedBody != nullptr) {
-                    connection->recreateSession();
-                    for (auto & runningRequest : runningRequests) {
-                        Request *request = runningRequest.get();
-                        Datacenter *requestDatacenter = getDatacenterWithId(request->datacenterId);
-                        if (request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
-                            request->clear(true);
-                        }
-                    }
-                    connection->reconnect();
-                    return;
-                }
-                processedStatus = 0;
-            }
-            if (processedStatus) {
-                if (LOGS_ENABLED) DEBUG_D("inner message %d id 0x%" PRIx64 " already processed", a, innerMessageId);
-                continue;
-            }
             if (innerMessage->unparsedBody != nullptr) {
                 if (LOGS_ENABLED) DEBUG_D("inner message %d id 0x%" PRIx64 " is unparsed", a, innerMessageId);
-                if (delegate != nullptr) {
+                if (shouldProcessUpdate(connection, innerMessageId) && delegate != nullptr) {
                     delegate->onUnparsedMessageReceived(innerMessageId, innerMessage->unparsedBody.get(), connection->getConnectionType(), instanceNum);
                 }
             } else {
                 if (LOGS_ENABLED) DEBUG_D("inner message %d id 0x%" PRIx64 " process", a, innerMessageId);
                 processServerResponse(innerMessage->body.get(), 0, innerMessage->seqno, messageSalt, connection, innerMessageId, messageId);
             }
-            connection->addProcessedMessageId(innerMessageId);
+            if (connection->getSessionId() != sessionId) {
+                return;
+            }
         }
     } else if (typeInfo == typeid(TL_pong)) {
         if (connection->getConnectionType() == ConnectionTypePush) {
@@ -1368,7 +1360,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                             if (delegate != nullptr) {
                                 delegate->onIntegrityCheckClassic(instanceNum, request->requestToken, project, nonce);
                             }
-                        } else if (error->error_code == 403 && error->error_message.find(captchaCheck) != std::string::npos) {
+                        } else if (error->error_code == 403 && error->error_message.find(captchaCheck) != std::string::npos && request->captchaCheckGeneration < MAX_CAPTCHA_CHECKS && delegate != nullptr) {
                             discardResponse = true;
                             std::string err = error->error_message;
                             int index = err.find('_', captchaCheck.size());
@@ -1376,10 +1368,11 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                             std::string key_id = err.substr(captchaCheck.size() + action.size() + 2, err.size() - (captchaCheck.size() + action.size() + 1));
                             request->awaitingIntegrityCheck = false;
                             request->awaitingCaptchaCheck = true;
+                            request->captchaCheckGeneration++;
                             request->startTime = 0;
                             request->startTimeMillis = 0;
                             if (delegate != nullptr) {
-                                delegate->onCaptchaCheck(instanceNum, request->requestToken, action, key_id);
+                                delegate->onCaptchaCheck(instanceNum, request->requestToken, request->captchaCheckGeneration, action, key_id);
                             }
                         } else {
                             bool failServerErrors = (request->requestFlags & RequestFlagFailOnServerErrors) == 0 || processEvenFailed;
@@ -1768,7 +1761,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
             delete object;
         } else {
             if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received unparsed from gzip object on 0x%" PRIx64, connection, instanceNum, datacenter->getDatacenterId(), connection->getConnectionType(), messageId);
-            if (delegate != nullptr) {
+            if (shouldProcessUpdate(connection, messageId != 0 ? messageId : innerMsgId) && delegate != nullptr) {
                 delegate->onUnparsedMessageReceived(messageId, data, connection->getConnectionType(), instanceNum);
             }
         }
@@ -1788,7 +1781,7 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
                 delegate->onInternalPushReceived(instanceNum);
             }
         } else {
-            if (delegate != nullptr) {
+            if (shouldProcessUpdate(connection, messageId != 0 ? messageId : innerMsgId) && delegate != nullptr) {
                 NativeByteBuffer *data = BuffersStorage::getInstance().getFreeBuffer(message->getObjectSize());
                 message->serializeToStream(data);
                 data->position(0);
@@ -1797,6 +1790,30 @@ void ConnectionsManager::processServerResponse(TLObject *message, int64_t messag
             }
         }
     }
+}
+
+void ConnectionsManager::recreateConnectionSession(Connection *connection) {
+    Datacenter *datacenter = connection->getDatacenter();
+    connection->recreateSession();
+    for (auto & runningRequest : runningRequests) {
+        Request *request = runningRequest.get();
+        Datacenter *requestDatacenter = getDatacenterWithId(request->datacenterId);
+        if (request->connectionType & connection->getConnectionType() && requestDatacenter != nullptr && requestDatacenter->getDatacenterId() == datacenter->getDatacenterId()) {
+            request->clear(true);
+        }
+    }
+    connection->reconnect();
+}
+
+bool ConnectionsManager::shouldProcessUpdate(Connection *connection, int64_t messageId) {
+    int32_t status = connection->checkUpdateMessageId(messageId);
+    if (status == 2) {
+        if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) received too old update 0x%" PRIx64 ", recreating session", connection, instanceNum, connection->getDatacenter()->getDatacenterId(), connection->getConnectionType(), messageId);
+        recreateConnectionSession(connection);
+    } else if (status == 1) {
+        if (LOGS_ENABLED) DEBUG_D("connection(%p, account%u, dc%u, type %d) skipped duplicate update 0x%" PRIx64, connection, instanceNum, connection->getDatacenter()->getDatacenterId(), connection->getConnectionType(), messageId);
+    }
+    return status == 0;
 }
 
 void ConnectionsManager::sendPing(Datacenter *datacenter, bool usePushConnection) {
@@ -2268,34 +2285,57 @@ void ConnectionsManager::receivedIntegrityCheckClassic(int32_t requestToken, std
     });
 }
 
-void ConnectionsManager::receivedCaptchaResult(int32_t requestTokensCount, int32_t* requestTokens, std::string token) {
-    scheduleTask([&, requestTokensCount, requestTokens, token] {
-        for (int i = 0; i < requestTokensCount; ++i) {
-            auto requestToken = requestTokens[i];
-            for (auto iter = runningRequests.begin(); iter != runningRequests.end(); iter++) {
-                Request *request = iter->get();
-                if (requestToken != 0 && request->requestToken == requestToken) {
-                    auto invoke = new invokeWithReCaptcha();
-                    invoke->token = token;
-                    invoke->query = std::move(request->rpcRequest);
-                    request->rpcRequest = std::unique_ptr<invokeWithReCaptcha>(invoke);
-                    request->serializedLength = request->rpcRequest->getObjectSize();
+// Remove previous captcha tokens, including those inside other owned RPC wrappers.
+// Drop cached compression when inspecting its original request: its bytes contain old tokens.
+static void removeCaptchaWrappers(std::unique_ptr<TLObject> &rpcRequest) {
+    auto *query = &rpcRequest;
+    while (*query != nullptr) {
+        if (auto captcha = dynamic_cast<invokeWithReCaptcha *>(query->get())) {
+            auto inner = std::move(captcha->query);
+            *query = std::move(inner);
+        } else if (auto packed = dynamic_cast<TL_gzip_packed *>(query->get())) {
+            if (packed->originalRequest == nullptr) {
+                break;
+            }
+            auto inner = std::move(packed->originalRequest);
+            *query = std::move(inner);
+        } else if (auto integrity = dynamic_cast<invokeWithGooglePlayIntegrity *>(query->get())) {
+            query = &integrity->query;
+        } else if (auto layer = dynamic_cast<invokeWithLayer *>(query->get())) {
+            query = &layer->query;
+        } else if (auto init = dynamic_cast<initConnection *>(query->get())) {
+            query = &init->query;
+        } else {
+            break;
+        }
+    }
+}
 
-                    request->awaitingCaptchaCheck = false;
-                    request->requestFlags &=~ RequestFlagFailOnServerErrors;
-
-                    if (LOGS_ENABLED) DEBUG_D("account%d: received captcha result token, wrapping %s", instanceNum, token.c_str());
-
-                    processRequestQueue(request->connectionType, request->datacenterId);
-
-                    return;
-                }
+void ConnectionsManager::receivedCaptchaResult(int32_t requestToken, int32_t generation, std::string token) {
+    scheduleTask([this, requestToken, generation, token] {
+        for (auto &runningRequest : runningRequests) {
+            Request *request = runningRequest.get();
+            if (requestToken == 0 || request->requestToken != requestToken) {
+                continue;
+            }
+            if (request->cancelled || request->completed || !request->awaitingCaptchaCheck ||
+                    request->captchaCheckGeneration != generation) {
+                return;
             }
 
-            if (LOGS_ENABLED) DEBUG_E("account%d: received captcha result token but no request %d found", instanceNum, requestToken);
-        }
+            removeCaptchaWrappers(request->rpcRequest);
+            auto invoke = new invokeWithReCaptcha();
+            invoke->token = token;
+            invoke->query = std::move(request->rpcRequest);
+            request->rpcRequest = std::unique_ptr<invokeWithReCaptcha>(invoke);
+            request->serializedLength = request->rpcRequest->getObjectSize();
+            request->awaitingCaptchaCheck = false;
+            request->requestFlags &= ~RequestFlagFailOnServerErrors;
 
-        delete[] requestTokens;
+            if (LOGS_ENABLED) DEBUG_D("account%d: received captcha result for request %d, generation %d", instanceNum, requestToken, generation);
+            processRequestQueue(request->connectionType, request->datacenterId);
+            return;
+        }
     });
 }
 

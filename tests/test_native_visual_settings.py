@@ -88,7 +88,8 @@ def test_real_ownership_sender_identity_and_layout_caches_are_separate():
     assert '.isOutOwnerForLayout()' not in identity
     assert 'currentMessageObject.isOutOwner()' in identity
     assert '!currentMessageObject.isOutOwner() && currentMessageObject.getDialogId() >= 0 && !media.todo.others_can_complete' in cell
-    assert cell.count('.isOutOwnerForLayout()') > 300
+    presentation = cell + ''.join(p.read_text() for p in (JAVA / 'org/telegram/ui/Cells').glob('ChatMessage*.java') if p.name != 'ChatMessageCell.java')
+    assert presentation.count('.isOutOwnerForLayout()') > 300
     assert 'timeWidth += dp(20)' in cell and 'drawAllLeftStatus(canvas, alpha, timeLayout,' in cell
     chat = (JAVA / 'org/telegram/ui/ChatActivity.java').read_text()
     assert 'groupedMessages.ensurePresentationLayout()' in chat

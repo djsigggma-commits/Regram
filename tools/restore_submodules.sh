@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Восстанавливает отсутствующие подмодули re:gram по ревизиям, закреплённым в
-# upstream-коммите exteraless 4771c553 (Actions 41526234112, 13.1.1; SHA через GitHub
-# git trees API). Каталог проекта не является git-репозиторием, поэтому
-# используется git init + fetch по SHA вместо `git submodule update`.
+# upstream-коммите exteraless 31a35e46 (Actions 43392419710, 13.2.2).
+# Работает также с архивом исходников без .git: git init + fetch по SHA.
 set -uo pipefail
 
 ROOT="${1:-.}"
@@ -39,10 +38,12 @@ fetch_one() {
 }
 
 failures=0
-fetch_one TMessagesProj/jni/tgcalls https://github.com/TelegramMessenger/tgcalls.git 1398c1648f52666b3249111ec3c5b531946e41e4 || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/twidget/twidget https://github.com/TelegramMessenger/twidget.git 4769d72c5c5a9bace3c7bd8b6308cb79bc150bab || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/twidget/widget-sandbox https://github.com/TelegramMessenger/widget-sandbox.git c498cefddefaba765282c9f3ab0b330f4bc990f6 || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/tgcalls https://github.com/TelegramMessenger/tgcalls.git 545f5ae599f8282e1ae3f38aaff166d179d75703 || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/wallet-engine https://github.com/dkaraush/wallet-engine.git 5c65e47cb8d68727c20d89382d0bc51292486b9a || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/third_party/boost-regex https://github.com/boostorg/regex.git 4cbcd3078e6ae10d05124379623a1bf03fcb9350 || failures=$((failures + 1))
-fetch_one TMessagesProj/jni/third_party/libprisma https://github.com/TelegramMessenger/libprisma.git 31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d || failures=$((failures + 1))
+fetch_one TMessagesProj/jni/third_party/libprisma https://github.com/TelegramMessenger/libprisma.git 94640c63c20eacdf70e37e23198d9ab53c802ebd || failures=$((failures + 1))
 fetch_one TMessagesProj/chaquopy            https://github.com/exteraless/chaquopy.git         eab341a401913ac50254ff20e9efeebeaae872ef || failures=$((failures + 1))
 fetch_one TMessagesProj_Modules/media        https://github.com/Arseny271/media.git            09b6c97c0d691c50cd4541e1573995d4066d6f5c || failures=$((failures + 1))
 fetch_one TMessagesProj/lib/jlatexmath       https://github.com/dkaraush/jlatexmath-android.git f59d6eecfac6fb58d6e3b7d6cff6c8aed9dbd5b4 || failures=$((failures + 1))
@@ -55,6 +56,11 @@ fetch_one TMessagesProj/jni/third_party/xiph/opus https://github.com/xiph/opus.g
 fetch_one TMessagesProj/jni/third_party/xiph/opusfile https://github.com/xiph/opusfile.git      a55c164e9891a9326188b7d4d216ec9a88373739 || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/third_party/libvpx https://github.com/webmproject/libvpx.git        1024874c5919305883187e2953de8fcb4c3d7fa6 || failures=$((failures + 1))
 fetch_one TMessagesProj/jni/third_party/ffmpeg https://github.com/FFmpeg/FFmpeg.git             45f1910444f34b02621f9f0426ea1a538a613c41 || failures=$((failures + 1))
+# QuickJS is a nested gitlink pinned by widget-sandbox and required by twidget.cmake.
+if [ -e TMessagesProj/jni/twidget/widget-sandbox/.git ]; then
+  git -C TMessagesProj/jni/twidget/widget-sandbox submodule update --init --depth 1 -- \
+    packages/ios/Sources/CQuickJS/quickjs || failures=$((failures + 1))
+fi
 if (( failures )); then
   echo "Не удалось восстановить подмодули: $failures" >&2
   exit 1

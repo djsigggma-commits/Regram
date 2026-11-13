@@ -10,20 +10,20 @@ MAIN=ROOT/'TMessagesProj/src/main'
 
 def test_version_and_package_identity_are_separate():
     props=dict(line.split('=',1) for line in (ROOT/'gradle.properties').read_text().splitlines() if '=' in line and not line.startswith('#'))
-    assert props['APP_VERSION_NAME']=='13.1.1'
-    assert props['APP_VERSION_CODE']=='7237'
+    assert props['APP_VERSION_NAME']=='13.2.2'
+    assert props['APP_VERSION_CODE']=='7303'
     assert props['APP_PACKAGE']=='app.regram.android'
-    assert props['REGRAM_VERSION']==props['APP_VERSION_NAME']+'.1'  # Revision of the same Telegram base.
+    assert props['REGRAM_VERSION']==props['APP_VERSION_NAME']  # First release on this Telegram base.
     assert props['REGRAM_LEGACY_VERSION']=='1.4.8.9'
-    assert 'public static final int LAYER = 232;' in (MAIN/'java/org/telegram/tgnet/TLRPC.java').read_text()
+    assert 'public static final int LAYER = 233;' in (MAIN/'java/org/telegram/tgnet/TLRPC.java').read_text()
 
 
 def test_new_native_bridges_and_pinned_dependencies():
     restore=(ROOT/'tools/restore_submodules.sh').read_text()
-    for sha in ('1398c1648f52666b3249111ec3c5b531946e41e4',
+    for sha in ('545f5ae599f8282e1ae3f38aaff166d179d75703',
                 '5c65e47cb8d68727c20d89382d0bc51292486b9a',
                 '4cbcd3078e6ae10d05124379623a1bf03fcb9350',
-                '31a5d6fbbef8136e4a2b3adaf7b95e2ccaa7436d',
+                '94640c63c20eacdf70e37e23198d9ab53c802ebd',
                 'eab341a401913ac50254ff20e9efeebeaae872ef',
                 '31f1b542f88e7b4be9a01e749920d857535fc715'):
         assert sha in restore

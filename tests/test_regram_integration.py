@@ -86,7 +86,10 @@ class RegramIntegrationTests(unittest.TestCase):
         paths = [ROOT / "TMessagesProj/src/main/AndroidManifest.xml"]
         paths.extend((ROOT / "TMessagesProj/src/main/res/xml").glob("*.xml"))
         for path in paths:
-            self.assertNotIn("com.exteraless.app", path.read_text(), str(path))
+            text = path.read_text()
+            # The optional external media bridge is an upstream companion, not our identity.
+            text = text.replace('<package android:name="com.exteraless.app.mediabridge"/>', '')
+            self.assertNotIn("com.exteraless.app", text, str(path))
 
     def test_every_port_has_persistence_ui_and_call_site(self):
         config = (JAVA / "tw/nekomimi/nekogram/NekoConfig.java").read_text()

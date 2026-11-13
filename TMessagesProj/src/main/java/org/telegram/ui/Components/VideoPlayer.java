@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.common.C;
+import androidx.media3.exoplayer.DecoderReuseEvaluation;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
@@ -324,6 +325,10 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                 builder.setLooper(looper);
             }
             player = builder.build();
+            player.setAudioAttributes(new AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                .build(), false);
 
             player.addAnalyticsListener(this);
             player.addListener(this);
@@ -344,6 +349,10 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
                         .setRenderersFactory(new DefaultRenderersFactory(ApplicationLoader.applicationContext).setExtensionRendererMode(getPlayerExtensionRendererMode()))
                         .setTrackSelector(trackSelector)
                         .setLoadControl(loadControl).build();
+                audioPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(), false);
                 audioPlayer.addListener(new Player.Listener() {
 
                     @Override
@@ -716,22 +725,18 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
     public int getCurrentQualityIndex() {
         if (selectedQualityIndex == QUALITY_AUTO) {
             try {
-                if (autoIsOriginal) {
-                    for (int j = 0; j < getQualitiesCount(); ++j) {
-                        final Quality q = getQuality(j);
-                        if (q.original) {
-                            return j;
-                        }
-                    }
+                if (!currentStreamIsHls && videoQualityToSelect != null && videoQualities != null) {
+                    return videoQualities.indexOf(videoQualityToSelect);
                 }
 
                 if (player == null) return -1;
                 final Format format = player.getVideoFormat();
                 if (format == null) return -1;
                 for (int j = 0; j < getQualitiesCount(); ++j) {
-                    final Quality q = getQuality(j);
-                    if (!q.original && format.width == q.width && format.height == q.height && format.bitrate == (int) Math.floor(q.uris.get(0).bitrate * 8)) {
-                        return j;
+                    for (VideoUri uri : getQuality(j).uris) {
+                        if (uri.docId == format.documentId) {
+                            return j;
+                        }
                     }
                 }
 
@@ -1621,6 +1626,10 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         } catch (Exception ignore) {}
     }
 
+    public void setPlaybackSpeed(float speed, boolean pitch) {
+        setPlaybackSpeed(speed, pitch ? speed : 1.0f);
+    }
+
     public float getPlaybackSpeed() {
         if (player == null) return 1.0f;
         final PlaybackParameters params = player.getPlaybackParameters();
@@ -1846,11 +1855,13 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
         if (player != null) {
             player.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(type == AudioManager.STREAM_VOICE_CALL ? C.USAGE_VOICE_COMMUNICATION : C.USAGE_MEDIA)
+                .setContentType(type == AudioManager.STREAM_VOICE_CALL ? C.AUDIO_CONTENT_TYPE_SPEECH : C.AUDIO_CONTENT_TYPE_MOVIE)
                 .build(), handleAudioFocus);
         }
         if (audioPlayer != null) {
             audioPlayer.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(type == AudioManager.STREAM_VOICE_CALL ? C.USAGE_VOICE_COMMUNICATION : C.USAGE_MEDIA)
+                .setContentType(type == AudioManager.STREAM_VOICE_CALL ? C.AUDIO_CONTENT_TYPE_SPEECH : C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build(), true);
         }
     }
@@ -2215,6 +2226,13 @@ public class VideoPlayer implements Player.Listener, VideoListener, AnalyticsLis
 
     public void setIsStory() {
         isStory = true;
+    }
+
+    @Override
+    public void onVideoInputFormatChanged(EventTime eventTime, Format format, @Nullable DecoderReuseEvaluation decoderReuseEvaluation) {
+        if (onQualityChangeListener != null) {
+            AndroidUtilities.runOnUIThread(onQualityChangeListener);
+        }
     }
 
     @Override

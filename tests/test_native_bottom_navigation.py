@@ -10,8 +10,8 @@ def source(path):
 
 def test_folders_reserve_space_at_selected_edge():
     dialogs = source('org/telegram/ui/DialogsActivity.java')
-    assert 'final float filterTabsVisibility = AppearanceConfig.foldersAtTop()' in dialogs
-    assert '? getFilterTabsVisibilityFactor(true) : 0f;' in dialogs
+    assert 'final float filterTabsVisibility = (AppearanceConfig.foldersAtTop()' in dialogs
+    assert '? getFilterTabsVisibilityFactor(false) : 0f);' in dialogs
     assert 'return AppearanceConfig.foldersAtTop() ? 0 : getVisibleFoldersHeight();' in dialogs
     assert 'return AppearanceConfig.foldersAtTop() ? getVisibleFoldersHeight() : 0;' in dialogs
     assert 'filterTabsView.setTranslationY(totalOffset - searchOffset);' in dialogs
@@ -23,6 +23,10 @@ def test_folders_reserve_space_at_selected_edge():
     assert 'fragmentView.getMeasuredHeight() - getBottomFoldersPadding()' in dialogs
     assert 'topPanelsHeight + getTopFoldersHeight() - s' in dialogs
     assert 'getBottomTabsVisibility()' in dialogs
+    animation = dialogs.split('public void onBottomTabsAnimationChanged() {', 1)[1].split('}', 1)[0]
+    assert 'updateContextViewPosition();' in animation
+    assert 'glassEngine.invalidate();' in animation
+    assert 'blur3_InvalidateBlur' not in dialogs
 
 
 def test_folder_position_setting_is_persisted_and_rebuilds_views():

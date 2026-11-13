@@ -25,12 +25,16 @@ def test_exact_actions_snapshot_and_pins():
     assert len(manifest["deletions"]) == 31
     restore = (ROOT / "tools/restore_submodules.sh").read_text()
     assert len(manifest["gitlinks"]) == 16
-    for path, sha in manifest["gitlinks"].items():
+    current = json.loads((ROOT / "docs/upstream/base-43392419710.json").read_text())
+    for path, sha in current["gitlinks"].items():
         assert sha in restore
         if (ROOT / path / ".git").exists():
             actual = subprocess.check_output(["git", "-C", str(ROOT / path), "rev-parse", "HEAD"], text=True).strip()
             assert actual == sha, path
+    removed = {item["path"] for item in current["deletions"]}
     for item in manifest["delta"]:
+        if item["path"] in removed:
+            continue
         path = ROOT / item["path"]
         assert path.is_file(), item["path"]
         if path.suffix in (".java", ".kt", ".py", ".xml", ".gradle", ".properties", ".attheme"):
@@ -63,6 +67,7 @@ def test_recorder_and_local_glyph_hooks_survive():
 
 def test_rich_quote_highlights_follow_allleft_layout():
     cell = source("java/org/telegram/ui/Cells/ChatMessageCell.java")
+    cell += source("java/org/telegram/ui/Cells/ChatMessagePoll.java")
     highlights = [line for line in cell.splitlines() if "quoteHighlight.paint.setColor(" in line]
     assert len(highlights) >= 3
     assert all("isOutOwnerForLayout()" in line for line in highlights)

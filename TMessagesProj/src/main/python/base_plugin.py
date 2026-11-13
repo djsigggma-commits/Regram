@@ -7,6 +7,8 @@ running on a host interpreter.
 
 import json
 import sys
+from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Callable, Dict, Optional
 
 
@@ -116,7 +118,7 @@ _APP_EVENT_FROM_JAVA = {
 
 # Menus
 
-class MenuItemType:
+class MenuItemType(str, Enum):
     """Menu placements; values are exact Java enum names (MenuItemRecord.MenuType)."""
     MESSAGE_CONTEXT_MENU = "message_context_menu"
     DRAWER_MENU = "drawer_menu"
@@ -124,6 +126,9 @@ class MenuItemType:
     CHAT_ACTION_MENU = "chat_action_menu"
     PROFILE_ACTION_MENU = "profile_action_menu"
     CHAT_CONTEXT = MESSAGE_CONTEXT_MENU
+
+    def __str__(self):
+        return self.value
 
 
 class MenuItemData(dict):
@@ -625,6 +630,7 @@ _NO_CLIENT_OVERRIDE = object()
 
 # BasePlugin
 
+
 class BasePlugin:
     """Base class every plugin must subclass exactly once per module."""
 
@@ -696,6 +702,20 @@ class BasePlugin:
         return PythonBridge is not None and bool(self._exteraless_plugin_id)
 
     # ---- logging ----
+
+    @property
+    def logger(self):
+        import log_utils
+        if self._exteraless_plugin_id:
+            return log_utils._plugin_logger(self._exteraless_plugin_id)
+        return log_utils.get_logger(type(self).__name__)
+
+    def register_cleanup(self, cleanup):
+        from extera_utils import lifecycle
+        return lifecycle.begin(self._exteraless_plugin_id or type(self).__name__).register_cleanup(cleanup)
+
+    def log_exception(self, msg, exception=None):
+        self.log(f"{msg}: {exception!r}" if exception is not None else str(msg))
 
     def log(self, msg):
         """Write a message to the app's plugin log pipeline."""
@@ -1178,6 +1198,16 @@ class BasePlugin:
         on_plugin_unload(); never raises. The Java side performs its own
         per-plugin sweep as well — every call here tolerates duplicates.
         """
+        try:
+            from extera_utils import lifecycle
+            lifecycle.stop(self._exteraless_plugin_id or type(self).__name__)
+        except Exception:
+            pass
+        try:
+            import log_utils
+            log_utils._reset_plugin_logger(self._exteraless_plugin_id or type(self).__name__)
+        except Exception:
+            pass
         if PluginServices is not None:
             for unhook_id in list(self._exteraless_state("_exteraless_method_hook_ids", list)):
                 try:

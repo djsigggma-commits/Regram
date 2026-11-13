@@ -42,8 +42,9 @@ def test_download_and_badge_fetch_do_not_block_telegram_global_queue():
     assert 'Utilities.globalQueue.postRunnable' not in installer
     assert 'pending.get(nextIndex++)' in installer
     assert 'pending.remove(0)' not in installer
-    assert 'SupporterBadges.clear(title)' in profile
-    assert 'SupporterBadges.withoutBadge(titleTextView.getRightDrawable2())' in profile
+    assert 'SupporterBadges.clear(nameTextView)' in profile
+    assert 'SupporterBadges.decorate(nameTextView, user.id, currentAccount)' in profile
+    assert profile.index('SupporterBadges.clear(nameTextView)') < profile.index('SupporterBadges.decorate(nameTextView, user.id, currentAccount)')
     assert 'SupporterBadges.clear(avatarContainer.getTitleTextView())' in chat
 
 

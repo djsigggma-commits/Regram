@@ -60,6 +60,7 @@ import org.telegram.ui.ActionBar.AlertDialogDecor;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.FloatingToolbar;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.ActionBar.ThemeBind;
 import org.telegram.ui.LaunchActivity;
 
 import java.util.List;
@@ -89,6 +90,7 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
     private int lineCount;
     private boolean isInitLineCount;
     private final Theme.ResourcesProvider resourcesProvider;
+    private int themedQuoteColor;
     private AlertDialog creationLinkDialog;
     public boolean adaptiveCreateLinkDialog;
 
@@ -101,7 +103,7 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
     public EditTextCaption(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context);
         this.resourcesProvider = resourcesProvider;
-        quoteColor = Theme.getColor(Theme.key_chat_inQuote, resourcesProvider);
+        quoteColor = themedQuoteColor = Theme.getColor(Theme.key_chat_inQuote, resourcesProvider);
         addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -719,19 +721,19 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
         final String def = initial == null ? "" : initial;
         editText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         editText.setText(def);
-        editText.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+        ThemeBind.textColor(editText, Theme.key_dialogTextBlack, resourcesProvider);
         editText.setHintText(hint);
-        editText.setHeaderHintColor(getThemedColor(Theme.key_windowBackgroundWhiteBlueHeader));
+        ThemeBind.editHeaderHintColor(editText, Theme.key_windowBackgroundWhiteBlueHeader, resourcesProvider);
         editText.setSingleLine(true);
         editText.setFocusable(true);
         editText.setTransformHintToHeader(true);
-        editText.setLineColors(getThemedColor(Theme.key_windowBackgroundWhiteInputField), getThemedColor(Theme.key_windowBackgroundWhiteInputFieldActivated), getThemedColor(Theme.key_text_RedRegular));
+        ThemeBind.lineColors(editText, Theme.key_windowBackgroundWhiteInputField, Theme.key_windowBackgroundWhiteInputFieldActivated, Theme.key_text_RedRegular, resourcesProvider);
         editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
         editText.setBackgroundDrawable(null);
         editText.requestFocus();
         editText.setPadding(0, 0, 0, 0);
-        editText.setHighlightColor(getThemedColor(Theme.key_chat_inTextSelectionHighlight));
-        editText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
+        ThemeBind.highlightColor(editText, Theme.key_chat_inTextSelectionHighlight, resourcesProvider);
+        ThemeBind.editHandlesColor(editText, Theme.key_chat_TextSelectionCursor, resourcesProvider);
         container.addView(editText, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
 
         TextView pasteTextView = new TextView(getContext());
@@ -741,8 +743,8 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
         pasteTextView.setPadding(dp(10), 0, dp(10), 0);
         pasteTextView.setGravity(Gravity.CENTER);
         int textColor = getThemedColor(Theme.key_windowBackgroundWhiteBlueText2);
-        pasteTextView.setTextColor(textColor);
-        pasteTextView.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(6), Theme.multAlpha(textColor, .12f), Theme.multAlpha(textColor, .15f)));
+        ThemeBind.textColor(pasteTextView, Theme.key_windowBackgroundWhiteBlueText2, resourcesProvider);
+        ThemeBind.selectorBackground(pasteTextView, Theme.createSimpleSelectorRoundRectDrawable(dp(6), Theme.multAlpha(textColor, .12f), Theme.multAlpha(textColor, .15f)), ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteBlueText2, .12f), ThemeBind.multAlpha(Theme.key_windowBackgroundWhiteBlueText2, .15f), resourcesProvider);
         ScaleStateListAnimator.apply(pasteTextView, .1f, 1.5f);
         container.addView(pasteTextView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 26, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 24, 3));
         pasteTextView.setVisibility(showPaste ? VISIBLE : GONE);
@@ -989,7 +991,11 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
             start = getSelectionStart();
             end = getSelectionEnd();
         }
-        MediaDataController.addStyleToText(span, start, end, getText(), allowTextEntitiesIntersection);
+        if (span != null) {
+            applyStyleSpanToSelection(span, start, end);
+        } else {
+            MediaDataController.addStyleToText(null, start, end, getText(), allowTextEntitiesIntersection);
+        }
 
         if (span == null) {
             Editable editable = getText();
@@ -1012,6 +1018,71 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
         if (delegate != null) {
             delegate.onSpansChanged();
         }
+    }
+
+    // stock MediaDataController.addStyleToText carves the unstyled remainder with a single (start,end) pair,
+    // so with 2+ overlapping spans in the selection it re-splits later spans against the wrong bounds and
+    // smears them across the gap (e.g. mono leaking over the whole selection). split each span independently.
+    private void applyStyleSpanToSelection(TextStyleSpan span, int start, int end) {
+        Editable editable = getText();
+        if (editable == null) return;
+        if (start > end) { int t = start; start = end; end = t; }
+        if (start < 0) start = 0;
+        if (end > editable.length()) end = editable.length();
+        if (start >= end) return;
+
+        TextStyleSpan.TextStyleRun newRun = span.getTextStyleRun();
+        boolean[] covered = new boolean[end - start];
+
+        for (CharacterStyle old : editable.getSpans(start, end, CharacterStyle.class)) {
+            TextStyleSpan.TextStyleRun run;
+            if (old instanceof TextStyleSpan) {
+                run = ((TextStyleSpan) old).getTextStyleRun();
+            } else if (old instanceof URLSpanReplacement) {
+                run = ((URLSpanReplacement) old).getTextStyleRun();
+                if (run == null) run = new TextStyleSpan.TextStyleRun();
+            } else {
+                continue;
+            }
+            int ss = editable.getSpanStart(old);
+            int se = editable.getSpanEnd(old);
+            int oStart = Math.max(start, ss);
+            int oEnd = Math.min(end, se);
+            editable.removeSpan(old);
+            if (ss < oStart) {
+                editable.setSpan(cloneStyleSpan(old, run, null), ss, oStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            if (oStart < oEnd) {
+                editable.setSpan(cloneStyleSpan(old, run, newRun), oStart, oEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                for (int i = oStart - start; i < oEnd - start; i++) covered[i] = true;
+            }
+            if (oEnd < se) {
+                editable.setSpan(cloneStyleSpan(old, run, null), oEnd, se, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+
+        int i = 0;
+        while (i < covered.length) {
+            if (covered[i]) { i++; continue; }
+            int gap = i;
+            while (i < covered.length && !covered[i]) i++;
+            editable.setSpan(new TextStyleSpan(new TextStyleSpan.TextStyleRun(newRun)), start + gap, start + i, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+    }
+
+    private CharacterStyle cloneStyleSpan(CharacterStyle base, TextStyleSpan.TextStyleRun baseRun, TextStyleSpan.TextStyleRun mergeRun) {
+        TextStyleSpan.TextStyleRun run = new TextStyleSpan.TextStyleRun(baseRun);
+        if (mergeRun != null) {
+            if (allowTextEntitiesIntersection) {
+                run.merge(mergeRun);
+            } else {
+                run.replace(mergeRun);
+            }
+        }
+        if (base instanceof URLSpanReplacement) {
+            return new URLSpanReplacement(((URLSpanReplacement) base).getURL(), run);
+        }
+        return new TextStyleSpan(run);
     }
 
     @Override
@@ -1226,6 +1297,10 @@ public class EditTextCaption extends EditTextBoldCursor implements FloatingToolb
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if (quoteColor == themedQuoteColor) {
+            // follow theme changes unless a custom quote color was set
+            quoteColor = themedQuoteColor = Theme.getColor(Theme.key_chat_inQuote, resourcesProvider);
+        }
         canvas.save();
         canvas.translate(0, offsetY);
         super.onDraw(canvas);

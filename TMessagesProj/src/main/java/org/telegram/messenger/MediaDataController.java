@@ -1014,6 +1014,24 @@ public class MediaDataController extends BaseController {
         return false;
     }
 
+    public TLRPC.InputStickerSet getFaveStickerSet(long documentId) {
+        if (!NekoConfig.unlimitedFavedStickers.Bool()) {
+            return null;
+        }
+        try {
+            ArrayList<TLRPC.Document> documents = new ArrayList<>(recentStickers[TYPE_FAVE]);
+            for (int a = 0, N = documents.size(); a < N; a++) {
+                TLRPC.Document document = documents.get(a);
+                if (document != null && document.id == documentId) {
+                    return MessageObject.getInputStickerSet(document);
+                }
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
     public void clearRecentStickers() {
         TLRPC.TL_messages_clearRecentStickers req = new TLRPC.TL_messages_clearRecentStickers();
         getConnectionsManager().sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
@@ -1059,26 +1077,22 @@ public class MediaDataController extends BaseController {
                 boolean replace = !NekoConfig.unlimitedFavedStickers.Bool() && recentStickers[type].size() > (getUserConfig().isPremium() ? 10 : getMessagesController().maxFaveStickersCount);
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_STICKER, document, replace ? StickerSetBulletinLayout.TYPE_REPLACED_TO_FAVORITES : StickerSetBulletinLayout.TYPE_ADDED_TO_FAVORITES);
             }
-            if (!NekoConfig.unlimitedFavedStickers.Bool()) {
-                TLRPC.TL_messages_faveSticker req = new TLRPC.TL_messages_faveSticker();
-                req.id = new TLRPC.TL_inputDocument();
-                req.id.id = document.id;
-                req.id.access_hash = document.access_hash;
-                req.id.file_reference = document.file_reference;
-                if (req.id.file_reference == null) {
-                    req.id.file_reference = new byte[0];
-                }
-                req.unfave = remove;
-                getConnectionsManager().sendRequest(req, (response, error) -> {
-                    if (error != null && FileRefController.isFileRefError(error.text) && parentObject != null) {
-                        getFileRefController().requestReference(parentObject, req);
-                    } else {
-                        AndroidUtilities.runOnUIThread(() -> getMediaDataController().loadRecents(MediaDataController.TYPE_FAVE, false, false, true));
-                    }
-                });
-            } else {
-                AndroidUtilities.runOnUIThread(() -> getMediaDataController().loadRecents(MediaDataController.TYPE_FAVE, false, true, false));
+            TLRPC.TL_messages_faveSticker req = new TLRPC.TL_messages_faveSticker();
+            req.id = new TLRPC.TL_inputDocument();
+            req.id.id = document.id;
+            req.id.access_hash = document.access_hash;
+            req.id.file_reference = document.file_reference;
+            if (req.id.file_reference == null) {
+                req.id.file_reference = new byte[0];
             }
+            req.unfave = remove;
+            getConnectionsManager().sendRequest(req, (response, error) -> {
+                if (error != null && FileRefController.isFileRefError(error.text) && parentObject != null) {
+                    getFileRefController().requestReference(parentObject, req);
+                } else {
+                    AndroidUtilities.runOnUIThread(() -> getMediaDataController().loadRecents(MediaDataController.TYPE_FAVE, false, false, true));
+                }
+            });
             maxCount = NekoConfig.unlimitedFavedStickers.Bool() ? Integer.MAX_VALUE : getUserConfig().isPremium() ? 10 : getMessagesController().maxFaveStickersCount;
         } else {
             if (type == TYPE_IMAGE && remove) {
@@ -2325,6 +2339,31 @@ public class MediaDataController extends BaseController {
                     }
                 } catch (Exception e) {
                     FileLog.e(e);
+                }
+            });
+        } else if (date == 0) {
+            AndroidUtilities.runOnUIThread(() -> {
+                SharedPreferences.Editor editor = MessagesController.getEmojiSettings(currentAccount).edit();
+                if (gif) {
+                    loadingRecentGifs = false;
+                    recentGifsLoaded = true;
+                    editor.putLong("lastGifLoadTime", System.currentTimeMillis()).apply();
+                } else {
+                    loadingRecentStickers[type] = false;
+                    recentStickersLoaded[type] = true;
+                    if (type == TYPE_IMAGE) {
+                        editor.putLong("lastStickersLoadTime", System.currentTimeMillis()).apply();
+                    } else if (type == TYPE_MASK) {
+                        editor.putLong("lastStickersLoadTimeMask", System.currentTimeMillis()).apply();
+                    } else if (type == TYPE_GREETINGS) {
+                        editor.putLong("lastStickersLoadTimeGreet", System.currentTimeMillis()).apply();
+                    } else if (type == TYPE_EMOJIPACKS) {
+                        editor.putLong("lastStickersLoadTimeEmojiPacks", System.currentTimeMillis()).apply();
+                    } else if (type == TYPE_PREMIUM_STICKERS) {
+                        editor.putLong("lastStickersLoadTimePremiumStickers", System.currentTimeMillis()).apply();
+                    } else {
+                        editor.putLong("lastStickersLoadTimeFavs", System.currentTimeMillis()).apply();
+                    }
                 }
             });
         }
@@ -4090,7 +4129,7 @@ public class MediaDataController extends BaseController {
                     req.flags |= 1;
                 }
                 if (replyMessageId != 0) {
-                    if (dialogId == getUserConfig().getClientUserId() || getMessagesStorage().isMonoForum(queryWithDialog)) {
+                    if (dialogId == getUserConfig().getClientUserId() || getMessagesController().isMonoForum(queryWithDialog)) {
                         req.saved_peer_id = getMessagesController().getInputPeer(replyMessageId);
                         req.flags |= 4;
                     } else {
@@ -4176,7 +4215,7 @@ public class MediaDataController extends BaseController {
             }, true);
         }
         if (lastReplyMessageId != 0) {
-            if (queryWithDialog == getUserConfig().getClientUserId() || getMessagesStorage().isMonoForum(queryWithDialog)) {
+            if (queryWithDialog == getUserConfig().getClientUserId() || getMessagesController().isMonoForum(queryWithDialog)) {
                 req.saved_peer_id = getMessagesController().getInputPeer(lastReplyMessageId);
                 req.flags |= 4;
             } else {
@@ -4200,7 +4239,7 @@ public class MediaDataController extends BaseController {
                 int N = Math.min(res.messages.size(), req.limit - 1);
                 for (int a = 0; a < N; a++) {
                     TLRPC.Message message = res.messages.get(a);
-                    MessageObject messageObject = new MessageObject(currentAccount, message, null, null, null, null, null, true, true, 0, false, false, isSaved);
+                    MessageObject messageObject = new MessageObject(currentAccount, message, null, null, null, null, null, false, true, 0, false, false, isSaved);
                     if (messageObject.hasValidGroupId()) {
                         messageObject.isPrimaryGroupMessage = true;
                     }
@@ -5122,7 +5161,7 @@ public class MediaDataController extends BaseController {
         });
     }
 
-    public void loadMusic(long dialogId, long maxId, long minId) {
+    public void loadMusic(long dialogId, long topicId, long maxId, long minId) {
         getMessagesStorage().getStorageQueue().postRunnable(() -> {
             ArrayList<MessageObject> arrayListBegin = new ArrayList<>();
             ArrayList<MessageObject> arrayListEnd = new ArrayList<>();
@@ -5130,7 +5169,9 @@ public class MediaDataController extends BaseController {
                 for (int a = 0; a < 2; a++) {
                     ArrayList<MessageObject> arrayList = a == 0 ? arrayListBegin : arrayListEnd;
                     SQLiteCursor cursor;
-                    if (a == 0) {
+                    if (topicId != 0) {
+                        cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, mid FROM media_topics WHERE uid = %d AND topic_id = %d AND mid %s %d AND type = %d ORDER BY date DESC, mid DESC LIMIT 1000", dialogId, topicId, a == 0 ? "<" : ">", a == 0 ? maxId : minId, MEDIA_MUSIC));
+                    } else if (a == 0) {
                         if (!DialogObject.isEncryptedDialog(dialogId)) {
                             cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT data, mid FROM media_v4 WHERE uid = %d AND mid < %d AND type = %d ORDER BY date DESC, mid DESC LIMIT 1000", dialogId, maxId, MEDIA_MUSIC));
                         } else {
@@ -5162,7 +5203,7 @@ public class MediaDataController extends BaseController {
             } catch (Exception e) {
                 FileLog.e(e);
             }
-            AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.musicDidLoad, dialogId, arrayListBegin, arrayListEnd));
+            AndroidUtilities.runOnUIThread(() -> getNotificationCenter().postNotificationName(NotificationCenter.musicDidLoad, dialogId, arrayListBegin, arrayListEnd, topicId));
         });
     }
     //---------------- MEDIA END ----------------
@@ -5304,29 +5345,6 @@ public class MediaDataController extends BaseController {
                         try {
                             File path = getFileLoader().getPathToAttach(photo, true);
                             bitmap = BitmapFactory.decodeFile(path.toString());
-                            if (bitmap != null) {
-                                int size = AndroidUtilities.dp(48);
-                                Bitmap result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                                Canvas canvas = new Canvas(result);
-                                if (roundPaint == null) {
-                                    roundPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-                                    bitmapRect = new RectF();
-                                    erasePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                                    erasePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                                    roundPath = new Path();
-                                    roundPath.addCircle(size / 2, size / 2, size / 2 - AndroidUtilities.dp(2), Path.Direction.CW);
-                                    roundPath.toggleInverseFillType();
-                                }
-                                bitmapRect.set(AndroidUtilities.dp(2), AndroidUtilities.dp(2), AndroidUtilities.dp(46), AndroidUtilities.dp(46));
-                                canvas.drawBitmap(bitmap, null, bitmapRect, roundPaint);
-                                canvas.drawPath(roundPath, erasePaint);
-                                try {
-                                    canvas.setBitmap(null);
-                                } catch (Exception ignore) {
-
-                                }
-                                bitmap = result;
-                            }
                         } catch (Throwable e) {
                             FileLog.e(e);
                         }
@@ -5344,11 +5362,7 @@ public class MediaDataController extends BaseController {
                     if (SharedConfig.directShare) {
                         builder.setCategories(category);
                     }
-                    if (bitmap != null) {
-                        builder.setIcon(IconCompat.createWithBitmap(bitmap));
-                    } else {
-                        builder.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.shortcut_user));
-                    }
+                    builder.setIcon(app.regram.chats.ShortcutIcons.createAvatarIcon(bitmap, user, chat));
 
                     if (recreateShortcuts) {
                         ShortcutManagerCompat.pushDynamicShortcut(ApplicationLoader.applicationContext, builder.build());
@@ -5745,7 +5759,7 @@ public class MediaDataController extends BaseController {
             try {
                 int lastTime = 0;
                 int lastMid = 0;
-                SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT MAX(mid), MAX(date) FROM messages_v2 WHERE uid = %d AND out = 1", dialogId));
+                SQLiteCursor cursor = getMessagesStorage().getDatabase().queryFinalized(String.format(Locale.US, "SELECT mid, date FROM messages_v2 INDEXED BY uid_mid_read_out_idx_messages_v2 WHERE uid = %d AND out = 1 ORDER BY mid DESC LIMIT 1", dialogId));
                 if (cursor.next()) {
                     lastMid = cursor.intValue(0);
                     lastTime = cursor.intValue(1);
@@ -5940,47 +5954,6 @@ public class MediaDataController extends BaseController {
                         File path = getFileLoader().getPathToAttach(photo, true);
                         bitmap = BitmapFactory.decodeFile(path.toString());
                     }
-                    if (overrideAvatar || bitmap != null) {
-                        int size = AndroidUtilities.dp(58);
-                        Bitmap result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                        result.eraseColor(Color.TRANSPARENT);
-                        Canvas canvas = new Canvas(result);
-                        if (overrideAvatar) {
-                            AvatarDrawable avatarDrawable = new AvatarDrawable(user);
-                            if (UserObject.isReplyUser(user)) {
-                                avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_REPLIES);
-                            } else {
-                                avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_SAVED);
-                            }
-                            avatarDrawable.setBounds(0, 0, size, size);
-                            avatarDrawable.draw(canvas);
-                        } else {
-                            BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
-                            if (roundPaint == null) {
-                                roundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                                bitmapRect = new RectF();
-                            }
-                            float scale = size / (float) bitmap.getWidth();
-                            canvas.save();
-                            canvas.scale(scale, scale);
-                            roundPaint.setShader(shader);
-                            bitmapRect.set(0, 0, bitmap.getWidth(), bitmap.getHeight());
-                            canvas.drawRoundRect(bitmapRect, bitmap.getWidth(), bitmap.getHeight(), roundPaint);
-                            canvas.restore();
-                        }
-                        Drawable drawable = ApplicationLoader.applicationContext.getResources().getDrawable(R.drawable.book_logo);
-                        int w = AndroidUtilities.dp(15);
-                        int left = size - w - AndroidUtilities.dp(2);
-                        int top = size - w - AndroidUtilities.dp(2);
-                        drawable.setBounds(left, top, left + w, top + w);
-                        drawable.draw(canvas);
-                        try {
-                            canvas.setBitmap(null);
-                        } catch (Exception e) {
-                            //don't promt, this will crash on 2.x
-                        }
-                        bitmap = result;
-                    }
                 } catch (Throwable e) {
                     FileLog.e(e);
                 }
@@ -5992,23 +5965,7 @@ public class MediaDataController extends BaseController {
                         .setShortLabel(name)
                         .setIntent(shortcutIntent);
 
-                if (bitmap != null) {
-                    pinShortcutInfo.setIcon(IconCompat.createWithBitmap(bitmap));
-                } else {
-                    if (user != null) {
-                        if (user.bot) {
-                            pinShortcutInfo.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.book_bot));
-                        } else {
-                            pinShortcutInfo.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.book_user));
-                        }
-                    } else {
-                        if (ChatObject.isChannel(chat) && !chat.megagroup) {
-                            pinShortcutInfo.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.book_channel));
-                        } else {
-                            pinShortcutInfo.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.drawable.book_group));
-                        }
-                    }
-                }
+                pinShortcutInfo.setIcon(app.regram.chats.ShortcutIcons.createAvatarIcon(bitmap, user, chat));
 
                 PendingIntent callbackIntent = null;
                 if (callback != null) {
@@ -7031,6 +6988,7 @@ public class MediaDataController extends BaseController {
                 if (arrayList != null) {
                     for (int b = 0; b < arrayList.size(); b++) {
                         MessageObject m = arrayList.get(b);
+                        if (m.replyMessageObject != null && m.replyMessageObject.isSpoilersRevealed) messageObject.isSpoilersRevealed = true;
                         m.replyMessageObject = messageObject;
                         m.applyTimestampsHighlightForReplyMsg();
                         if (m.messageOwner.action instanceof TLRPC.TL_messageActionPinMessage) {

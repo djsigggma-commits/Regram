@@ -279,13 +279,20 @@ public class BitmapsCache {
                             }
                             bitmap[i] = null;
                         }
+                        bitmap[i] = null;
                     }
                     randomAccessFile.close();
                     source.releaseForGenerateCache();
                     return;
                 }
 
-                if (source.getNextFrame(bitmap[index]) != 1) {
+                int frameResult = source.getNextFrame(bitmap[index]);
+                if (frameResult == -1) {
+                    // render failed: abort without marking the cache as complete
+                    closed.set(true);
+                    continue;
+                }
+                if (frameResult != 1) {
                     break;
                 }
                 countDownLatch[index] = new CountDownLatch(1);
@@ -296,6 +303,7 @@ public class BitmapsCache {
                 RandomAccessFile finalRandomAccessFile1 = randomAccessFile;
                 bitmapCompressExecutor.execute(() -> {
                     if (cancelled.get() || closed.get()) {
+                        countDownLatch[finalIndex].countDown();
                         return;
                     }
 
